@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Login History{% endblock %}
+{% block page_title %}<i class="bi bi-clock-history me-2"></i>Login History{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{{ url_for('users_list') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to Accounts
+  </a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+    <span>Authentication Log <span class="badge bg-secondary ms-2">Last 200 events</span></span>
+    <span class="text-muted small">
+      <i class="bi bi-shield-lock me-1"></i>Security audit trail
+    </span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Timestamp</th>
+          <th>Full Name</th>
+          <th>Username</th>
+          <th>IP Address</th>
+          <th>Outcome</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="text-muted">{{ log.timestamp }}</td>
+          <td>{{ log.full_name or '—' }}</td>
+          <td><code>{{ log.username }}</code></td>
+          <td class="text-muted font-monospace">{{ log.ip_address or '—' }}</td>
+          <td>
+            {% if log.outcome == 'success' %}
+              <span class="badge bg-success">
+                <i class="bi bi-check-circle me-1"></i>Success
+              </span>
+            {% elif log.outcome == 'failed' %}
+              <span class="badge bg-danger">
+                <i class="bi bi-x-circle me-1"></i>Failed
+              </span>
+            {% elif log.outcome == 'denied_inactive' %}
+              <span class="badge bg-warning text-dark">
+                <i class="bi bi-slash-circle me-1"></i>Denied (Inactive)
+              </span>
+            {% else %}
+              <span class="badge bg-secondary">{{ log.outcome }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size:2rem;"></i>
+            <p class="mt-2 mb-0">No login events recorded yet.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

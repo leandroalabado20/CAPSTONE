@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}{% if action == 'register' %}Register Applicant{% else %}Edit Applicant{% endif %}{% endblock %}
+{% block page_title %}
+  <i class="bi bi-person-{% if action == 'register' %}plus{% else %}pencil{% endif %}-fill me-2"></i>
+  {% if action == 'register' %}Register New Applicant{% else %}Edit Applicant{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="max-width:860px;">
+  <div class="card-header fw-semibold">
+    {% if action == 'register' %}New Applicant Registration{% else %}Edit Applicant Record{% endif %}
+  </div>
+  <div class="card-body">
+    <form method="POST"
+          action="{% if action == 'register' %}{{ url_for('applicant_register') }}{% else %}{{ url_for('applicant_edit', aid=applicant.id) }}{% endif %}">
+
+      <!-- Section: Personal Information -->
+      <h6 class="text-primary fw-bold mb-3 border-bottom pb-1">
+        <i class="bi bi-person me-2"></i>Personal Information
+      </h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+          <input type="text" name="first_name" class="form-control"
+                 value="{{ applicant.first_name if applicant else '' }}" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+          <input type="text" name="last_name" class="form-control"
+                 value="{{ applicant.last_name if applicant else '' }}" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Birthdate</label>
+          <input type="date" name="birthdate" class="form-control"
+                 value="{{ applicant.birthdate if applicant else '' }}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Sex</label>
+          <select name="sex" class="form-select">
+            <option value="">-- Select --</option>
+            {% for opt in ['Male','Female'] %}
+            <option {% if applicant and applicant.sex == opt %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Civil Status</label>
+          <select name="civil_status" class="form-select">
+            <option value="">-- Select --</option>
+            {% for opt in ['Single','Married','Widowed','Separated','Annulled'] %}
+            <option {% if applicant and applicant.civil_status == opt %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Contact Number</label>
+          <input type="text" name="contact_number" class="form-control"
+                 value="{{ applicant.contact_number if applicant else '' }}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Email Address</label>
+          <input type="email" name="email" class="form-control"
+                 value="{{ applicant.email if applicant else '' }}" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Barangay</label>
+          <input type="text" name="barangay" class="form-control"
+                 value="{{ applicant.barangay if applicant else '' }}" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">District</label>
+          <select name="district" class="form-select">
+            <option value="">-- Select --</option>
+            <option {% if applicant and applicant.district == 'District 1' %}selected{% endif %}>District 1</option>
+            <option {% if applicant and applicant.district == 'District 2' %}selected{% endif %}>District 2</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Employment Status</label>
+          <select name="employment_status" class="form-select">
+            {% for opt in ['Unemployed','Employed'] %}
+            <option {% if applicant and applicant.employment_status == opt %}selected
+                    {% elif not applicant and opt == 'Unemployed' %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <!-- Checkboxes row -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Special Categories</label>
+          <div class="d-flex flex-wrap gap-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_youth" id="is_youth"
+                     {% if applicant and applicant.is_youth %}checked{% endif %} />
+              <label class="form-check-label" for="is_youth">Youth (15–30 yrs)</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_senior" id="is_senior"
+                     {% if applicant and applicant.is_senior %}checked{% endif %} />
+              <label class="form-check-label" for="is_senior">Senior Citizen (60+)</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_pwd" id="is_pwd"
+                     {% if applicant and applicant.is_pwd %}checked{% endif %} />
+              <label class="form-check-label" for="is_pwd">Person with Disability (PWD)</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_4ps" id="is_4ps"
+                     {% if applicant and applicant.is_4ps %}checked{% endif %} />
+              <label class="form-check-label" for="is_4ps">4Ps Beneficiary</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: ML Profile (Required) -->
+      <h6 class="text-success fw-bold mb-3 border-bottom pb-1">
+        <i class="bi bi-cpu me-2"></i>Applicant Profile
+        <small class="text-muted fw-normal">(Required for job recommendation)</small>
+      </h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
+          <select name="educ_level" class="form-select" required>
+            <option value="">-- Select Education Level --</option>
+            {% for level in educ_levels %}
+            <option {% if applicant and applicant.educ_level == level %}selected{% endif %}>{{ level }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Preferred Position <span class="text-danger">*</span></label>
+          <input type="text" name="preferred_position" class="form-control"
+                 value="{{ applicant.preferred_position if applicant else '' }}"
+                 placeholder="e.g. Cashier, Warehouse Helper, Data Encoder" required />
+        </div>
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Skills <span class="text-danger">*</span></label>
+          <textarea name="skills" class="form-control" rows="3"
+                    placeholder="e.g. Customer Service, Cashiering, Microsoft Office, Forklift Operation"
+                    required>{{ applicant.skills if applicant else '' }}</textarea>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Work Experience</label>
+          <textarea name="work_experience" class="form-control" rows="3"
+                    placeholder="e.g. 1 year as Cashier, 6 mos as Data Encoder (leave blank if none)">{{ applicant.work_experience if applicant else '' }}</textarea>
+          <div class="form-text">Leave blank if the applicant has no prior work experience.</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary fw-semibold">
+          <i class="bi bi-save me-1"></i>
+          {% if action == 'register' %}Register Applicant{% else %}Save Changes{% endif %}
+        </button>
+        {% if action == 'register' %}
+        <button type="submit" name="recommend_now" value="1" class="btn btn-success fw-semibold">
+          <i class="bi bi-stars me-1"></i>Register &amp; Generate Recommendation
+        </button>
+        {% endif %}
+        <a href="{{ url_for('applicants_list') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

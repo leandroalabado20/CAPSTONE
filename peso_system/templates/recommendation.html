@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% block title %}Job Recommendation{% endblock %}
+{% block page_title %}<i class="bi bi-stars me-2"></i>Job Recommendation{% endblock %}
+
+{% block content %}
+<!-- Dashboard tab navigation -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link active fw-semibold" href="{{ url_for('recommendation') }}">
+      <i class="bi bi-stars me-1"></i>Job Recommendation
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('analytics') }}">
+      <i class="bi bi-bar-chart-fill me-1"></i>Analytical Dashboard
+    </a>
+  </li>
+</ul>
+
+{% if not pipeline_loaded %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  <strong>ML pipeline not available.</strong> The file
+  <code>recommendation_pipeline.pkl</code> was not found.
+  Ensure the ML training script has been run before using this feature.
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <!-- Left: Input form -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-primary text-white fw-semibold">
+        <i class="bi bi-person-lines-fill me-2"></i>Applicant Profile
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('generate_recommendation') }}" id="rec-form">
+          <!-- Mode toggle -->
+          <div class="mb-3">
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="mode" id="mode-select" value="select"
+                     {% if not sel_applicant and not results %}checked{% endif %}
+                     onchange="toggleMode(this.value)" />
+              <label class="btn btn-outline-primary" for="mode-select">
+                <i class="bi bi-person-check me-1"></i>Registered Applicant
+              </label>
+              <input type="radio" class="btn-check" name="mode" id="mode-quick" value="quick"
+                     onchange="toggleMode(this.value)" />
+              <label class="btn btn-outline-primary" for="mode-quick">
+                <i class="bi bi-person-plus me-1"></i>Quick Entry
+              </label>
+            </div>
+          </div>
+
+          <!-- Select applicant panel -->
+          <div id="panel-select">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Search Applicant</label>
+              <input type="text" id="applicant-search" class="form-control mb-2"
+                     placeholder="Type to filter..." oninput="filterApplicants(this.value)" />
+              <select name="applicant_id" id="applicant-select" class="form-select" size="8"
+                      style="overflow-y:auto;" onchange="previewApplicant(this.value)">
+                {% for ap in applicants %}
+                <option value="{{ ap.id }}"
+                  {% if preselect_id and preselect_id|int == ap.id %}selected{% endif %}
+                  {% if sel_applicant and sel_applicant.id == ap.id %}selected{% endif %}
+                  data-name="{{ ap.first_name }} {{ ap.last_name }}"
+                  data-educ="{{ ap.educ_level }}"
+                  data-pref="{{ ap.preferred_position }}">
+                  {{ ap.last_name }}, {{ ap.first_name }}
+                  <small>({{ ap.preferred_position }})</small>
+                </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">{{ applicants|length }} registered applicant(s)</div>
+            </div>
+          </div>
+
+          <!-- Quick entry panel -->
+          <div id="panel-quick" style="display:none;">
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
+              <select name="educ_level" class="form-select">
+                <option value="">-- Select --</option>
+                {% for level in ['Elementary Level','Elementary Graduate','High School Level',
+                   'High School Graduate','Senior High School Level','Senior High School Graduate',
+                   'College Level','College Graduate','Vocational','ALS'] %}
+                <option>{{ level }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Preferred Position <span class="text-danger">*</span></label>
+              <input type="text" name="preferred_position" class="form-control"
+                     placeholder="e.g. Cashier, Warehouse Helper" />
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Skills <span class="text-danger">*</span></label>
+              <textarea name="skills" class="form-control" rows="2"
+                        placeholder="e.g. Customer Service, Cashiering, Product Knowledge"></textarea>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Work Experience</label>
+              <textarea name="work_experience" class="form-control" rows="2"
+                        placeholder="e.g. 1 year as Cashier (leave blank if none)"></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 mt-3 fw-semibold"
+                  {% if not pipeline_loaded %}disabled{% endif %}>
+            <i class="bi bi-cpu me-2"></i>Generate Recommendations
+          </button>
+          <a href="{{ url_for('applicant_register') }}" class="btn btn-outline-secondary w-100 mt-2">
+            <i class="bi bi-person-plus me-1"></i>Register New Applicant
+          </a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Results -->
+  <div class="col-lg-7">
+    {% if results %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white fw-semibold">
+        <i class="bi bi-trophy-fill me-2"></i>Ranked Job Vacancies
+        {% if sel_applicant %}
+        &mdash; {{ sel_applicant.full_name }}
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        <!-- Profile used -->
+        {% if input_profile %}
+        <div class="px-3 pt-3 pb-2 border-bottom bg-light">
+          <small class="text-muted fw-semibold d-block mb-1">PROFILE USED FOR RECOMMENDATION</small>
+          <div class="row row-cols-2 g-1">
+            <div class="col"><small><strong>Education:</strong> {{ input_profile.educ_level }}</small></div>
+            <div class="col"><small><strong>Preferred:</strong> {{ input_profile.preferred_position }}</small></div>
+            <div class="col"><small><strong>Skills:</strong> {{ input_profile.skills }}</small></div>
+            <div class="col"><small><strong>Experience:</strong> {{ input_profile.work_experience or 'None' }}</small></div>
+          </div>
+        </div>
+        {% endif %}
+
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width:50px">Rank</th>
+              <th>Job Title</th>
+              <th>Employer</th>
+              <th>Category</th>
+              <th class="text-end">Suitability</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in results %}
+            <tr class="{% if item.rank == 1 %}table-success{% endif %}">
+              <td class="text-center">
+                {% if item.rank == 1 %}
+                <span class="badge bg-success"><i class="bi bi-star-fill"></i> 1</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ item.rank }}</span>
+                {% endif %}
+              </td>
+              <td class="fw-semibold">{{ item.title }}</td>
+              <td>{{ item.employer }}</td>
+              <td><span class="badge bg-primary-subtle text-primary-emphasis">{{ item.category }}</span></td>
+              <td class="text-end">
+                <div class="d-flex align-items-center justify-content-end gap-2">
+                  <div class="progress" style="width:80px;height:8px;">
+                    <div class="progress-bar
+                      {% if item.suitability_score >= 0.6 %}bg-success
+                      {% elif item.suitability_score >= 0.3 %}bg-warning
+                      {% else %}bg-danger{% endif %}"
+                      style="width:{{ (item.suitability_score * 100)|round(0) }}%"></div>
+                  </div>
+                  <strong>{{ item.suitability_pct }}</strong>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer text-muted small">
+        <i class="bi bi-info-circle me-1"></i>
+        Suitability scores are generated by the Logistic Regression classifier (Macro F1: 0.7370).
+        Final referral decision rests with PESO staff.
+      </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm h-100">
+      <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-5">
+        <div style="font-size:4rem;color:#0d6efd;opacity:.3;"><i class="bi bi-stars"></i></div>
+        <h5 class="mt-3 text-muted">No recommendation generated yet</h5>
+        <p class="text-muted small">Select a registered applicant or use Quick Entry,<br/>then click <strong>Generate Recommendations</strong>.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const applicants = [
+  {% for ap in applicants %}
+  { id: {{ ap.id }}, name: "{{ ap.last_name }}, {{ ap.first_name }}", pref: "{{ ap.preferred_position }}" },
+  {% endfor %}
+];
+
+function toggleMode(mode) {
+  document.getElementById('panel-select').style.display = mode === 'select' ? '' : 'none';
+  document.getElementById('panel-quick').style.display  = mode === 'quick'  ? '' : 'none';
+}
+
+function filterApplicants(q) {
+  const sel = document.getElementById('applicant-select');
+  const lower = q.toLowerCase();
+  for (const opt of sel.options) {
+    const text = opt.dataset.name.toLowerCase() + ' ' + opt.dataset.pref.toLowerCase();
+    opt.style.display = text.includes(lower) ? '' : 'none';
+  }
+}
+
+{% if preselect_id %}
+window.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('applicant-select');
+  for (const opt of sel.options) {
+    if (opt.value === '{{ preselect_id }}') { opt.selected = true; break; }
+  }
+});
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}{% if action == 'add' %}Add Staff Account{% else %}Edit Staff Account{% endif %}{% endblock %}
+{% block page_title %}
+  <i class="bi bi-person-{% if action == 'add' %}plus{% else %}pencil{% endif %}-fill me-2"></i>
+  {% if action == 'add' %}Add Staff Account{% else %}Edit Staff Account{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="max-width:520px;">
+  <div class="card-header fw-semibold">
+    {% if action == 'add' %}New Staff Account{% else %}Edit Account{% endif %}
+  </div>
+  <div class="card-body">
+    <form method="POST"
+          action="{% if action == 'add' %}{{ url_for('user_add') }}{% else %}{{ url_for('user_edit', uid=user.id) }}{% endif %}">
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+        <input type="text" name="full_name" class="form-control"
+               value="{{ user.full_name if user else '' }}" required />
+      </div>
+
+      {% if action == 'add' %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+        <input type="text" name="username" class="form-control" required
+               autocomplete="off" placeholder="Must be unique" />
+      </div>
+      {% else %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Username</label>
+        <input type="text" class="form-control" value="{{ user.username }}" disabled />
+        <div class="form-text">Username cannot be changed.</div>
+      </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+        <input type="email" name="email" class="form-control"
+               value="{{ user.email if user else '' }}" required autocomplete="off" />
+      </div>
+
+      {% if action == 'add' %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+        <input type="password" name="password" class="form-control" required
+               minlength="8" autocomplete="new-password" />
+        <div class="form-text">Minimum 8 characters.</div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+        <input type="password" name="confirm_password" class="form-control"
+               required autocomplete="new-password" />
+      </div>
+      {% else %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">New Password</label>
+        <input type="password" name="new_password" class="form-control"
+               autocomplete="new-password" minlength="8" />
+        <div class="form-text">Leave blank to keep current password. Minimum 8 characters if changing.</div>
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary fw-semibold">
+          <i class="bi bi-save me-1"></i>
+          {% if action == 'add' %}Create Account{% else %}Save Changes{% endif %}
+        </button>
+        <a href="{{ url_for('users_list') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

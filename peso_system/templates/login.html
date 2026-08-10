@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login &mdash; PESO CSJDM Job Recommendation System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/css/coreui.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+</head>
+<body class="login-body d-flex align-items-center justify-content-center">
+
+<div class="login-card card shadow-lg p-4" style="width:100%;max-width:420px;">
+  <div class="text-center mb-4">
+    <div class="login-icon mb-3">
+      <i class="bi bi-briefcase-fill"></i>
+    </div>
+    <h4 class="fw-bold">PESO CSJDM</h4>
+    <p class="text-muted small mb-0">Job Recommendation System</p>
+    <p class="text-muted small">City of San Jose del Monte, Bulacan</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('login') }}">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Username</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input type="text" name="username" class="form-control" placeholder="Enter username"
+               required autofocus autocomplete="username" />
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Password</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <input type="password" name="password" id="pw" class="form-control"
+               placeholder="Enter password" required autocomplete="current-password" />
+        <button type="button" class="btn btn-outline-secondary" onclick="togglePw()">
+          <i class="bi bi-eye" id="pw-eye"></i>
+        </button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 fw-semibold">
+      <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+    </button>
+  </form>
+
+  <hr class="my-3" />
+  <p class="text-center text-muted small mb-0">
+    <i class="bi bi-info-circle me-1"></i>
+    For authorized PESO CSJDM staff only.
+  </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
+<script>
+  function togglePw() {
+    const pw  = document.getElementById('pw');
+    const eye = document.getElementById('pw-eye');
+    if (pw.type === 'password') {
+      pw.type = 'text';
+      eye.className = 'bi bi-eye-slash';
+    } else {
+      pw.type = 'password';
+      eye.className = 'bi bi-eye';
+    }
+  }
+</script>
+</body>
+</html>

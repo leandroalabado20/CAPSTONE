@@ -1,0 +1,122 @@
+/* ── BRAND VARIABLES ─────────────────────────────────────────────────────── */
+:root {
+  --peso-dark:  #1e3a5f;
+  --peso-blue:  #2563eb;
+}
+
+/* ── SIDEBAR THEME ───────────────────────────────────────────────────────── */
+.sidebar {
+  --cui-sidebar-bg: #1e3a5f;
+  --cui-sidebar-width: 256px;
+}
+
+.sidebar-brand {
+  background: rgba(0, 0, 0, .2);
+  min-height: 56px;
+}
+
+.sidebar-brand-icon {
+  font-size: 1.3rem;
+}
+
+.sidebar-pipeline-warn {
+  background: rgba(245, 158, 11, .12);
+  border: 1px solid rgba(245, 158, 11, .28);
+}
+
+/* ── WRAPPER OFFSET (fixed sidebar) ──────────────────────────────────────── */
+@media (min-width: 768px) {
+  .wrapper {
+    margin-left: 256px;
+  }
+}
+@media (max-width: 767.98px) {
+  .wrapper {
+    margin-left: 0;
+  }
+  .sidebar {
+    display: none;
+  }
+  .sidebar.show {
+    display: flex;
+  }
+}
+
+/* ── HEADER / TOPBAR ─────────────────────────────────────────────────────── */
+.header { background: #fff; }
+
+.topbar-page-title {
+  font-weight: 600;
+  font-size: .95rem;
+  color: var(--peso-dark);
+}
+
+.topbar-user { font-size: .85rem; color: #64748b; }
+
+/* ── BODY BACKGROUND ─────────────────────────────────────────────────────── */
+.body { background: #f4f6fa; }
+
+/* ── STAT CARDS ──────────────────────────────────────────────────────────── */
+.stat-card { border-radius: 10px; transition: transform .15s; }
+.stat-card:hover { transform: translateY(-2px); }
+.stat-icon  { font-size: 2rem; margin-bottom: 6px; }
+.stat-value { font-size: 1.9rem; font-weight: 700; color: #1e293b; line-height: 1; }
+.stat-label { font-size: .78rem; color: #64748b; margin-top: 3px; }
+
+/* ── CARDS ───────────────────────────────────────────────────────────────── */
+.card { border-radius: 10px; }
+.card-header { border-radius: 10px 10px 0 0 !important; font-size: .88rem; }
+
+/* ── LOGIN PAGE ──────────────────────────────────────────────────────────── */
+.login-body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+}
+
+.login-card { border-radius: 14px; border: none; }
+
+.login-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+/* ── TABLES ──────────────────────────────────────────────────────────────── */
+.table thead th {
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+/* ── BADGES ──────────────────────────────────────────────────────────────── */
+.badge { font-weight: 500; }
+
+/* ── NAV TABS ────────────────────────────────────────────────────────────── */
+.nav-tabs {
+  border-bottom: 1px solid #e2e8f0;
+}
+.nav-tabs .nav-link {
+  color: #64748b;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 16px;
+  font-size: .88rem;
+}
+.nav-tabs .nav-link:hover {
+  color: var(--peso-dark);
+  border-bottom-color: #94aabf;
+}
+.nav-tabs .nav-link.active {
+  color: var(--peso-blue);
+  border-bottom-color: var(--peso-blue);
+  background: none;
+}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Job Vacancies{% endblock %}
+{% block page_title %}<i class="bi bi-list-task me-2"></i>Job Vacancy Management{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+  <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Add Vacancy
+  </a>
+  <form method="GET" class="d-flex gap-2 ms-auto">
+    <input type="text" name="search" class="form-control" placeholder="Search employer or title…"
+           value="{{ search }}" style="min-width:200px;" />
+    <input type="hidden" name="status" value="{{ status }}" />
+    <button class="btn btn-outline-primary">Search</button>
+  </form>
+  <div class="btn-group">
+    <a href="{{ url_for('vacancies_list') }}?status=all"
+       class="btn btn-outline-secondary {% if status == 'all' %}active{% endif %}">All</a>
+    <a href="{{ url_for('vacancies_list') }}?status=active"
+       class="btn btn-outline-success {% if status == 'active' %}active{% endif %}">Active</a>
+    <a href="{{ url_for('vacancies_list') }}?status=inactive"
+       class="btn btn-outline-danger {% if status == 'inactive' %}active{% endif %}">Inactive</a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header d-flex align-items-center justify-content-between fw-semibold">
+    <span>Vacancies <span class="badge bg-secondary ms-2">{{ vacancies|length }}</span></span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Employer</th>
+          <th>Job Title</th>
+          <th>Occupational Category</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Added</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vacancies %}
+        <tr>
+          <td class="text-muted small">{{ v.id }}</td>
+          <td><strong>{{ v.employer_name }}</strong></td>
+          <td>{{ v.job_title }}</td>
+          <td>
+            <span class="badge bg-primary-subtle text-primary-emphasis">{{ v.occupational_category }}</span>
+          </td>
+          <td>
+            <span class="badge {% if v.is_local %}bg-success-subtle text-success-emphasis{% else %}bg-info-subtle text-info-emphasis{% endif %}">
+              {% if v.is_local %}Local{% else %}Overseas{% endif %}
+            </span>
+          </td>
+          <td>
+            <span class="badge {% if v.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if v.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+          </td>
+          <td class="small text-muted">{{ v.created_at[:10] if v.created_at else '—' }}</td>
+          <td class="text-center">
+            <div class="d-flex gap-1 justify-content-center">
+              <a href="{{ url_for('vacancy_edit', vid=v.id) }}"
+                 class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.id) }}" style="display:inline;">
+                <button class="btn btn-sm {% if v.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                        title="{% if v.is_active %}Deactivate{% else %}Activate{% endif %}"
+                        onclick="return confirm('{% if v.is_active %}Deactivate{% else %}Activate{% endif %} this vacancy?')">
+                  <i class="bi {% if v.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size:2rem;"></i>
+            <p class="mt-2 mb-0">No vacancies found.</p>
+            <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary btn-sm mt-2">Add First Vacancy</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

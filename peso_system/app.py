@@ -29,7 +29,7 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'peso-csjdm-2026-secret-chan
 
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 DATABASE       = os.path.join(BASE_DIR, 'peso.db')
-PIPELINE_PATH  = os.path.join(BASE_DIR, '..', 'PAPER', 'JOB_RECOMMENDATION', 'ml', 'recommendation_pipeline.pkl')
+PIPELINE_PATH  = os.path.join(BASE_DIR, 'ml', 'recommendation_pipeline.pkl')
 UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
 ALLOWED_EXT    = {'csv', 'xlsx', 'xls'}
 

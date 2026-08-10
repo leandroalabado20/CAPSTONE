@@ -1,0 +1,125 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0">
+  <diagram name="System Process Flowchart" id="flowSysProc">
+    <mxGraphModel dx="2357" dy="1238" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="1650" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;" value="START" vertex="1">
+          <mxGeometry height="40" width="120" x="500" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="openTab" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Staff opens Job Recommendation tab" vertex="1">
+          <mxGeometry height="50" width="400" x="360" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="selectApplicant" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Staff selects applicant from existing records&#xa;or enters applicant profile directly" vertex="1">
+          <mxGeometry height="56" width="400" x="360" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="fieldCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="All 4 required&#xa;fields filled?" vertex="1">
+          <mxGeometry height="80" width="200" x="460" y="286" as="geometry" />
+        </mxCell>
+        <mxCell id="promptFill" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Prompt staff to complete&#xa;missing profile fields" vertex="1">
+          <mxGeometry height="56" width="220" x="110" y="298" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_no_field" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="No" vertex="1">
+          <mxGeometry height="20" width="30" x="386" y="303" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_yes_field" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="Yes" vertex="1">
+          <mxGeometry height="20" width="30" x="573" y="366" as="geometry" />
+        </mxCell>
+        <mxCell id="cleanText" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Clean profile text&#xa;(Lowercase → Remove special characters →&#xa;Strip numeric noise from WORK EXPERIENCE →&#xa;Concatenate 4 fields into PROFILE_TEXT)" vertex="1">
+          <mxGeometry height="70" width="400" x="360" y="406" as="geometry" />
+        </mxCell>
+        <mxCell id="applyTFIDF" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Apply fitted TF-IDF vectorizer&#xa;from recommendation_pipeline.pkl&#xa;Convert PROFILE_TEXT into 356-term numerical vector" vertex="1">
+          <mxGeometry height="66" width="400" x="360" y="506" as="geometry" />
+        </mxCell>
+        <mxCell id="runPredict" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Run predict_proba()&#xa;Logistic Regression returns probability score&#xa;for each of the 5 occupational categories" vertex="1">
+          <mxGeometry height="66" width="400" x="360" y="602" as="geometry" />
+        </mxCell>
+        <mxCell id="queryVacancies" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Query all active job vacancies from database" vertex="1">
+          <mxGeometry height="50" width="400" x="360" y="698" as="geometry" />
+        </mxCell>
+        <mxCell id="vacancyCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="Active vacancies&#xa;found?" vertex="1">
+          <mxGeometry height="80" width="200" x="460" y="778" as="geometry" />
+        </mxCell>
+        <mxCell id="noVacancy" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Display: No active vacancies&#xa;currently available" vertex="1">
+          <mxGeometry height="56" width="220" x="790" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_no_vac" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="No" vertex="1">
+          <mxGeometry height="20" width="30" x="710" y="796" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_yes_vac" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="Yes" vertex="1">
+          <mxGeometry height="20" width="30" x="573" y="858" as="geometry" />
+        </mxCell>
+        <mxCell id="assignScore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Assign each vacancy the suitability score&#xa;of its occupational category&#xa;from predict_proba() output" vertex="1">
+          <mxGeometry height="66" width="400" x="360" y="898" as="geometry" />
+        </mxCell>
+        <mxCell id="sortVacancies" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Sort vacancies in descending order by suitability score" vertex="1">
+          <mxGeometry height="50" width="400" x="360" y="994" as="geometry" />
+        </mxCell>
+        <mxCell id="displayList" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Display ranked vacancy list to PESO staff&#xa;Staff reviews and refers applicant to chosen vacancy" vertex="1">
+          <mxGeometry height="56" width="400" x="360" y="1074" as="geometry" />
+        </mxCell>
+        <mxCell id="endMain" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;" value="END" vertex="1">
+          <mxGeometry height="40" width="120" x="500" y="1160" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;" target="openTab">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="openTab" style="edgeStyle=orthogonalEdgeStyle;" target="selectApplicant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="selectApplicant" style="edgeStyle=orthogonalEdgeStyle;" target="fieldCheck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="fieldCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="promptFill">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" label="Correct and retry" parent="1" source="promptFill" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=open;endFill=0;" target="selectApplicant">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="40" y="326" />
+              <mxPoint x="40" y="218" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="fieldCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="cleanText">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="cleanText" style="edgeStyle=orthogonalEdgeStyle;" target="applyTFIDF">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="applyTFIDF" style="edgeStyle=orthogonalEdgeStyle;" target="runPredict">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="runPredict" style="edgeStyle=orthogonalEdgeStyle;" target="queryVacancies">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="queryVacancies" style="edgeStyle=orthogonalEdgeStyle;" target="vacancyCheck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="vacancyCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="noVacancy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="noVacancy" style="edgeStyle=orthogonalEdgeStyle;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="endMain">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="818" />
+              <mxPoint x="1080" y="1180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="vacancyCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="assignScore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="assignScore" style="edgeStyle=orthogonalEdgeStyle;" target="sortVacancies">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="sortVacancies" style="edgeStyle=orthogonalEdgeStyle;" target="displayList">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="displayList" style="edgeStyle=orthogonalEdgeStyle;" target="endMain">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -975,8 +975,9 @@ def vacancies_list():
         q += ' WHERE ' + ' AND '.join(conds)
     q += ' ORDER BY created_at DESC'
     vacancies = db.execute(q, params).fetchall()
+    view = request.args.get('view', 'card')
     return render_template('vacancies/list.html', vacancies=vacancies,
-                           search=search, status=status)
+                           search=search, status=status, view=view)
 
 @app.route('/vacancies/add', methods=['GET', 'POST'])
 @login_required

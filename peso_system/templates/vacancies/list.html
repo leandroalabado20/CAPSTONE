@@ -3,26 +3,62 @@
 {% block page_title %}<i class="bi bi-list-task me-2"></i>Job Vacancy Management{% endblock %}
 
 {% block content %}
+{% set cat_colors = {
+  'Warehouse and Logistics':       '#2563eb',
+  'Production and Manufacturing':  '#198754',
+  'Sales/Service/Retail':          '#d63384',
+  'Clerical and Administrative':   '#6f42c1',
+  'General Services and Security': '#fd7e14',
+} %}
+
+<!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
   <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary">
     <i class="bi bi-plus-lg me-1"></i>Add Vacancy
   </a>
+
   <form method="GET" class="d-flex gap-2 ms-auto">
+    <input type="hidden" name="status" value="{{ status }}" />
+    <input type="hidden" name="view"   value="{{ view }}" />
     <input type="text" name="search" class="form-control" placeholder="Search employer or title…"
            value="{{ search }}" style="min-width:200px;" />
-    <input type="hidden" name="status" value="{{ status }}" />
-    <button class="btn btn-outline-primary">Search</button>
+    <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
   </form>
-  <div class="btn-group">
-    <a href="{{ url_for('vacancies_list') }}?status=all"
-       class="btn btn-outline-secondary {% if status == 'all' %}active{% endif %}">All</a>
-    <a href="{{ url_for('vacancies_list') }}?status=active"
-       class="btn btn-outline-success {% if status == 'active' %}active{% endif %}">Active</a>
-    <a href="{{ url_for('vacancies_list') }}?status=inactive"
-       class="btn btn-outline-danger {% if status == 'inactive' %}active{% endif %}">Inactive</a>
+
+  <div class="btn-group" role="group" aria-label="View toggle">
+    <a href="{{ url_for('vacancies_list', view='card', search=search or none, status=status) }}"
+       class="btn {% if view != 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Card view">
+      <i class="bi bi-grid-3x3-gap-fill"></i>
+    </a>
+    <a href="{{ url_for('vacancies_list', view='table', search=search or none, status=status) }}"
+       class="btn {% if view == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Table view">
+      <i class="bi bi-list-ul"></i>
+    </a>
   </div>
 </div>
 
+<!-- ── Filter chips ───────────────────────────────────────────────────────── -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <span class="text-muted small fw-semibold me-1"><i class="bi bi-funnel me-1"></i>Filter</span>
+  {% for key, label in [('all','All'),('active','Active'),('inactive','Inactive')] %}
+  <a href="{{ url_for('vacancies_list', status=key, search=search or none, view=view) }}"
+     class="btn btn-sm filter-chip {% if status == key %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- ── Results ────────────────────────────────────────────────────────────── -->
+{% if not vacancies %}
+<div class="card shadow-sm">
+  <div class="card-body text-center text-muted py-5">
+    <i class="bi bi-inbox" style="font-size:2rem;"></i>
+    <p class="mt-2 mb-0">No vacancies found.</p>
+    <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary btn-sm mt-3">Add First Vacancy</a>
+  </div>
+</div>
+
+{% elif view == 'table' %}
 <div class="card shadow-sm">
   <div class="card-header d-flex align-items-center justify-content-between fw-semibold">
     <span>Vacancies <span class="badge bg-secondary ms-2">{{ vacancies|length }}</span></span>
@@ -77,17 +113,61 @@
             </div>
           </td>
         </tr>
-        {% else %}
-        <tr>
-          <td colspan="8" class="text-center text-muted py-4">
-            <i class="bi bi-inbox" style="font-size:2rem;"></i>
-            <p class="mt-2 mb-0">No vacancies found.</p>
-            <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary btn-sm mt-2">Add First Vacancy</a>
-          </td>
-        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+{% else %}
+<div class="row g-3">
+  {% for v in vacancies %}
+  <div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="card applicant-card shadow-sm h-100 {% if not v.is_active %}border-secondary opacity-75{% endif %}">
+      <div class="card-body pb-2">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="avatar" style="background:{{ cat_colors.get(v.occupational_category, '#6c757d') }}">
+            <i class="bi bi-building"></i>
+          </span>
+          <div class="overflow-hidden">
+            <div class="fw-bold text-truncate">{{ v.job_title }}</div>
+            <div class="small text-muted text-truncate">{{ v.employer_name }}</div>
+          </div>
+        </div>
+        <div class="small mb-1 text-truncate">
+          <i class="bi bi-tag text-primary me-1"></i>{{ v.occupational_category }}
+        </div>
+        <div class="small mb-2">
+          <i class="bi bi-geo-alt text-secondary me-1"></i>
+          {% if v.is_local %}Local{% else %}Overseas{% endif %}
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+          <span class="badge {% if v.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+            {% if v.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+          <span class="badge bg-primary-subtle text-primary-emphasis">
+            {{ v.occupational_category | truncate(20, killwords=True, end='…') }}
+          </span>
+        </div>
+      </div>
+      <div class="card-footer bg-transparent d-flex gap-1 pt-2">
+        <a href="{{ url_for('vacancy_edit', vid=v.id) }}"
+           class="btn btn-sm btn-outline-primary flex-fill" title="Edit">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.id) }}" style="display:inline;">
+          <button class="btn btn-sm {% if v.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                  title="{% if v.is_active %}Deactivate{% else %}Activate{% endif %}"
+                  onclick="return confirm('{% if v.is_active %}Deactivate{% else %}Activate{% endif %} this vacancy?')">
+            <i class="bi {% if v.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<p class="text-center text-muted small mt-3">{{ vacancies|length }} vacancy/vacancies found</p>
 {% endblock %}

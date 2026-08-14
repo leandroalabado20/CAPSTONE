@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
   background: rgba(0, 0, 0, .28);
   min-height: 68px;
   border-bottom: 1px solid rgba(255, 255, 255, .07);
-  padding: 0 1.5rem;
+  padding: .75rem 1.5rem;
   gap: .75rem !important;
 }
 

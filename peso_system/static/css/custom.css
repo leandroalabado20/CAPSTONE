@@ -120,24 +120,29 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
   border: 1px solid rgba(245, 158, 11, .28);
 }
 
-/* ── SIDEBAR + WRAPPER TRANSITIONS ───────────────────────────────────────── */
-/* Applied globally so crossing a breakpoint animates smoothly */
-.sidebar  { transition: transform .25s ease-in-out; }
+/* ── SIDEBAR RESPONSIVE ───────────────────────────────────────────────────── */
+.sidebar { transition: transform .25s ease-in-out; }
 .wrapper  { transition: margin-left .25s ease-in-out; }
 
-/* ── WRAPPER OFFSET (fixed sidebar) ──────────────────────────────────────── */
-@media (min-width: 768px) {
+/* Desktop ≥992px — sidebar always visible, hamburger hidden */
+@media (min-width: 992px) {
   .wrapper { margin-left: 256px; }
-  /* Force sidebar back into view when returning to desktop */
-  .sidebar { transform: translateX(0) !important; }
-}
-@media (max-width: 767.98px) {
-  .wrapper { margin-left: 0; }
-  .sidebar       { transform: translateX(-100%); }
-  .sidebar.show  { transform: translateX(0); }
+  .sidebar,
+  .sidebar.hide { transform: translateX(0) !important; margin-inline-start: 0 !important; }
+  .header-toggler { display: none !important; }
 }
 
-/* ── MOBILE SIDEBAR BACKDROP ─────────────────────────────────────────────── */
+/* Small screen <992px — sidebar slides in/out via transform */
+@media (max-width: 991.98px) {
+  .wrapper            { margin-left: 0; }
+  /* Disable CoreUI's margin-inline-start so only transform animates */
+  .sidebar,
+  .sidebar.hide       { margin-inline-start: 0 !important; }
+  .sidebar            { transform: translateX(-100%); }
+  .sidebar:not(.hide) { transform: translateX(0); }
+}
+
+/* Backdrop overlay shown behind sidebar on small screens */
 #sidebar-backdrop {
   display: none;
   position: fixed;

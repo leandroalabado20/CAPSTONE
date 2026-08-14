@@ -1036,8 +1036,16 @@ def vacancy_toggle(vid):
 @app.route('/users')
 @login_required
 def users_list():
-    users = get_db().execute('SELECT * FROM users ORDER BY full_name').fetchall()
-    return render_template('users/list.html', users=users)
+    db     = get_db()
+    status = request.args.get('status', 'all')
+    view   = request.args.get('view', 'card')
+    if status == 'active':
+        users = db.execute('SELECT * FROM users WHERE is_active=1 ORDER BY full_name').fetchall()
+    elif status == 'inactive':
+        users = db.execute('SELECT * FROM users WHERE is_active=0 ORDER BY full_name').fetchall()
+    else:
+        users = db.execute('SELECT * FROM users ORDER BY full_name').fetchall()
+    return render_template('users/list.html', users=users, status=status, view=view)
 
 @app.route('/users/add', methods=['GET', 'POST'])
 @login_required

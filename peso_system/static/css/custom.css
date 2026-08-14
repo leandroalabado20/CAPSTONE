@@ -54,6 +54,17 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
   --cui-sidebar-width: 256px;
   background: linear-gradient(185deg, #22406a 0%, #1b3454 55%, #16293f 100%);
   box-shadow: var(--shadow-md);
+  overflow: hidden; /* clip child elements so no white gaps appear at any width */
+}
+
+/* Toggler button at bottom of sidebar */
+.sidebar-toggler {
+  background: rgba(0, 0, 0, .2) !important;
+  border-top: 1px solid rgba(255, 255, 255, .07) !important;
+  width: 100% !important;
+}
+.sidebar-toggler::before {
+  background-color: rgba(255, 255, 255, .45) !important;
 }
 
 .sidebar-brand {

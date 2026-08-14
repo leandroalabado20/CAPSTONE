@@ -13,7 +13,8 @@
 {% endif %}
 
 <div class="row g-4">
-  <!-- Left: Input form -->
+
+  <!-- ── Left: Input form ───────────────────────────────────────────────────── -->
   <div class="col-lg-5">
     <div class="card shadow-sm h-100">
       <div class="card-header bg-primary text-white fw-semibold">
@@ -21,6 +22,7 @@
       </div>
       <div class="card-body">
         <form method="POST" action="{{ url_for('generate_recommendation') }}" id="rec-form">
+
           <!-- Mode toggle -->
           <div class="mb-3">
             <div class="btn-group w-100" role="group">
@@ -41,9 +43,13 @@
           <!-- Select applicant panel -->
           <div id="panel-select">
             <div class="mb-3">
-              <label class="form-label fw-semibold">Search Applicant</label>
+              <label class="form-label fw-semibold">
+                Search Applicant
+                <span class="badge bg-secondary ms-1">{{ applicants|length }}</span>
+              </label>
               <input type="text" id="applicant-search" class="form-control mb-2"
-                     placeholder="Type to filter..." oninput="filterApplicants(this.value)" />
+                     placeholder="Type name or position to filter…"
+                     oninput="filterApplicants(this.value)" />
               <select name="applicant_id" id="applicant-select" class="form-select" size="8"
                       style="overflow-y:auto;" onchange="previewApplicant(this)"
                       data-preselect="{{ preselect_id or '' }}">
@@ -58,8 +64,11 @@
                 </option>
                 {% endfor %}
               </select>
-              <div id="applicant-preview" class="mt-2 px-2 py-1 bg-light rounded border small text-muted" style="display:none;"></div>
-              <div class="form-text">{{ applicants|length }} registered applicant(s)</div>
+              <!-- Applicant preview box -->
+              <div id="applicant-preview" class="mt-2 p-2 bg-light rounded border small" style="display:none;">
+                <div class="fw-semibold" id="preview-name"></div>
+                <div class="text-muted" id="preview-details"></div>
+              </div>
             </div>
           </div>
 
@@ -100,91 +109,128 @@
           <a href="{{ url_for('applicant_register') }}" class="btn btn-outline-secondary w-100 mt-2">
             <i class="bi bi-person-plus me-1"></i>Register New Applicant
           </a>
+
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Right: Results -->
+  <!-- ── Right: Results ─────────────────────────────────────────────────────── -->
   <div class="col-lg-7">
     {% if results %}
-    <div class="card shadow-sm">
-      <div class="card-header bg-success text-white fw-semibold">
-        <i class="bi bi-trophy-fill me-2"></i>Ranked Job Vacancies
-        {% if sel_applicant %}
-        &mdash; {{ sel_applicant.full_name }}
-        {% endif %}
+
+    <!-- Profile used summary -->
+    {% if input_profile %}
+    <div class="card shadow-sm mb-3 border-primary">
+      <div class="card-body py-2 px-3">
+        <div class="small text-muted fw-semibold mb-1">
+          <i class="bi bi-person-badge me-1"></i>PROFILE USED
+          {% if sel_applicant %}&mdash; <span class="text-primary">{{ sel_applicant.full_name }}</span>{% endif %}
+        </div>
+        <div class="row row-cols-2 g-1 small">
+          <div class="col"><i class="bi bi-mortarboard text-secondary me-1"></i>{{ input_profile.educ_level }}</div>
+          <div class="col"><i class="bi bi-bullseye text-secondary me-1"></i>{{ input_profile.preferred_position }}</div>
+          <div class="col text-truncate"><i class="bi bi-tools text-secondary me-1"></i>{{ input_profile.skills }}</div>
+          <div class="col text-truncate"><i class="bi bi-briefcase text-secondary me-1"></i>{{ input_profile.work_experience or 'No experience' }}</div>
+        </div>
       </div>
-      <div class="card-body p-0">
-        <!-- Profile used -->
-        {% if input_profile %}
-        <div class="px-3 pt-3 pb-2 border-bottom bg-light">
-          <small class="text-muted fw-semibold d-block mb-1">PROFILE USED FOR RECOMMENDATION</small>
-          <div class="row row-cols-2 g-1">
-            <div class="col"><small><strong>Education:</strong> {{ input_profile.educ_level }}</small></div>
-            <div class="col"><small><strong>Preferred:</strong> {{ input_profile.preferred_position }}</small></div>
-            <div class="col"><small><strong>Skills:</strong> {{ input_profile.skills }}</small></div>
-            <div class="col"><small><strong>Experience:</strong> {{ input_profile.work_experience or 'None' }}</small></div>
+    </div>
+    {% endif %}
+
+    <!-- Rank #1 Hero card -->
+    {% set top = results[0] %}
+    <div class="card shadow mb-3 border-success">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-start gap-3">
+          <div style="font-size:2.5rem;line-height:1;color:#198754;">
+            <i class="bi bi-trophy-fill"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="text-success fw-bold small text-uppercase mb-1 letter-spacing-1">
+              Best Match &mdash; Rank #1
+            </div>
+            <div class="fw-bold fs-5 mb-1">{{ top.title }}</div>
+            <div class="text-muted mb-2">
+              <i class="bi bi-building me-1"></i>{{ top.employer }}
+            </div>
+            <span class="badge bg-primary-subtle text-primary-emphasis">{{ top.category }}</span>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold fs-4 text-success">{{ top.suitability_pct }}</div>
+            <div class="text-muted small">Suitability</div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Suitability Score</span>
+            <span>{{ top.suitability_pct }}</span>
+          </div>
+          <div class="progress" style="height:10px;">
+            <div class="progress-bar bg-success"
+                 data-pct="{{ (top.suitability_score * 100)|round(0)|int }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ranks 2–5 compact list -->
+    {% if results|length > 1 %}
+    <div class="card shadow-sm">
+      <div class="card-header fw-semibold small text-muted">
+        <i class="bi bi-list-ol me-1"></i>Other Matches
+      </div>
+      <div class="list-group list-group-flush">
+        {% for item in results %}
+        {% if item.rank > 1 %}
+        <div class="list-group-item px-3 py-2">
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-secondary" style="min-width:28px;">{{ item.rank }}</span>
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="fw-semibold text-truncate">{{ item.title }}</div>
+              <div class="small text-muted text-truncate">
+                <i class="bi bi-building me-1"></i>{{ item.employer }}
+                <span class="mx-1">&bull;</span>
+                <span class="badge bg-primary-subtle text-primary-emphasis">{{ item.category }}</span>
+              </div>
+            </div>
+            <div class="text-end" style="min-width:90px;">
+              <div class="progress mb-1" style="height:6px;width:80px;">
+                <div class="progress-bar
+                  {% if item.suitability_score >= 0.6 %}bg-success
+                  {% elif item.suitability_score >= 0.3 %}bg-warning
+                  {% else %}bg-danger{% endif %}"
+                  data-pct="{{ (item.suitability_score * 100)|round(0)|int }}"></div>
+              </div>
+              <div class="small fw-semibold">{{ item.suitability_pct }}</div>
+            </div>
           </div>
         </div>
         {% endif %}
-
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="text-center" style="width:50px">Rank</th>
-              <th>Job Title</th>
-              <th>Employer</th>
-              <th>Category</th>
-              <th class="text-end">Suitability</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in results %}
-            <tr class="{% if item.rank == 1 %}table-success{% endif %}">
-              <td class="text-center">
-                {% if item.rank == 1 %}
-                <span class="badge bg-success"><i class="bi bi-star-fill"></i> 1</span>
-                {% else %}
-                <span class="badge bg-secondary">{{ item.rank }}</span>
-                {% endif %}
-              </td>
-              <td class="fw-semibold">{{ item.title }}</td>
-              <td>{{ item.employer }}</td>
-              <td><span class="badge bg-primary-subtle text-primary-emphasis">{{ item.category }}</span></td>
-              <td class="text-end">
-                <div class="d-flex align-items-center justify-content-end gap-2">
-                  <div class="progress" style="width:80px;height:8px;">
-                    <div class="progress-bar
-                      {% if item.suitability_score >= 0.6 %}bg-success
-                      {% elif item.suitability_score >= 0.3 %}bg-warning
-                      {% else %}bg-danger{% endif %}"
-                      data-pct="{{ (item.suitability_score * 100)|round(0)|int }}"></div>
-                  </div>
-                  <strong>{{ item.suitability_pct }}</strong>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        {% endfor %}
       </div>
       <div class="card-footer text-muted small">
         <i class="bi bi-info-circle me-1"></i>
-        Suitability scores are generated by the Logistic Regression classifier (Macro F1: 0.7370).
+        Scores generated by Logistic Regression (Macro F1: 0.7370).
         Final referral decision rests with PESO staff.
       </div>
     </div>
+    {% endif %}
+
     {% else %}
+    <!-- Empty state -->
     <div class="card shadow-sm h-100">
       <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-5">
         <div style="font-size:4rem;color:#0d6efd;opacity:.3;"><i class="bi bi-stars"></i></div>
         <h5 class="mt-3 text-muted">No recommendation generated yet</h5>
-        <p class="text-muted small">Select a registered applicant or use Quick Entry,<br/>then click <strong>Generate Recommendations</strong>.</p>
+        <p class="text-muted small">
+          Select a registered applicant or use Quick Entry,<br/>
+          then click <strong>Generate Recommendations</strong>.
+        </p>
       </div>
     </div>
     {% endif %}
   </div>
+
 </div>
 {% endblock %}
 
@@ -196,7 +242,7 @@ function toggleMode(mode) {
 }
 
 function filterApplicants(q) {
-  const sel = document.getElementById('applicant-select');
+  const sel   = document.getElementById('applicant-select');
   const lower = q.toLowerCase();
   for (const opt of sel.options) {
     const text = opt.dataset.name.toLowerCase() + ' ' + opt.dataset.pref.toLowerCase();
@@ -205,18 +251,19 @@ function filterApplicants(q) {
 }
 
 function previewApplicant(sel) {
-  const opt = sel.options[sel.selectedIndex];
-  const box = document.getElementById('applicant-preview');
+  const opt  = sel.options[sel.selectedIndex];
+  const box  = document.getElementById('applicant-preview');
+  const name = document.getElementById('preview-name');
+  const det  = document.getElementById('preview-details');
   if (!opt || !opt.value) { box.style.display = 'none'; return; }
-  box.style.display = '';
-  box.innerHTML =
-    `<strong>${opt.dataset.name}</strong> &mdash; ` +
-    `${opt.dataset.educ || '—'} &bull; ${opt.dataset.pref || '—'}`;
+  box.style.display  = '';
+  name.textContent   = opt.dataset.name;
+  det.textContent    = (opt.dataset.educ || '—') + ' · ' + (opt.dataset.pref || '—');
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('applicant-select');
-  // Set progress bar widths from data-pct attributes
+  // Set all progress bar widths from data-pct attributes
   document.querySelectorAll('.progress-bar[data-pct]').forEach(b => {
     b.style.width = b.dataset.pct + '%';
   });

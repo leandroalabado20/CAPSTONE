@@ -132,10 +132,8 @@
   <header class="header header-sticky p-0">
     <div class="container-fluid border-bottom px-4 d-flex align-items-center gap-3"
          style="height:52px;">
-      <button class="header-toggler"
+      <button class="header-toggler" id="sidebar-toggler"
               type="button"
-              data-coreui-toggle="sidebar"
-              data-coreui-target="#sidebar"
               aria-controls="sidebar"
               aria-label="Toggle sidebar">
         <span class="header-toggler-icon"></span>
@@ -196,33 +194,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
 <script>
 (function () {
-<<<<<<< HEAD
-  const sidebar  = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebar-backdrop');
-  if (!sidebar || !backdrop) return;
-
-  function syncBackdrop() {
-    if (window.innerWidth >= 768) { backdrop.classList.remove('show'); return; }
-    backdrop.classList.toggle('show', sidebar.classList.contains('show'));
-  }
-
-  // Close sidebar when backdrop is tapped
-  backdrop.addEventListener('click', function () {
-    sidebar.classList.remove('show');
-    backdrop.classList.remove('show');
-  });
-
-  // Watch for CoreUI adding/removing .show on the sidebar
-  new MutationObserver(syncBackdrop)
-    .observe(sidebar, { attributes: true, attributeFilter: ['class'] });
-
-  // Also sync on resize (e.g. rotating device)
-  window.addEventListener('resize', syncBackdrop);
-})();
-=======
   var BREAK    = 992;
   var sidebar  = document.getElementById('sidebar');
   var backdrop = document.getElementById('sidebar-backdrop');
+  var toggler  = document.getElementById('sidebar-toggler');
   if (!sidebar || !backdrop) return;
 
   var wasDesktop = window.innerWidth >= BREAK;
@@ -244,6 +219,12 @@
     wasDesktop = isDesktop;
   }
 
+  if (toggler) {
+    toggler.addEventListener('click', function () {
+      sidebar.classList.toggle('hide');
+    });
+  }
+
   backdrop.addEventListener('click', function () { sidebar.classList.add('hide'); });
 
   sidebar.querySelectorAll('.nav-link').forEach(function (link) {
@@ -259,7 +240,6 @@
   window.addEventListener('resize', sync);
   sync();
 }());
->>>>>>> 6dd12cd (Make sidebar responsive: auto-hide on small screens with hamburger toggle)
 </script>
 {% block scripts %}{% endblock %}
 </body>

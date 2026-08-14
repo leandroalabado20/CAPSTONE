@@ -123,6 +123,9 @@
           aria-label="Toggle sidebar width"></button>
 </div>
 
+<!-- Mobile sidebar backdrop -->
+<div id="sidebar-backdrop"></div>
+
 <!-- ── MAIN WRAPPER ────────────────────────────────────────────────────────── -->
 <div class="wrapper d-flex flex-column min-vh-100">
 
@@ -192,6 +195,31 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
+<script>
+(function () {
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!sidebar || !backdrop) return;
+
+  function syncBackdrop() {
+    if (window.innerWidth >= 768) { backdrop.classList.remove('show'); return; }
+    backdrop.classList.toggle('show', sidebar.classList.contains('show'));
+  }
+
+  // Close sidebar when backdrop is tapped
+  backdrop.addEventListener('click', function () {
+    sidebar.classList.remove('show');
+    backdrop.classList.remove('show');
+  });
+
+  // Watch for CoreUI adding/removing .show on the sidebar
+  new MutationObserver(syncBackdrop)
+    .observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+
+  // Also sync on resize (e.g. rotating device)
+  window.addEventListener('resize', syncBackdrop);
+})();
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

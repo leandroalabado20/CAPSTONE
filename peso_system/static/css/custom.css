@@ -71,9 +71,10 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 /* Brand section */
 .sidebar-brand {
   background: rgba(0, 0, 0, .28);
-  min-height: 64px;
+  min-height: 68px;
   border-bottom: 1px solid rgba(255, 255, 255, .07);
-  padding: 0 1rem;
+  padding: 0 1.5rem;
+  gap: .75rem !important;
 }
 
 /* Icon badge */
@@ -127,8 +128,8 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 /* Nav links */
 .sidebar-nav .nav-link {
   border-radius: var(--radius-sm);
-  margin: 2px 10px;
-  padding: .58rem .85rem;
+  margin: 2px 12px;
+  padding: .58rem 1rem;
   font-size: .868rem;
   font-weight: 500;
   color: rgba(255, 255, 255, .65);

@@ -5,7 +5,7 @@
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  /* Lock this page to one viewport — no page-level scroll */
+  /* ── DESKTOP: single-viewport locked layout ───────────────────────────────── */
   html, body                { overflow: hidden !important; height: 100% !important; }
   .body                     { overflow: hidden !important; height: calc(100vh - 52px) !important; }
   .body > .container-fluid  {
@@ -18,17 +18,35 @@
     gap: .4rem;
   }
 
-  /* Analytics frame */
   .af-root   { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .4rem; overflow: hidden; }
   .af-charts { flex: 1; min-height: 0; display: flex; gap: .5rem; overflow: hidden; }
   .af-charts > .af-col { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 
-  /* Cards that fill their column */
   .fill-card              { height: 100%; display: flex; flex-direction: column; }
   .fill-card .card-body   { flex: 1; min-height: 0; position: relative; overflow: hidden; }
 
-  /* Chart canvas wrapper */
   .cv-wrap { position: relative; height: 100%; }
+
+  /* ── MOBILE (<768px): scrollable stacked layout ───────────────────────────── */
+  @media (max-width: 767.98px) {
+    html, body              { overflow: auto !important; height: auto !important; }
+    .body                   { overflow: auto !important; height: auto !important; }
+    .body > .container-fluid {
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    .af-root                { overflow: visible; }
+
+    /* Stack the three chart columns vertically */
+    .af-charts              { flex-direction: column; overflow: visible; height: auto; gap: .75rem; }
+    .af-charts > .af-col    { width: 100%; min-height: 0; flex: none !important; }
+
+    /* Give each card a sensible fixed height */
+    .fill-card              { height: auto; min-height: 300px; }
+    .fill-card .card-body   { min-height: 260px; overflow: hidden; }
+    .cv-wrap                { height: 240px; }
+  }
 </style>
 {% endblock %}
 

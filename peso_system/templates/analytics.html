@@ -6,200 +6,130 @@
 {% endblock %}
 
 {% block content %}
-<!-- Dashboard tab navigation -->
-<ul class="nav nav-tabs mb-4">
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('recommendation') }}">
-      <i class="bi bi-stars me-1"></i>Job Recommendation
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link active fw-semibold" href="{{ url_for('analytics') }}">
-      <i class="bi bi-bar-chart-fill me-1"></i>Analytical Dashboard
-    </a>
-  </li>
-</ul>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+  <span class="fw-semibold small text-muted">
+    <i class="bi bi-calendar3 me-1"></i>Filter by PEIS Registration Date:
+  </span>
+  <input type="date" id="date-from" class="form-control form-control-sm" style="width:auto;" />
+  <span class="text-muted small">to</span>
+  <input type="date" id="date-to" class="form-control form-control-sm" style="width:auto;" />
+  <button class="btn btn-sm btn-primary" onclick="loadCharts()">Apply</button>
+  <button class="btn btn-sm btn-outline-secondary" onclick="
+    document.getElementById('date-from').value='';
+    document.getElementById('date-to').value='';
+    loadCharts();">Clear</button>
+  <span class="text-muted small ms-2" id="date-label"></span>
+</div>
 
-<!-- Summary cards -->
-<div class="row g-3 mb-4" id="stat-cards">
+<p class="text-muted mb-4">
+  <i class="bi bi-people me-1"></i>Registered job seeker overview for PESO CSJDM.
+</p>
+
+<!-- ── Summary stat cards (Total · Youths · Seniors · PWD) ─────────────────── -->
+<div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
     <div class="card stat-card border-primary h-100">
       <div class="card-body text-center">
         <div class="stat-icon text-primary"><i class="bi bi-people-fill"></i></div>
         <div class="stat-value" id="stat-total">—</div>
-        <div class="stat-label">Total Registrants</div>
+        <div class="stat-label">Total Job Seekers</div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-3">
-    <div class="card stat-card border-success h-100">
+    <div class="card stat-card border-info h-100">
       <div class="card-body text-center">
-        <div class="stat-icon text-success"><i class="bi bi-list-task"></i></div>
-        <div class="stat-value" id="stat-vacancies">—</div>
-        <div class="stat-label">Active Vacancies</div>
+        <div class="stat-icon text-info"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="stat-value" id="stat-youth">—</div>
+        <div class="stat-label">Youths</div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-3">
     <div class="card stat-card border-warning h-100">
       <div class="card-body text-center">
-        <div class="stat-icon text-warning"><i class="bi bi-building"></i></div>
-        <div class="stat-value" id="stat-employers">—</div>
-        <div class="stat-label">Employers</div>
+        <div class="stat-icon text-warning"><i class="bi bi-person-fill"></i></div>
+        <div class="stat-value" id="stat-senior">—</div>
+        <div class="stat-label">Senior Citizens</div>
       </div>
     </div>
   </div>
   <div class="col-6 col-md-3">
     <div class="card stat-card border-danger h-100">
       <div class="card-body text-center">
-        <div class="stat-icon text-danger"><i class="bi bi-shield-fill"></i></div>
+        <div class="stat-icon text-danger"><i class="bi bi-universal-access"></i></div>
         <div class="stat-value" id="stat-pwd">—</div>
-        <div class="stat-label">PWD Registrants</div>
+        <div class="stat-label">Persons with Disability</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Job Seeker Panel -->
-<h5 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Job Seeker Panel</h5>
-<div class="row g-4 mb-5">
-
-  <!-- Sex distribution -->
-  <div class="col-md-4">
+<!-- ── Sex + Employment Status ────────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
     <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Sex Distribution</div>
+      <div class="card-header fw-semibold">Distribution by Sex</div>
       <div class="card-body d-flex flex-column align-items-center">
-        <canvas id="chart-sex" style="max-height:220px;"></canvas>
+        <canvas id="chart-sex" style="max-height:240px;"></canvas>
         <div class="mt-3 w-100" id="sex-legend"></div>
       </div>
     </div>
   </div>
-
-  <!-- Special counts -->
-  <div class="col-md-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Special Registrant Counts</div>
-      <div class="card-body">
-        <canvas id="chart-special" style="max-height:220px;"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Employment status -->
-  <div class="col-md-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Employment Status</div>
-      <div class="card-body d-flex flex-column align-items-center">
-        <canvas id="chart-emp" style="max-height:220px;"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Education distribution -->
   <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold">Distribution by Employment Status</div>
+      <div class="card-body d-flex flex-column align-items-center">
+        <canvas id="chart-emp" style="max-height:240px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Educational Attainment (full width) ────────────────────────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-12">
     <div class="card shadow-sm h-100">
       <div class="card-header fw-semibold">Distribution by Educational Attainment</div>
       <div class="card-body">
-        <canvas id="chart-educ" style="max-height:280px;"></canvas>
+        <canvas id="chart-educ" style="max-height:320px;"></canvas>
       </div>
     </div>
   </div>
-
-  <!-- Barangay District 1 -->
-  <div class="col-md-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Barangay — District 1</div>
-      <div class="card-body">
-        <canvas id="chart-d1" style="max-height:280px;"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Barangay District 2 -->
-  <div class="col-md-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Barangay — District 2</div>
-      <div class="card-body">
-        <canvas id="chart-d2" style="max-height:280px;"></canvas>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- Vacancy Panel -->
-<h5 class="fw-bold mb-3"><i class="bi bi-briefcase me-2 text-success"></i>Vacancy Panel</h5>
+<!-- ── Barangay by District ───────────────────────────────────────────────── -->
 <div class="row g-4">
-
-  <!-- Local vs Overseas vacancies -->
-  <div class="col-md-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Vacancies: Local vs Overseas</div>
-      <div class="card-body d-flex flex-column align-items-center">
-        <canvas id="chart-vac-type" style="max-height:220px;"></canvas>
-        <div id="vac-type-stats" class="text-center mt-3 small text-muted"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Top industries -->
-  <div class="col-md-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Top Industries (by Category)</div>
-      <div class="card-body">
-        <canvas id="chart-industry" style="max-height:220px;"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Employers local/overseas -->
-  <div class="col-md-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Employers: Local vs Overseas</div>
-      <div class="card-body d-flex flex-column align-items-center">
-        <canvas id="chart-emp-type" style="max-height:220px;"></canvas>
-        <div id="emp-type-stats" class="text-center mt-3 small text-muted"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Top 10 vacancies -->
   <div class="col-md-6">
     <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Top 10 Vacancies</div>
+      <div class="card-header fw-semibold">Registered Job Seekers per Barangay — District 1</div>
       <div class="card-body">
-        <canvas id="chart-top-vac" style="max-height:300px;"></canvas>
+        <canvas id="chart-d1" style="max-height:420px;"></canvas>
       </div>
     </div>
   </div>
-
-  <!-- Top placement jobs -->
   <div class="col-md-6">
     <div class="card shadow-sm h-100">
-      <div class="card-header fw-semibold">Top Placement Jobs</div>
+      <div class="card-header fw-semibold">Registered Job Seekers per Barangay — District 2</div>
       <div class="card-body">
-        <canvas id="chart-placement" style="max-height:300px;"></canvas>
+        <canvas id="chart-d2" style="max-height:420px;"></canvas>
       </div>
     </div>
   </div>
-
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 const PALETTE = [
-  '#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0',
+  '#2563eb','#198754','#ffc107','#dc3545','#0dcaf0',
   '#6f42c1','#fd7e14','#20c997','#6c757d','#d63384',
 ];
 
 function hBar(ctx, labels, values, label) {
   return new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{ label, data: values, backgroundColor: PALETTE, borderRadius: 4 }]
-    },
+    data: { labels, datasets: [{ label, data: values, backgroundColor: PALETTE, borderRadius: 4 }] },
     options: {
       indexAxis: 'y',
       plugins: { legend: { display: false } },
@@ -208,115 +138,83 @@ function hBar(ctx, labels, values, label) {
   });
 }
 
-function donut(ctx, labels, values) {
+function donut(ctx, labels, values, colors) {
   return new Chart(ctx, {
     type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{ data: values, backgroundColor: PALETTE, borderWidth: 2 }]
-    },
+    data: { labels, datasets: [{ data: values, backgroundColor: colors || PALETTE, borderWidth: 2 }] },
     options: {
       plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
-      cutout: '65%',
+      cutout: '62%',
     }
   });
 }
 
-function vBar(ctx, labels, values, label) {
-  return new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ label, data: values, backgroundColor: PALETTE, borderRadius: 4 }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-    }
-  });
+let _charts = {};
+
+function destroyChart(id) {
+  if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  fetch('/api/analytics')
+function loadCharts() {
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  const qs   = new URLSearchParams();
+  if (from) qs.set('date_from', from);
+  if (to)   qs.set('date_to', to);
+
+  const label = document.getElementById('date-label');
+  if (from || to)
+    label.textContent = `Showing: ${from || '…'} → ${to || '…'}`;
+  else
+    label.textContent = 'Showing: all dates';
+
+  fetch('/api/analytics?' + qs.toString())
     .then(r => r.json())
     .then(data => {
       const js = data.jobseekers;
-      const vc = data.vacancies;
 
       // Stat cards
-      document.getElementById('stat-total').textContent      = js.total.toLocaleString();
-      document.getElementById('stat-vacancies').textContent  = vc.total.toLocaleString();
-      document.getElementById('stat-employers').textContent  = vc.total_employers.toLocaleString();
-      document.getElementById('stat-pwd').textContent        = js.pwd.toLocaleString();
+      document.getElementById('stat-total').textContent  = js.total.toLocaleString();
+      document.getElementById('stat-youth').textContent  = js.youth.toLocaleString();
+      document.getElementById('stat-senior').textContent = js.senior.toLocaleString();
+      document.getElementById('stat-pwd').textContent    = js.pwd.toLocaleString();
 
       // Sex donut
-      const sexTotal = js.male + js.female;
-      donut(document.getElementById('chart-sex'),
-        ['Male', 'Female', 'Not Specified'],
-        [js.male, js.female, Math.max(0, js.total - sexTotal)]
-      );
+      destroyChart('chart-sex');
+      const sexKnown = js.male + js.female;
+      const other    = Math.max(0, js.total - sexKnown);
+      _charts['chart-sex'] = donut(document.getElementById('chart-sex'),
+        ['Male', 'Female'].concat(other ? ['Not Specified'] : []),
+        [js.male, js.female].concat(other ? [other] : []),
+        ['#2563eb', '#d63384', '#adb5bd']);
+      const pct = n => sexKnown ? (n / sexKnown * 100).toFixed(2) + '%' : '—';
       document.getElementById('sex-legend').innerHTML =
-        `<div class="d-flex justify-content-around small">
-           <div><strong>${js.male}</strong> Male</div>
-           <div><strong>${js.female}</strong> Female</div>
+        `<div class="d-flex justify-content-around small text-center">
+           <div><span class="fw-bold fs-5 d-block">${pct(js.male)}</span>Male (${js.male})</div>
+           <div><span class="fw-bold fs-5 d-block">${pct(js.female)}</span>Female (${js.female})</div>
          </div>`;
 
-      // Special counts
-      vBar(document.getElementById('chart-special'),
-        ['Youth', 'Senior Citizen', 'PWD', '4Ps'],
-        [js.youth, js.senior, js.pwd, 0],
-        'Count'
-      );
-
       // Employment status donut
-      donut(document.getElementById('chart-emp'), js.emp_labels, js.emp_values);
+      destroyChart('chart-emp');
+      _charts['chart-emp'] = donut(document.getElementById('chart-emp'), js.emp_labels, js.emp_values,
+        ['#dc3545', '#198754', '#6c757d']);
 
       // Education horizontal bar
-      hBar(document.getElementById('chart-educ'), js.educ_labels, js.educ_values, 'Registrants');
+      destroyChart('chart-educ');
+      _charts['chart-educ'] = hBar(document.getElementById('chart-educ'), js.educ_labels, js.educ_values, 'Registrants');
 
       // Barangay charts
+      destroyChart('chart-d1');
       if (js.d1_labels.length)
-        hBar(document.getElementById('chart-d1'), js.d1_labels, js.d1_values, 'Registrants');
-      else
-        document.getElementById('chart-d1').parentElement.innerHTML +=
-          '<p class="text-muted text-center small">No District 1 barangay data</p>';
+        _charts['chart-d1'] = hBar(document.getElementById('chart-d1'), js.d1_labels, js.d1_values, 'Registrants');
 
+      destroyChart('chart-d2');
       if (js.d2_labels.length)
-        hBar(document.getElementById('chart-d2'), js.d2_labels, js.d2_values, 'Registrants');
-      else
-        document.getElementById('chart-d2').parentElement.innerHTML +=
-          '<p class="text-muted text-center small">No District 2 barangay data</p>';
-
-      // Vacancy type donut
-      donut(document.getElementById('chart-vac-type'),
-        ['Local', 'Overseas'], [vc.local, vc.overseas]);
-      document.getElementById('vac-type-stats').textContent =
-        `Local: ${vc.local}  |  Overseas: ${vc.overseas}`;
-
-      // Industry donut
-      donut(document.getElementById('chart-industry'), vc.ind_labels, vc.ind_values);
-
-      // Employer type donut
-      donut(document.getElementById('chart-emp-type'),
-        ['Local', 'Overseas'], [vc.local_employers, vc.overseas_employers]);
-      document.getElementById('emp-type-stats').textContent =
-        `Local: ${vc.local_employers}  |  Overseas: ${vc.overseas_employers}`;
-
-      // Top vacancies
-      if (vc.top_vac_labels.length)
-        hBar(document.getElementById('chart-top-vac'), vc.top_vac_labels, vc.top_vac_values, 'Open Positions');
-      else
-        document.getElementById('chart-top-vac').parentElement.innerHTML +=
-          '<p class="text-muted text-center small py-5">No vacancy data yet</p>';
-
-      // Top placements
-      if (vc.place_labels.length)
-        hBar(document.getElementById('chart-placement'), vc.place_labels, vc.place_values, 'Recommendations');
-      else
-        document.getElementById('chart-placement').parentElement.innerHTML +=
-          '<p class="text-muted text-center small py-5">No recommendation data yet</p>';
+        _charts['chart-d2'] = hBar(document.getElementById('chart-d2'), js.d2_labels, js.d2_values, 'Registrants');
     })
     .catch(err => console.error('Analytics API error:', err));
-});
+}
+
+document.addEventListener('DOMContentLoaded', loadCharts);
 </script>
 {% endblock %}

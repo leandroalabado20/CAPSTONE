@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}PESO CSJDM{% endblock %} &mdash; Job Recommendation System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/css/coreui.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
@@ -28,6 +32,14 @@
   </div>
 
   <ul class="sidebar-nav">
+
+    <li class="nav-item">
+      <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
+         href="{{ url_for('home') }}">
+        <span class="nav-icon"><i class="bi bi-house-door-fill"></i></span>
+        Home
+      </a>
+    </li>
 
     <li class="nav-title">Analytics</li>
 

@@ -3,20 +3,6 @@
 {% block page_title %}<i class="bi bi-stars me-2"></i>Job Recommendation{% endblock %}
 
 {% block content %}
-<!-- Dashboard tab navigation -->
-<ul class="nav nav-tabs mb-4">
-  <li class="nav-item">
-    <a class="nav-link active fw-semibold" href="{{ url_for('recommendation') }}">
-      <i class="bi bi-stars me-1"></i>Job Recommendation
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('analytics') }}">
-      <i class="bi bi-bar-chart-fill me-1"></i>Analytical Dashboard
-    </a>
-  </li>
-</ul>
-
 {% if not pipeline_loaded %}
 <div class="alert alert-warning">
   <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -59,7 +45,8 @@
               <input type="text" id="applicant-search" class="form-control mb-2"
                      placeholder="Type to filter..." oninput="filterApplicants(this.value)" />
               <select name="applicant_id" id="applicant-select" class="form-select" size="8"
-                      style="overflow-y:auto;" onchange="previewApplicant(this.value)">
+                      style="overflow-y:auto;" onchange="previewApplicant(this)"
+                      data-preselect="{{ preselect_id or '' }}">
                 {% for ap in applicants %}
                 <option value="{{ ap.id }}"
                   {% if preselect_id and preselect_id|int == ap.id %}selected{% endif %}
@@ -68,10 +55,10 @@
                   data-educ="{{ ap.educ_level }}"
                   data-pref="{{ ap.preferred_position }}">
                   {{ ap.last_name }}, {{ ap.first_name }}
-                  <small>({{ ap.preferred_position }})</small>
                 </option>
                 {% endfor %}
               </select>
+              <div id="applicant-preview" class="mt-2 px-2 py-1 bg-light rounded border small text-muted" style="display:none;"></div>
               <div class="form-text">{{ applicants|length }} registered applicant(s)</div>
             </div>
           </div>
@@ -172,7 +159,7 @@
                       {% if item.suitability_score >= 0.6 %}bg-success
                       {% elif item.suitability_score >= 0.3 %}bg-warning
                       {% else %}bg-danger{% endif %}"
-                      style="width:{{ (item.suitability_score * 100)|round(0) }}%"></div>
+                      data-pct="{{ (item.suitability_score * 100)|round(0)|int }}"></div>
                   </div>
                   <strong>{{ item.suitability_pct }}</strong>
                 </div>
@@ -203,12 +190,6 @@
 
 {% block scripts %}
 <script>
-const applicants = [
-  {% for ap in applicants %}
-  { id: {{ ap.id }}, name: "{{ ap.last_name }}, {{ ap.first_name }}", pref: "{{ ap.preferred_position }}" },
-  {% endfor %}
-];
-
 function toggleMode(mode) {
   document.getElementById('panel-select').style.display = mode === 'select' ? '' : 'none';
   document.getElementById('panel-quick').style.display  = mode === 'quick'  ? '' : 'none';
@@ -223,13 +204,29 @@ function filterApplicants(q) {
   }
 }
 
-{% if preselect_id %}
+function previewApplicant(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  const box = document.getElementById('applicant-preview');
+  if (!opt || !opt.value) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  box.innerHTML =
+    `<strong>${opt.dataset.name}</strong> &mdash; ` +
+    `${opt.dataset.educ || '—'} &bull; ${opt.dataset.pref || '—'}`;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('applicant-select');
-  for (const opt of sel.options) {
-    if (opt.value === '{{ preselect_id }}') { opt.selected = true; break; }
+  // Set progress bar widths from data-pct attributes
+  document.querySelectorAll('.progress-bar[data-pct]').forEach(b => {
+    b.style.width = b.dataset.pct + '%';
+  });
+  // Pre-select applicant when arriving from the applicants list
+  const preselect = sel ? sel.dataset.preselect : '';
+  if (preselect) {
+    for (const opt of sel.options) {
+      if (opt.value === preselect) { opt.selected = true; previewApplicant(sel); break; }
+    }
   }
 });
-{% endif %}
 </script>
 {% endblock %}

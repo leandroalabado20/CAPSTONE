@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block page_title %}<i class="bi bi-house-door-fill me-2"></i>Home{% endblock %}
+
+{% block content %}
+
+<!-- ── Greeting ─────────────────────────────────────────────────────────── -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <span id="greeting">Welcome back</span>,
+        {{ session.get('full_name', 'Staff') }} <span class="ms-1">👋</span>
+      </h4>
+      <p class="text-muted mb-0">
+        Welcome back to the PESO CSJDM Job Recommendation System.
+      </p>
+    </div>
+    <div class="text-md-end">
+      {% if last_login %}
+      <span class="text-muted small d-block">
+        <i class="bi bi-clock-history me-1"></i>Last login
+      </span>
+      <span class="fw-semibold">{{ last_login | friendly_dt }}</span>
+      {% else %}
+      <span class="text-muted small">
+        <i class="bi bi-clock-history me-1"></i>First time signing in — welcome!
+      </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Summary stat cards ───────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-primary h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon text-primary"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-value">{{ '{:,}'.format(total_applicants) }}</div>
+        <div class="stat-label">Applicants</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-success h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon text-success"><i class="bi bi-list-task"></i></div>
+        <div class="stat-value">{{ '{:,}'.format(active_vacancies) }}</div>
+        <div class="stat-label">Active Vacancies</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-warning h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon text-warning"><i class="bi bi-building"></i></div>
+        <div class="stat-value">{{ '{:,}'.format(total_employers) }}</div>
+        <div class="stat-label">Employers</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-info h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon text-info"><i class="bi bi-stars"></i></div>
+        <div class="stat-value">{{ '{:,}'.format(total_recs) }}</div>
+        <div class="stat-label">Recommendations</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quick actions ────────────────────────────────────────────────────── -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header fw-semibold">
+    <i class="bi bi-lightning-charge-fill me-2 text-primary"></i>Quick Actions
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-6 col-lg-3">
+        <a href="{{ url_for('recommendation') }}"
+           class="btn btn-primary w-100 py-3 d-flex flex-column align-items-center gap-1">
+          <i class="bi bi-stars fs-4"></i>
+          <span class="fw-semibold">Generate Recommendation</span>
+        </a>
+      </div>
+      <div class="col-6 col-lg-3">
+        <a href="{{ url_for('applicant_register') }}"
+           class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-1">
+          <i class="bi bi-person-plus fs-4"></i>
+          <span class="fw-semibold">Register Applicant</span>
+        </a>
+      </div>
+      <div class="col-6 col-lg-3">
+        <a href="{{ url_for('vacancy_add') }}"
+           class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-1">
+          <i class="bi bi-list-task fs-4"></i>
+          <span class="fw-semibold">Add Job Vacancy</span>
+        </a>
+      </div>
+      <div class="col-6 col-lg-3">
+        <a href="{{ url_for('applicants_upload') }}"
+           class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-1">
+          <i class="bi bi-upload fs-4"></i>
+          <span class="fw-semibold">Upload Applicants</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Recent activity ──────────────────────────────────────────────────── -->
+<div class="row g-4">
+
+  <!-- Recently registered applicants -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-person-lines-fill me-2 text-primary"></i>Recently Registered Applicants</span>
+        <a href="{{ url_for('applicants_list') }}" class="small text-decoration-none">View all</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_applicants %}
+        <table class="table table-hover mb-0">
+          <tbody>
+            {% for ap in recent_applicants %}
+            <tr>
+              <td class="fw-semibold">{{ ap.last_name }}, {{ ap.first_name }}</td>
+              <td class="text-muted">{{ ap.preferred_position }}</td>
+              <td class="text-end text-muted small">{{ ap.created_at | friendly_dt }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+          No applicants registered yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent recommendations -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-trophy-fill me-2 text-success"></i>Recent Recommendations</span>
+        <a href="{{ url_for('recommendation') }}" class="small text-decoration-none">Generate</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_recs %}
+        <table class="table table-hover mb-0">
+          <tbody>
+            {% for r in recent_recs %}
+            <tr>
+              <td class="fw-semibold">{{ r.first_name }} {{ r.last_name }}</td>
+              <td>
+                <i class="bi bi-arrow-right-short text-muted"></i>
+                {{ r.job_title }}
+                <span class="text-muted small">({{ r.employer_name }})</span>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-success-subtle text-success-emphasis">
+                  {{ (r.suitability_score * 100) | round(0) | int }}%
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-stars fs-3 d-block mb-2 opacity-50"></i>
+          No recommendations generated yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Time-of-day greeting (uses the staff member's local clock)
+  (function () {
+    const h = new Date().getHours();
+    const g = h < 12 ? 'Good morning'
+            : h < 18 ? 'Good afternoon'
+            : 'Good evening';
+    document.getElementById('greeting').textContent = g;
+  })();
+</script>
+{% endblock %}

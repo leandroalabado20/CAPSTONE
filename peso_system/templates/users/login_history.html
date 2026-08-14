@@ -30,7 +30,7 @@
       <tbody>
         {% for log in logs %}
         <tr>
-          <td class="text-muted">{{ log.timestamp }}</td>
+          <td class="text-muted">{{ log.timestamp | friendly_dt }}</td>
           <td>{{ log.full_name or '—' }}</td>
           <td><code>{{ log.username }}</code></td>
           <td class="text-muted font-monospace">{{ log.ip_address or '—' }}</td>

@@ -41,24 +41,26 @@
             <tr><th>Accepted Header Name</th><th>Maps To</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>EDUC LEVEL</code> or <code>EDUCATION LEVEL</code></td><td>Education Level <span class="text-danger">*</span></td></tr>
+            <tr><td><code>EDUC LEVEL</code></td><td>Education Level <span class="text-danger">*</span></td></tr>
             <tr><td><code>PREFERRED POSITION</code></td><td>Preferred Position <span class="text-danger">*</span></td></tr>
             <tr><td><code>SKILLS</code></td><td>Skills <span class="text-danger">*</span></td></tr>
             <tr><td><code>WORK EXPERIENCE</code></td><td>Work Experience</td></tr>
-            <tr><td><code>FIRST NAME</code></td><td>First Name</td></tr>
-            <tr><td><code>LAST NAME</code></td><td>Last Name</td></tr>
+            <tr><td><code>FIRSTNAME</code> or <code>FIRST NAME</code></td><td>First Name</td></tr>
+            <tr><td><code>LASTNAME</code> or <code>LAST NAME</code></td><td>Last Name</td></tr>
             <tr><td><code>SEX</code></td><td>Sex</td></tr>
-            <tr><td><code>CIVIL STATUS</code></td><td>Civil Status</td></tr>
-            <tr><td><code>BARANGAY</code></td><td>Barangay</td></tr>
-            <tr><td><code>CONTACT NUMBER</code></td><td>Contact Number</td></tr>
-            <tr><td><code>EMAIL</code> or <code>EMAIL ADDRESS</code></td><td>Email</td></tr>
+            <tr><td><code>AGE</code></td><td>Age</td></tr>
+            <tr><td><code>BARANGAY</code></td><td>Barangay / District</td></tr>
+            <tr><td><code>EMP. STATUS</code></td><td>Employment Status</td></tr>
+            <tr><td><code>PWD</code></td><td>PWD Status</td></tr>
+            <tr><td><code>REG. DATE</code></td><td>PEIS Registration Date</td></tr>
           </tbody>
         </table>
         <div class="alert alert-warning small mb-0">
           <i class="bi bi-exclamation-triangle me-1"></i>
-          <strong>PEIS Export:</strong> If uploading directly from PEIS, the system will try
-          reading <code>header=2</code> (skipping the first two group-label rows) automatically.
-          Rows missing Education Level, Preferred Position, or Skills will be skipped.
+          <strong>PEIS Export:</strong> Uploading the PEIS Excel export is fully supported.
+          Rows missing Education Level, Preferred Position, or Skills are still imported and
+          flagged as <strong>Incomplete</strong> — complete them in the edit form before
+          generating recommendations. Only fully blank/junk rows are skipped.
         </div>
       </div>
     </div>

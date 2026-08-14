@@ -43,20 +43,38 @@
       {% if action == 'add' %}
       <div class="mb-3">
         <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-        <input type="password" name="password" class="form-control" required
-               minlength="8" autocomplete="new-password" />
+        <div class="input-group">
+          <input type="password" name="password" class="form-control" required
+                 minlength="8" autocomplete="new-password" />
+          <button class="btn btn-outline-secondary" type="button"
+                  onclick="togglePw(this)" aria-label="Show or hide password">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
         <div class="form-text">Minimum 8 characters.</div>
       </div>
       <div class="mb-4">
         <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
-        <input type="password" name="confirm_password" class="form-control"
-               required autocomplete="new-password" />
+        <div class="input-group">
+          <input type="password" name="confirm_password" class="form-control"
+                 required autocomplete="new-password" />
+          <button class="btn btn-outline-secondary" type="button"
+                  onclick="togglePw(this)" aria-label="Show or hide password">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
       </div>
       {% else %}
       <div class="mb-3">
         <label class="form-label fw-semibold">New Password</label>
-        <input type="password" name="new_password" class="form-control"
-               autocomplete="new-password" minlength="8" />
+        <div class="input-group">
+          <input type="password" name="new_password" class="form-control"
+                 autocomplete="new-password" minlength="8" />
+          <button class="btn btn-outline-secondary" type="button"
+                  onclick="togglePw(this)" aria-label="Show or hide password">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
         <div class="form-text">Leave blank to keep current password. Minimum 8 characters if changing.</div>
       </div>
       {% endif %}
@@ -71,4 +89,17 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function togglePw(btn) {
+    const input = btn.parentElement.querySelector('input');
+    const icon  = btn.querySelector('i');
+    const show  = input.type === 'password';
+    input.type  = show ? 'text' : 'password';
+    icon.classList.toggle('bi-eye', !show);
+    icon.classList.toggle('bi-eye-slash', show);
+  }
+</script>
 {% endblock %}

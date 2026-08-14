@@ -14,6 +14,14 @@
     <form method="POST"
           action="{% if action == 'register' %}{{ url_for('applicant_register') }}{% else %}{{ url_for('applicant_edit', aid=applicant.id) }}{% endif %}">
 
+      {% if applicant and (not applicant.educ_level or not applicant.preferred_position or not applicant.skills) %}
+      <div class="alert alert-warning d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div>This applicant has <strong>incomplete required fields</strong> (highlighted in red below).
+             Please complete them so the applicant can be recommended.</div>
+      </div>
+      {% endif %}
+
       <!-- Section: Personal Information -->
       <h6 class="text-primary fw-bold mb-3 border-bottom pb-1">
         <i class="bi bi-person me-2"></i>Personal Information
@@ -30,9 +38,9 @@
                  value="{{ applicant.last_name if applicant else '' }}" required />
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-semibold">Birthdate</label>
-          <input type="date" name="birthdate" class="form-control"
-                 value="{{ applicant.birthdate if applicant else '' }}" />
+          <label class="form-label fw-semibold">Age</label>
+          <input type="number" name="age" class="form-control" min="0" max="120"
+                 value="{{ applicant.age if applicant and applicant.age is not none else '' }}" />
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold">Sex</label>
@@ -44,30 +52,11 @@
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label fw-semibold">Civil Status</label>
-          <select name="civil_status" class="form-select">
-            <option value="">-- Select --</option>
-            {% for opt in ['Single','Married','Widowed','Separated','Annulled'] %}
-            <option {% if applicant and applicant.civil_status == opt %}selected{% endif %}>{{ opt }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label fw-semibold">Contact Number</label>
-          <input type="text" name="contact_number" class="form-control"
-                 value="{{ applicant.contact_number if applicant else '' }}" />
-        </div>
-        <div class="col-md-3">
-          <label class="form-label fw-semibold">Email Address</label>
-          <input type="email" name="email" class="form-control"
-                 value="{{ applicant.email if applicant else '' }}" />
-        </div>
-        <div class="col-md-4">
           <label class="form-label fw-semibold">Barangay</label>
           <input type="text" name="barangay" class="form-control"
                  value="{{ applicant.barangay if applicant else '' }}" />
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label fw-semibold">District</label>
           <select name="district" class="form-select">
             <option value="">-- Select --</option>
@@ -75,7 +64,7 @@
             <option {% if applicant and applicant.district == 'District 2' %}selected{% endif %}>District 2</option>
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label fw-semibold">Employment Status</label>
           <select name="employment_status" class="form-select">
             {% for opt in ['Unemployed','Employed'] %}
@@ -84,30 +73,17 @@
             {% endfor %}
           </select>
         </div>
-        <!-- Checkboxes row -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">PEIS Registration Date</label>
+          <input type="date" name="peis_reg_date" class="form-control"
+                 value="{{ applicant.peis_reg_date if applicant and applicant.peis_reg_date else '' }}" />
+          <div class="form-text">Date the applicant registered in PEIS. Auto-filled from batch upload.</div>
+        </div>
         <div class="col-12">
-          <label class="form-label fw-semibold">Special Categories</label>
-          <div class="d-flex flex-wrap gap-3">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="is_youth" id="is_youth"
-                     {% if applicant and applicant.is_youth %}checked{% endif %} />
-              <label class="form-check-label" for="is_youth">Youth (15–30 yrs)</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="is_senior" id="is_senior"
-                     {% if applicant and applicant.is_senior %}checked{% endif %} />
-              <label class="form-check-label" for="is_senior">Senior Citizen (60+)</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="is_pwd" id="is_pwd"
-                     {% if applicant and applicant.is_pwd %}checked{% endif %} />
-              <label class="form-check-label" for="is_pwd">Person with Disability (PWD)</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="is_4ps" id="is_4ps"
-                     {% if applicant and applicant.is_4ps %}checked{% endif %} />
-              <label class="form-check-label" for="is_4ps">4Ps Beneficiary</label>
-            </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_pwd" id="is_pwd"
+                   {% if applicant and applicant.is_pwd %}checked{% endif %} />
+            <label class="form-check-label" for="is_pwd">Person with Disability (PWD)</label>
           </div>
         </div>
       </div>
@@ -120,24 +96,29 @@
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
-          <select name="educ_level" class="form-select" required>
+          <select name="educ_level" class="form-select {% if applicant and not applicant.educ_level %}is-invalid{% endif %}" required>
             <option value="">-- Select Education Level --</option>
             {% for level in educ_levels %}
             <option {% if applicant and applicant.educ_level == level %}selected{% endif %}>{{ level }}</option>
             {% endfor %}
           </select>
+          <div class="invalid-feedback">Please select an education level.</div>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-semibold">Preferred Position <span class="text-danger">*</span></label>
-          <input type="text" name="preferred_position" class="form-control"
+          <input type="text" name="preferred_position"
+                 class="form-control {% if applicant and not applicant.preferred_position %}is-invalid{% endif %}"
                  value="{{ applicant.preferred_position if applicant else '' }}"
                  placeholder="e.g. Cashier, Warehouse Helper, Data Encoder" required />
+          <div class="invalid-feedback">Please enter a preferred position.</div>
         </div>
         <div class="col-md-12">
           <label class="form-label fw-semibold">Skills <span class="text-danger">*</span></label>
-          <textarea name="skills" class="form-control" rows="3"
+          <textarea name="skills" rows="3"
+                    class="form-control {% if applicant and not applicant.skills %}is-invalid{% endif %}"
                     placeholder="e.g. Customer Service, Cashiering, Microsoft Office, Forklift Operation"
                     required>{{ applicant.skills if applicant else '' }}</textarea>
+          <div class="invalid-feedback">Please enter at least one skill.</div>
         </div>
         <div class="col-md-12">
           <label class="form-label fw-semibold">Work Experience</label>

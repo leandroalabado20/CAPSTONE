@@ -53,6 +53,142 @@ EDUC_LEVELS = [
     'Vocational', 'ALS',
 ]
 
+# Pagination and recommendation limits
+APPLICANTS_PER_PAGE   = 24
+TOP_N_RECOMMENDATIONS = 5
+
+# Age thresholds for Youth / Senior Citizen classification
+YOUTH_AGE_MIN  = 15
+YOUTH_AGE_MAX  = 30
+SENIOR_AGE_MIN = 60
+
+# ── PEIS IMPORT NORMALIZATION ──────────────────────────────────────────────────
+# The PEIS export carries 40+ columns; only the 12 fields in FR-03 are stored.
+# Every raw row is passed through normalize_peis_row() before insertion.
+
+# Raw PEIS education strings → the 10 canonical EDUC_LEVELS.
+EDUC_NORMALIZE = {
+    'GRADE I': 'Elementary Level', 'GRADE II': 'Elementary Level',
+    'GRADE III': 'Elementary Level', 'GRADE IV': 'Elementary Level',
+    'GRADE V': 'Elementary Level', 'GRADE VI': 'Elementary Level',
+    'ELEMENTARY GRADUATE': 'Elementary Graduate',
+    'GRADE VII': 'High School Level', 'GRADE VIII': 'High School Level',
+    '1ST YEAR HIGH SCHOOL/GRADE VII (FOR K TO 12)': 'High School Level',
+    '2ND YEAR HIGH SCHOOL/GRADE VIII (FOR K TO 12)': 'High School Level',
+    '3RD YEAR HIGH SCHOOL/GRADE IX (FOR K TO 12)': 'High School Level',
+    '4TH YEAR HIGH SCHOOL/GRADE X (FOR K TO 12)': 'High School Level',
+    'HIGH SCHOOL GRADUATE': 'High School Graduate',
+    'SECONDARY (K-12)': 'High School Graduate',
+    'SECONDARY (NON K-12)': 'High School Graduate',
+    'GRADE XI (FOR K TO 12)': 'Senior High School Level',
+    'GRADE XII (FOR K TO 12)': 'Senior High School Graduate',
+    '1ST YEAR COLLEGE LEVEL': 'College Level', '2ND YEAR COLLEGE LEVEL': 'College Level',
+    '3RD YEAR COLLEGE LEVEL': 'College Level', '4TH YEAR COLLEGE LEVEL': 'College Level',
+    '5TH YEAR COLLEGE LEVEL': 'College Level',
+    'COLLEGE GRADUATE': 'College Graduate',
+    'MASTERAL/POST GRADUATE': 'College Graduate',
+    'MASTERAL/POST GRADUATE LEVEL': 'College Graduate',
+    'VOCATIONAL GRADUATE': 'Vocational', 'VOCATIONAL UNDERGRADUATE': 'Vocational',
+    'ALS': 'ALS', 'ALS (ALTERNATIVE LEARNING SYSTEM)': 'ALS',
+}
+
+# CSJDM barangay → council district (from the PESO Labor Market Updates report,
+# reconciled with the barangay values present in the PEIS export).
+BARANGAY_DISTRICT = {
+    # District 1
+    'MUZON': 'District 1', 'GRACEVILLE': 'District 1', 'GAYA-GAYA': 'District 1',
+    'DULONG BAYAN': 'District 1', 'TUNGKONG MANGGA': 'District 1', 'KAYPIAN': 'District 1',
+    'SANTO CRISTO': 'District 1', 'GUMAOC WEST': 'District 1', 'GUMAOC CENTRAL': 'District 1',
+    'GUMAOC EAST': 'District 1', 'FRANCISCO HOMES-GUIJO': 'District 1',
+    'FRANCISCO HOMES-MULAWIN': 'District 1', 'FRANCISCO HOMES-NARRA': 'District 1',
+    'FRANCISCO HOMES-YAKAL': 'District 1', 'MAHARLIKA': 'District 1', 'KAYBANBAN': 'District 1',
+    'SAN ISIDRO': 'District 1', 'SAN MANUEL': 'District 1', 'POBLACION': 'District 1',
+    'POBLACION I': 'District 1', 'PARADISE III': 'District 1', 'CIUDAD REAL': 'District 1',
+    # District 2
+    'CITRUS': 'District 2', 'MINUYAN PROPER': 'District 2', 'MINUYAN': 'District 2',
+    'MINUYAN II': 'District 2', 'MINUYAN III': 'District 2', 'MINUYAN IV': 'District 2',
+    'MINUYAN V': 'District 2', 'SAN MARTIN': 'District 2', 'SAN MARTIN II': 'District 2',
+    'SAN MARTIN III': 'District 2', 'SAN MARTIN IV': 'District 2',
+    'ST. MARTIN DE PORRES': 'District 2', 'SAN PEDRO': 'District 2', 'SAN RAFAEL': 'District 2',
+    'SAN RAFAEL I': 'District 2', 'SAN RAFAEL III': 'District 2', 'SAN RAFAEL IV': 'District 2',
+    'SAN RAFAEL V': 'District 2', 'FATIMA': 'District 2', 'FATIMA II': 'District 2',
+    'FATIMA III': 'District 2', 'FATIMA IV': 'District 2', 'FATIMA V': 'District 2',
+    'BAGONG BUHAY': 'District 2', 'BAGONG BUHAY II': 'District 2', 'BAGONG BUHAY III': 'District 2',
+    'SANTA CRUZ': 'District 2', 'SANTA CRUZ II': 'District 2', 'SANTA CRUZ III': 'District 2',
+    'SANTA CRUZ IV': 'District 2', 'SANTA CRUZ V': 'District 2',
+    'SANTO NIÑO': 'District 2', 'SANTO NIÑO II': 'District 2',
+    'ASSUMPTION': 'District 2', 'LAWANG PARI': 'District 2', 'SAPANG PALAY': 'District 2',
+}
+
+
+def normalize_educ(raw):
+    """Map a raw PEIS education string to one of the 10 canonical levels ('' if unknown)."""
+    return EDUC_NORMALIZE.get(re.sub(r'\s+', ' ', str(raw)).strip().upper(), '')
+
+
+def barangay_to_district(raw):
+    """Look up the council district for a barangay ('' if unknown)."""
+    return BARANGAY_DISTRICT.get(re.sub(r'\s+', ' ', str(raw)).strip().upper(), '')
+
+
+def parse_age(raw):
+    """'46y 2mos' / '32' / 46.0 -> 46 (int); None if no digits."""
+    m = re.search(r'\d+', str(raw))
+    return int(m.group()) if m else None
+
+
+def yn_to_int(raw):
+    """'Yes'/'No' (any case) -> 1/0."""
+    return 1 if str(raw).strip().lower() in ('yes', 'y', '1', 'true') else 0
+
+
+def parse_peis_date(raw):
+    """Pandas Timestamp / datetime / date string -> 'YYYY-MM-DD', or None."""
+    if raw is None:
+        return None
+    try:
+        import pandas as _pd
+        if hasattr(raw, '__float__') and _pd.isna(raw):
+            return None
+        return _pd.to_datetime(raw).strftime('%Y-%m-%d')
+    except Exception:
+        return None
+
+
+def normalize_peis_row(row):
+    """One raw PEIS row (dict of UPPER-CASE headers) -> clean dict of the 12 stored
+    fields, or None only if the row is completely empty. Rows missing a required ML
+    field (education / preferred position / skills) are still returned with that
+    field left blank, so they can be imported and flagged for completion."""
+    # Helper: safely get a PEIS column value as a stripped string
+    get_col = lambda c: '' if pd.isna(row.get(c, '')) else str(row.get(c, '')).strip()
+
+    first     = get_col('FIRSTNAME') or get_col('FIRST NAME')
+    last      = get_col('LASTNAME')  or get_col('LAST NAME')
+    educ      = normalize_educ(get_col('EDUC LEVEL'))
+    preferred = get_col('PREFERRED POSITION')
+    skills    = get_col('SKILLS')
+    if not any((first, last, educ, preferred, skills)):
+        return None                              # skip only truly empty / junk rows
+
+    barangay = get_col('BARANGAY')
+    sex_raw  = get_col('SEX').upper()
+    return {
+        'first_name':         first or 'Unknown',
+        'last_name':          last or 'Unknown',
+        'educ_level':         educ,
+        'preferred_position': preferred,
+        'skills':             skills,
+        'work_experience':    get_col('WORK EXPERIENCE'),
+        'sex':                'Male' if sex_raw.startswith('M') else ('Female' if sex_raw.startswith('F') else ''),
+        'employment_status':  get_col('EMP. STATUS') or get_col('EMPLOYMENT STATUS') or 'Unemployed',
+        'barangay':           barangay,
+        'district':           barangay_to_district(barangay),
+        'age':                parse_age(get_col('AGE')),
+        'is_pwd':             yn_to_int(get_col('PWD')),
+        'peis_reg_date':      parse_peis_date(row.get('REG. DATE')),
+    }
+
 # ── DATABASE ──────────────────────────────────────────────────────────────────
 def get_db():
     if 'db' not in g:
@@ -81,27 +217,22 @@ def init_db():
             created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS applicants (
-            id                INTEGER  PRIMARY KEY AUTOINCREMENT,
-            first_name        TEXT     NOT NULL,
-            last_name         TEXT     NOT NULL,
-            sex               TEXT,
-            civil_status      TEXT,
-            birthdate         TEXT,
-            contact_number    TEXT,
-            email             TEXT,
-            barangay          TEXT,
-            district          TEXT,
-            is_4ps            INTEGER  DEFAULT 0,
-            is_pwd            INTEGER  DEFAULT 0,
-            is_youth          INTEGER  DEFAULT 0,
-            is_senior         INTEGER  DEFAULT 0,
-            employment_status TEXT     DEFAULT 'Unemployed',
-            educ_level        TEXT     NOT NULL,
-            preferred_position TEXT    NOT NULL,
-            skills            TEXT     NOT NULL,
-            work_experience   TEXT,
-            created_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
-            is_archived       INTEGER  DEFAULT 0
+            id                 INTEGER  PRIMARY KEY AUTOINCREMENT,
+            first_name         TEXT     NOT NULL,
+            last_name          TEXT     NOT NULL,
+            sex                TEXT,
+            age                INTEGER,
+            barangay           TEXT,
+            district           TEXT,
+            employment_status  TEXT     DEFAULT 'Unemployed',
+            is_pwd             INTEGER  DEFAULT 0,
+            educ_level         TEXT     NOT NULL,
+            preferred_position TEXT     NOT NULL,
+            skills             TEXT     NOT NULL,
+            work_experience    TEXT,
+            peis_reg_date      DATE,
+            created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_archived        INTEGER  DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS job_vacancies (
             id                   INTEGER  PRIMARY KEY AUTOINCREMENT,
@@ -134,6 +265,46 @@ def init_db():
             outcome    TEXT
         );
     ''')
+
+    # Migrate an older applicants table to the lean schema (drops personal/admin
+    # columns, adds age). Existing rows are preserved for the retained columns.
+    acols = [r[1] for r in db.execute("PRAGMA table_info(applicants)").fetchall()]
+    if 'civil_status' in acols or 'age' not in acols:
+        db.executescript('''
+            CREATE TABLE applicants_new (
+                id                 INTEGER  PRIMARY KEY AUTOINCREMENT,
+                first_name         TEXT     NOT NULL,
+                last_name          TEXT     NOT NULL,
+                sex                TEXT,
+                age                INTEGER,
+                barangay           TEXT,
+                district           TEXT,
+                employment_status  TEXT     DEFAULT 'Unemployed',
+                is_pwd             INTEGER  DEFAULT 0,
+                educ_level         TEXT     NOT NULL,
+                preferred_position TEXT     NOT NULL,
+                skills             TEXT     NOT NULL,
+                work_experience    TEXT,
+                created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+                is_archived        INTEGER  DEFAULT 0
+            );
+            INSERT INTO applicants_new
+                (id, first_name, last_name, sex, barangay, district,
+                 employment_status, is_pwd, educ_level, preferred_position,
+                 skills, work_experience, created_at, is_archived)
+            SELECT id, first_name, last_name, sex, barangay, district,
+                 employment_status, is_pwd, educ_level, preferred_position,
+                 skills, work_experience, created_at, is_archived
+            FROM applicants;
+            DROP TABLE applicants;
+            ALTER TABLE applicants_new RENAME TO applicants;
+        ''')
+
+    # Add peis_reg_date to tables that predate this column.
+    acols = [r[1] for r in db.execute("PRAGMA table_info(applicants)").fetchall()]
+    if 'peis_reg_date' not in acols:
+        db.execute('ALTER TABLE applicants ADD COLUMN peis_reg_date DATE')
+
     existing = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
     if existing == 0:
         db.execute(
@@ -162,17 +333,18 @@ def _strip_numeric_noise(text):
 def _clean_profile(educ_level, preferred_position, skills, work_experience):
     if not work_experience or not work_experience.strip():
         work_experience = 'NO EXPERIENCE'
-    f = {
-        'e': educ_level,
-        'p': preferred_position,
-        's': skills,
-        'w': work_experience,
+    fields = {
+        'educ':   educ_level,
+        'pos':    preferred_position,
+        'skills': skills,
+        'exp':    work_experience,
     }
-    f = {k: v.lower() for k, v in f.items()}
-    f = {k: re.sub(r'[^a-z0-9\s]', ' ', v) for k, v in f.items()}
-    f = {k: re.sub(r'\s+', ' ', v).strip() for k, v in f.items()}
-    f['w'] = _strip_numeric_noise(f['w'])
-    return re.sub(r'\s+', ' ', f'{f["e"]} {f["p"]} {f["s"]} {f["w"]}').strip()
+    fields = {k: v.lower() for k, v in fields.items()}
+    fields = {k: re.sub(r'[^a-z0-9\s]', ' ', v) for k, v in fields.items()}
+    fields = {k: re.sub(r'\s+', ' ', v).strip() for k, v in fields.items()}
+    fields['exp'] = _strip_numeric_noise(fields['exp'])
+    return re.sub(r'\s+', ' ',
+                  f'{fields["educ"]} {fields["pos"]} {fields["skills"]} {fields["exp"]}').strip()
 
 def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies):
     if pipeline is None:
@@ -196,7 +368,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     scored.sort(key=lambda x: x['suitability_score'], reverse=True)
     for i, item in enumerate(scored, 1):
         item['rank'] = i
-    return scored[:5]
+    return scored[:TOP_N_RECOMMENDATIONS]
 
 # ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 def login_required(f):
@@ -217,15 +389,29 @@ def current_user():
 def inject_globals():
     return {'pipeline_loaded': pipeline is not None}
 
+# ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────
+@app.template_filter('friendly_dt')
+def friendly_dt(value):
+    """Format a SQLite timestamp string ('YYYY-MM-DD HH:MM:SS') as 'Aug 13, 2026 · 2:14 PM'."""
+    if not value:
+        return ''
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d'):
+        try:
+            dt = datetime.strptime(str(value), fmt)
+            return dt.strftime('%b %d, %Y · %I:%M %p').replace(' 0', ' ')
+        except ValueError:
+            continue
+    return str(value)
+
 # ── AUTH ROUTES ───────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
-    return redirect(url_for('recommendation') if 'user_id' in session else url_for('login'))
+    return redirect(url_for('home') if 'user_id' in session else url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
-        return redirect(url_for('recommendation'))
+        return redirect(url_for('home'))
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
@@ -246,7 +432,7 @@ def login():
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
                            (user['id'], username, ip, 'success'))
                 db.commit()
-                return redirect(url_for('recommendation'))
+                return redirect(url_for('home'))
         else:
             uid = user['id'] if user else None
             db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
@@ -282,6 +468,63 @@ def change_password():
             return redirect(url_for('recommendation'))
     return render_template('settings/password.html', user=user)
 
+# ── HOME / OVERVIEW ─────────────────────────────────────────────────────────
+@app.route('/home')
+@login_required
+def home():
+    db = get_db()
+
+    # Summary counts
+    total_applicants = db.execute(
+        'SELECT COUNT(*) FROM applicants WHERE is_archived=0'
+    ).fetchone()[0]
+    active_vacancies = db.execute(
+        'SELECT COUNT(*) FROM job_vacancies WHERE is_active=1'
+    ).fetchone()[0]
+    total_employers = db.execute(
+        'SELECT COUNT(DISTINCT employer_name) FROM job_vacancies WHERE is_active=1'
+    ).fetchone()[0]
+    total_recs = db.execute(
+        'SELECT COUNT(*) FROM recommendations'
+    ).fetchone()[0]
+
+    # Last successful login for this user, excluding the current session's login
+    # (the most recent success row is this session, so the 2nd most recent is the
+    # actual previous login).
+    last_login_row = db.execute(
+        "SELECT timestamp FROM login_logs "
+        "WHERE user_id=? AND outcome='success' "
+        "ORDER BY timestamp DESC LIMIT 1 OFFSET 1",
+        (session['user_id'],)
+    ).fetchone()
+    last_login = last_login_row['timestamp'] if last_login_row else None
+
+    # Recent activity
+    recent_applicants = db.execute(
+        'SELECT id, first_name, last_name, preferred_position, created_at '
+        'FROM applicants WHERE is_archived=0 '
+        'ORDER BY created_at DESC, id DESC LIMIT 5'
+    ).fetchall()
+    recent_recs = db.execute(
+        'SELECT r.rank, r.suitability_score, r.recommended_at, '
+        '       a.first_name, a.last_name, '
+        '       jv.job_title, jv.employer_name '
+        'FROM recommendations r '
+        'JOIN applicants a      ON r.applicant_id = a.id '
+        'JOIN job_vacancies jv  ON r.vacancy_id   = jv.id '
+        'WHERE r.rank = 1 '
+        'ORDER BY r.recommended_at DESC, r.id DESC LIMIT 5'
+    ).fetchall()
+
+    return render_template('home.html',
+                           total_applicants=total_applicants,
+                           active_vacancies=active_vacancies,
+                           total_employers=total_employers,
+                           total_recs=total_recs,
+                           last_login=last_login,
+                           recent_applicants=recent_applicants,
+                           recent_recs=recent_recs)
+
 # ── RECOMMENDATION ────────────────────────────────────────────────────────────
 @app.route('/recommendation')
 @login_required
@@ -300,7 +543,8 @@ def recommendation():
                            results=results,
                            input_profile=input_profile,
                            sel_applicant=sel_applicant,
-                           preselect_id=preselect_id)
+                           preselect_id=preselect_id,
+                           pipeline_loaded=pipeline is not None)
 
 @app.route('/recommendation/generate', methods=['POST'])
 @login_required
@@ -383,51 +627,45 @@ def analytics():
 @app.route('/api/analytics')
 @login_required
 def api_analytics():
+    # Returns JSON consumed by analytics.html via fetch().
+    # All queries honour an optional date filter on peis_reg_date.
     db = get_db()
 
-    total = db.execute('SELECT COUNT(*) FROM applicants WHERE is_archived=0').fetchone()[0]
-    male  = db.execute("SELECT COUNT(*) FROM applicants WHERE is_archived=0 AND sex='Male'").fetchone()[0]
-    fem   = db.execute("SELECT COUNT(*) FROM applicants WHERE is_archived=0 AND sex='Female'").fetchone()[0]
-    youth = db.execute('SELECT COUNT(*) FROM applicants WHERE is_archived=0 AND is_youth=1').fetchone()[0]
-    senior= db.execute('SELECT COUNT(*) FROM applicants WHERE is_archived=0 AND is_senior=1').fetchone()[0]
-    pwd   = db.execute('SELECT COUNT(*) FROM applicants WHERE is_archived=0 AND is_pwd=1').fetchone()[0]
+    date_from = request.args.get('date_from', '').strip()
+    date_to   = request.args.get('date_to', '').strip()
+    dp = []
+    df_sql = ''
+    if date_from:
+        df_sql += ' AND peis_reg_date >= ?'
+        dp.append(date_from)
+    if date_to:
+        df_sql += ' AND peis_reg_date <= ?'
+        dp.append(date_to)
+
+    total = db.execute(f'SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql}', dp).fetchone()[0]
+    male  = db.execute(f"SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql} AND sex='Male'", dp).fetchone()[0]
+    fem   = db.execute(f"SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql} AND sex='Female'", dp).fetchone()[0]
+    youth = db.execute(f'SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql} AND age BETWEEN {YOUTH_AGE_MIN} AND {YOUTH_AGE_MAX}', dp).fetchone()[0]
+    senior= db.execute(f'SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql} AND age >= {SENIOR_AGE_MIN}', dp).fetchone()[0]
+    pwd   = db.execute(f'SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql} AND is_pwd=1', dp).fetchone()[0]
 
     educ_rows = db.execute(
-        'SELECT educ_level, COUNT(*) c FROM applicants WHERE is_archived=0 '
-        'GROUP BY educ_level ORDER BY c DESC'
+        f"SELECT educ_level, COUNT(*) c FROM applicants WHERE is_archived=0{df_sql} AND educ_level != '' "
+        'GROUP BY educ_level ORDER BY c DESC', dp
     ).fetchall()
     emp_rows = db.execute(
-        'SELECT employment_status, COUNT(*) c FROM applicants WHERE is_archived=0 '
-        'GROUP BY employment_status'
+        f'SELECT employment_status, COUNT(*) c FROM applicants WHERE is_archived=0{df_sql} '
+        'GROUP BY employment_status', dp
     ).fetchall()
     d1_rows = db.execute(
-        "SELECT barangay, COUNT(*) c FROM applicants "
-        "WHERE is_archived=0 AND district='District 1' AND barangay!='' "
-        "GROUP BY barangay ORDER BY c DESC LIMIT 10"
+        f"SELECT barangay, COUNT(*) c FROM applicants "
+        f"WHERE is_archived=0{df_sql} AND district='District 1' AND barangay!='' "
+        "GROUP BY barangay ORDER BY c DESC", dp
     ).fetchall()
     d2_rows = db.execute(
-        "SELECT barangay, COUNT(*) c FROM applicants "
-        "WHERE is_archived=0 AND district='District 2' AND barangay!='' "
-        "GROUP BY barangay ORDER BY c DESC LIMIT 10"
-    ).fetchall()
-
-    total_vac    = db.execute('SELECT COUNT(*) FROM job_vacancies WHERE is_active=1').fetchone()[0]
-    local_vac    = db.execute("SELECT COUNT(*) FROM job_vacancies WHERE is_active=1 AND is_local=1").fetchone()[0]
-    total_emp    = db.execute("SELECT COUNT(DISTINCT employer_name) FROM job_vacancies WHERE is_active=1").fetchone()[0]
-    local_emp    = db.execute("SELECT COUNT(DISTINCT employer_name) FROM job_vacancies WHERE is_active=1 AND is_local=1").fetchone()[0]
-
-    top_vac = db.execute(
-        'SELECT job_title, COUNT(*) c FROM job_vacancies WHERE is_active=1 '
-        'GROUP BY job_title ORDER BY c DESC LIMIT 10'
-    ).fetchall()
-    top_ind = db.execute(
-        'SELECT occupational_category, COUNT(*) c FROM job_vacancies WHERE is_active=1 '
-        'GROUP BY occupational_category ORDER BY c DESC'
-    ).fetchall()
-    top_place = db.execute(
-        'SELECT jv.job_title, COUNT(*) c FROM recommendations r '
-        'JOIN job_vacancies jv ON r.vacancy_id=jv.id WHERE r.rank=1 '
-        'GROUP BY jv.job_title ORDER BY c DESC LIMIT 10'
+        f"SELECT barangay, COUNT(*) c FROM applicants "
+        f"WHERE is_archived=0{df_sql} AND district='District 2' AND barangay!='' "
+        "GROUP BY barangay ORDER BY c DESC", dp
     ).fetchall()
 
     return jsonify({
@@ -442,17 +680,6 @@ def api_analytics():
             'd1_values':    [r['c'] for r in d1_rows],
             'd2_labels':    [r['barangay'] for r in d2_rows],
             'd2_values':    [r['c'] for r in d2_rows],
-        },
-        'vacancies': {
-            'total': total_vac, 'local': local_vac, 'overseas': total_vac - local_vac,
-            'total_employers': total_emp, 'local_employers': local_emp,
-            'overseas_employers': total_emp - local_emp,
-            'top_vac_labels':   [r['job_title'] for r in top_vac],
-            'top_vac_values':   [r['c'] for r in top_vac],
-            'ind_labels':       [r['occupational_category'] for r in top_ind],
-            'ind_values':       [r['c'] for r in top_ind],
-            'place_labels':     [r['job_title'] for r in top_place],
-            'place_values':     [r['c'] for r in top_place],
         }
     })
 
@@ -461,18 +688,52 @@ def api_analytics():
 @login_required
 def applicants_list():
     db = get_db()
-    search   = request.args.get('search', '').strip()
-    archived = request.args.get('archived', '0') == '1'
-    q        = 'SELECT * FROM applicants WHERE is_archived=?'
-    params   = [1 if archived else 0]
+    search    = request.args.get('search', '').strip()
+    archived  = request.args.get('archived', '0') == '1'
+    status    = request.args.get('status', 'all')      # all | incomplete | employed | unemployed
+    district  = request.args.get('district', '')       # '' | District 1 | District 2
+    view      = request.args.get('view', 'card')        # card | table
+    date_from = request.args.get('date_from', '').strip()
+    date_to   = request.args.get('date_to', '').strip()
+    page      = max(1, request.args.get('page', 1, type=int) or 1)
+    per_page  = APPLICANTS_PER_PAGE
+
+    where  = ['is_archived=?']
+    params = [1 if archived else 0]
     if search:
-        q += ' AND (first_name LIKE ? OR last_name LIKE ? OR preferred_position LIKE ? OR skills LIKE ?)'
+        where.append('(first_name LIKE ? OR last_name LIKE ? OR preferred_position LIKE ? OR skills LIKE ?)')
         like = f'%{search}%'
         params += [like, like, like, like]
-    q += ' ORDER BY last_name, first_name'
-    applicants = db.execute(q, params).fetchall()
+    if status == 'incomplete':
+        where.append("(skills='' OR educ_level='' OR preferred_position='')")
+    elif status == 'employed':
+        where.append("employment_status='Employed'")
+    elif status == 'unemployed':
+        where.append("employment_status='Unemployed'")
+    if district in ('District 1', 'District 2'):
+        where.append('district=?')
+        params.append(district)
+    if date_from:
+        where.append('peis_reg_date >= ?')
+        params.append(date_from)
+    if date_to:
+        where.append('peis_reg_date <= ?')
+        params.append(date_to)
+    where_sql = ' AND '.join(where)
+
+    total  = db.execute(f'SELECT COUNT(*) FROM applicants WHERE {where_sql}', params).fetchone()[0]
+    pages  = max(1, (total + per_page - 1) // per_page)  # ceiling division
+    page   = min(page, pages)
+    offset = (page - 1) * per_page
+    applicants = db.execute(
+        f'SELECT * FROM applicants WHERE {where_sql} ORDER BY last_name, first_name LIMIT ? OFFSET ?',
+        params + [per_page, offset]
+    ).fetchall()
+
     return render_template('applicants/list.html', applicants=applicants,
-                           search=search, archived=archived)
+                           search=search, archived=archived, status=status,
+                           district=district, view=view, page=page, pages=pages,
+                           total=total, date_from=date_from, date_to=date_to)
 
 @app.route('/applicants/register', methods=['GET', 'POST'])
 @login_required
@@ -485,21 +746,22 @@ def applicant_register():
             return render_template('applicants/form.html', applicant=f,
                                    educ_levels=EDUC_LEVELS, action='register')
         db = get_db()
+        age = f.get('age', '').strip()
+        peis_reg_date = f.get('peis_reg_date', '').strip() or None
         db.execute('''
-            INSERT INTO applicants (first_name,last_name,sex,civil_status,birthdate,
-                contact_number,email,barangay,district,is_4ps,is_pwd,is_youth,is_senior,
-                employment_status,educ_level,preferred_position,skills,work_experience)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO applicants (first_name,last_name,sex,age,barangay,district,
+                employment_status,is_pwd,educ_level,preferred_position,skills,work_experience,
+                peis_reg_date)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         ''', (
             f.get('first_name','').strip(), f.get('last_name','').strip(),
-            f.get('sex',''), f.get('civil_status',''), f.get('birthdate',''),
-            f.get('contact_number','').strip(), f.get('email','').strip(),
+            f.get('sex',''), int(age) if age.isdigit() else None,
             f.get('barangay','').strip(), f.get('district',''),
-            1 if f.get('is_4ps') else 0, 1 if f.get('is_pwd') else 0,
-            1 if f.get('is_youth') else 0, 1 if f.get('is_senior') else 0,
             f.get('employment_status','Unemployed'),
+            1 if f.get('is_pwd') else 0,
             f.get('educ_level',''), f.get('preferred_position','').strip(),
             f.get('skills','').strip(), f.get('work_experience','').strip(),
+            peis_reg_date,
         ))
         db.commit()
         new_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
@@ -520,22 +782,21 @@ def applicant_edit(aid):
         return redirect(url_for('applicants_list'))
     if request.method == 'POST':
         f = request.form
+        age = f.get('age', '').strip()
+        peis_reg_date = f.get('peis_reg_date', '').strip() or None
         db.execute('''
-            UPDATE applicants SET first_name=?,last_name=?,sex=?,civil_status=?,birthdate=?,
-                contact_number=?,email=?,barangay=?,district=?,is_4ps=?,is_pwd=?,is_youth=?,
-                is_senior=?,employment_status=?,educ_level=?,preferred_position=?,skills=?,
-                work_experience=? WHERE id=?
+            UPDATE applicants SET first_name=?,last_name=?,sex=?,age=?,barangay=?,district=?,
+                employment_status=?,is_pwd=?,educ_level=?,preferred_position=?,skills=?,
+                work_experience=?,peis_reg_date=? WHERE id=?
         ''', (
             f.get('first_name','').strip(), f.get('last_name','').strip(),
-            f.get('sex',''), f.get('civil_status',''), f.get('birthdate',''),
-            f.get('contact_number','').strip(), f.get('email','').strip(),
+            f.get('sex',''), int(age) if age.isdigit() else None,
             f.get('barangay','').strip(), f.get('district',''),
-            1 if f.get('is_4ps') else 0, 1 if f.get('is_pwd') else 0,
-            1 if f.get('is_youth') else 0, 1 if f.get('is_senior') else 0,
             f.get('employment_status','Unemployed'),
+            1 if f.get('is_pwd') else 0,
             f.get('educ_level',''), f.get('preferred_position','').strip(),
             f.get('skills','').strip(), f.get('work_experience','').strip(),
-            aid,
+            peis_reg_date, aid,
         ))
         db.commit()
         flash('Applicant updated.', 'success')
@@ -585,51 +846,39 @@ def applicants_upload():
             else:
                 df = pd.read_csv(fpath)
             df.columns = [str(c).strip().upper() for c in df.columns]
-            col_map = {
-                'EDUC LEVEL': 'educ_level', 'EDUCATION LEVEL': 'educ_level',
-                'PREFERRED POSITION': 'preferred_position',
-                'SKILLS': 'skills', 'WORK EXPERIENCE': 'work_experience',
-                'FIRST NAME': 'first_name', 'FIRSTNAME': 'first_name',
-                'LAST NAME': 'last_name', 'LASTNAME': 'last_name',
-                'SEX': 'sex', 'CIVIL STATUS': 'civil_status',
-                'BARANGAY': 'barangay', 'CONTACT NUMBER': 'contact_number',
-                'EMAIL': 'email', 'EMAIL ADDRESS': 'email',
-            }
             db = get_db()
-            ok, skip, errs = 0, 0, []
+            ok, skip, incomplete = 0, 0, 0
             for idx, row in df.iterrows():
                 try:
-                    rec = {}
-                    for pc, sc in col_map.items():
-                        if pc in df.columns:
-                            v = row.get(pc, '')
-                            rec[sc] = '' if pd.isna(v) else str(v).strip()
-                    if not rec.get('educ_level') or not rec.get('preferred_position') or not rec.get('skills'):
+                    rec = normalize_peis_row(row)
+                    if rec is None:
                         skip += 1
-                        errs.append(f"Row {idx+1}: Missing required fields")
                         continue
+                    if not rec['skills'] or not rec['educ_level'] or not rec['preferred_position']:
+                        incomplete += 1
                     db.execute('''
-                        INSERT INTO applicants (first_name,last_name,sex,civil_status,
-                            contact_number,email,barangay,educ_level,
-                            preferred_position,skills,work_experience)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                        INSERT INTO applicants
+                            (first_name,last_name,educ_level,preferred_position,skills,
+                             work_experience,sex,employment_status,barangay,district,
+                             age,is_pwd,peis_reg_date)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ''', (
-                        rec.get('first_name','Unknown'), rec.get('last_name','Unknown'),
-                        rec.get('sex',''), rec.get('civil_status',''),
-                        rec.get('contact_number',''), rec.get('email',''),
-                        rec.get('barangay',''), rec.get('educ_level',''),
-                        rec.get('preferred_position',''), rec.get('skills',''),
-                        rec.get('work_experience',''),
+                        rec['first_name'], rec['last_name'], rec['educ_level'],
+                        rec['preferred_position'], rec['skills'], rec['work_experience'],
+                        rec['sex'], rec['employment_status'], rec['barangay'],
+                        rec['district'], rec['age'], rec['is_pwd'], rec['peis_reg_date'],
                     ))
                     ok += 1
-                except Exception as e:
+                except Exception:
                     skip += 1
-                    errs.append(f"Row {idx+1}: {e}")
             db.commit()
-            flash(f'Upload complete: {ok} imported, {skip} skipped.',
+            flash(f'Upload complete: {ok} applicant(s) imported'
+                  + (f', {skip} blank row(s) skipped' if skip else '') + '.',
                   'success' if ok > 0 else 'warning')
-            for e in errs[:5]:
-                flash(e, 'warning')
+            if incomplete:
+                flash(f'{incomplete} applicant(s) were imported with an incomplete profile '
+                      '(missing skills, education, or preferred position). Please complete '
+                      'these records before generating recommendations.', 'warning')
         except Exception as e:
             flash(f'Error reading file: {e}', 'danger')
         finally:
@@ -817,4 +1066,7 @@ init_db()
 load_pipeline()
 
 if __name__ == '__main__':
+    import logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     app.run(debug=True, host='0.0.0.0', port=5000)

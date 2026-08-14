@@ -664,7 +664,7 @@ Srihari, R., Adarsha, B. V., Hussain, M. U., & Singh, S. (2025). *JobSphere: An 
 
 Tiwari, R., & Upadhyay, V. (2024). Applying convolutional neural networks (CNN) to job recommendation systems. *International Journal of Science, Engineering and Technology, 12*(5). https://www.ijset.in/wp-content/uploads/IJSET_V12_issue5_758.pdf
 
-Winardi, S., Megawan, S., Wong, N. P., Kurniawan, R., Putra, F. A., & Cynthia, C. (2025). Utilizing TF-IDF content-based filtering for job recommendation systems. *Journal Numerik, 8*(5). https://doi.org/10.32672/jnkti.v8i5.9686
+Winardi, S., Megawan, S., Wong, N. P., Kurniawan, R., Putra, F. A., & Cynthia, C. (2025). Utilizing TF-IDF content-based filtering for job recommendation systems. *Jurnal Nasional Komputasi dan Teknologi Informasi (JNKTI), 8*(5). https://doi.org/10.32672/jnkti.v8i5.9686
 
 Yu, X., Zhang, J., & Yu, Z. (2024). ConFit: Improving resume-job matching using data augmentation and contrastive learning. In *Proceedings of the 18th ACM Conference on Recommender Systems (RecSys '24)*. ACM. https://doi.org/10.1145/3640457.3688108
 

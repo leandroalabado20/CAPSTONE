@@ -390,6 +390,15 @@ def load_pipeline():
         except Exception:
             pipeline = None
 
+def _title_similarity(job_title, preferred_position):
+    """Word overlap between job title and preferred position (0.0–1.0).
+    Used as a tie-breaker when two vacancies share the same category score."""
+    title_words = set(re.sub(r'[^a-z0-9\s]', ' ', job_title.lower()).split())
+    pref_words  = set(re.sub(r'[^a-z0-9\s]', ' ', preferred_position.lower()).split())
+    if not pref_words:
+        return 0.0
+    return len(title_words & pref_words) / len(pref_words)
+
 def _strip_numeric_noise(text):
     text = re.sub(r'\b\d+\s*(?:mos?|years?)\s*as\s*', '', text, flags=re.IGNORECASE)
     text = re.sub(r'\b\d+\b', '', text)
@@ -421,16 +430,20 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     cat_scores = {CATEGORIES[i]: round(float(proba[i]), 4) for i in range(len(CATEGORIES))}
     scored = []
     for v in vacancies:
-        score = cat_scores.get(v['occupational_category'], 0.0)
+        score      = cat_scores.get(v['occupational_category'], 0.0)
+        similarity = _title_similarity(v['job_title'], preferred_position)
         scored.append({
-            'id':               v['id'],
-            'title':            v['job_title'],
-            'employer':         v['employer_name'],
-            'category':         v['occupational_category'],
+            'id':                v['id'],
+            'title':             v['job_title'],
+            'employer':          v['employer_name'],
+            'category':          v['occupational_category'],
             'suitability_score': score,
-            'suitability_pct':  f'{score * 100:.1f}%',
+            'suitability_pct':   f'{score * 100:.1f}%',
+            'title_similarity':  similarity,
         })
-    scored.sort(key=lambda x: x['suitability_score'], reverse=True)
+    # Primary sort: suitability score (higher = better)
+    # Secondary sort: title word overlap with preferred position (breaks ties)
+    scored.sort(key=lambda x: (x['suitability_score'], x['title_similarity']), reverse=True)
     for i, item in enumerate(scored, 1):
         item['rank'] = i
     return scored[:TOP_N_RECOMMENDATIONS]

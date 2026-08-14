@@ -12,7 +12,7 @@ import json
 import sqlite3
 import joblib
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 import pandas as pd
@@ -455,14 +455,16 @@ def inject_globals():
     return {'pipeline_loaded': pipeline is not None}
 
 # ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────
+_PHT = timedelta(hours=8)  # SQLite CURRENT_TIMESTAMP is UTC; Philippines is UTC+8
+
 @app.template_filter('friendly_dt')
 def friendly_dt(value):
-    """Format a SQLite timestamp string ('YYYY-MM-DD HH:MM:SS') as 'Aug 13, 2026 · 2:14 PM'."""
+    """Format a SQLite UTC timestamp as Philippine Time (UTC+8)."""
     if not value:
         return ''
     for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d'):
         try:
-            dt = datetime.strptime(str(value), fmt)
+            dt = datetime.strptime(str(value), fmt) + _PHT
             return dt.strftime('%b %d, %Y · %I:%M %p').replace(' 0', ' ')
         except ValueError:
             continue

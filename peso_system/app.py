@@ -390,14 +390,17 @@ def load_pipeline():
         except Exception:
             pipeline = None
 
-def _title_similarity(job_title, preferred_position):
-    """Word overlap between job title and preferred position (0.0–1.0).
+def _title_similarity(job_title, preferred_position, work_experience=''):
+    """Word overlap between job title and the applicant's preferred position
+    + work experience combined (0.0–1.0).
     Used as a tie-breaker when two vacancies share the same category score."""
-    title_words = set(re.sub(r'[^a-z0-9\s]', ' ', job_title.lower()).split())
-    pref_words  = set(re.sub(r'[^a-z0-9\s]', ' ', preferred_position.lower()).split())
-    if not pref_words:
+    title_words   = set(re.sub(r'[^a-z0-9\s]', ' ', job_title.lower()).split())
+    pref_words    = set(re.sub(r'[^a-z0-9\s]', ' ', preferred_position.lower()).split())
+    exp_words     = set(re.sub(r'[^a-z0-9\s]', ' ', work_experience.lower()).split())
+    profile_words = pref_words | exp_words          # combine both fields
+    if not profile_words:
         return 0.0
-    return len(title_words & pref_words) / len(pref_words)
+    return len(title_words & profile_words) / len(profile_words)
 
 def _strip_numeric_noise(text):
     text = re.sub(r'\b\d+\s*(?:mos?|years?)\s*as\s*', '', text, flags=re.IGNORECASE)
@@ -431,7 +434,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     scored = []
     for v in vacancies:
         score      = cat_scores.get(v['occupational_category'], 0.0)
-        similarity = _title_similarity(v['job_title'], preferred_position)
+        similarity = _title_similarity(v['job_title'], preferred_position, work_experience)
         scored.append({
             'id':                v['id'],
             'title':             v['job_title'],

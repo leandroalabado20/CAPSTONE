@@ -50,79 +50,52 @@
           <mxGeometry height="22" width="250" y="140" as="geometry" />
         </mxCell>
         <mxCell id="applicants" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="applicants" vertex="1">
-          <mxGeometry height="558" width="290" x="530" y="-220" as="geometry" />
+          <mxGeometry height="360" width="290" x="530" y="-220" as="geometry" />
         </mxCell>
         <mxCell id="applicants__id" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="290" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__srs_id" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   srs_id" vertex="1">
+        <mxCell id="applicants__first_name" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   first_name" vertex="1">
           <mxGeometry height="22" width="290" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__full_name" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   full_name" vertex="1">
+        <mxCell id="applicants__last_name" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   last_name" vertex="1">
           <mxGeometry height="22" width="290" y="74" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__birthdate" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   birthdate" vertex="1">
+        <mxCell id="applicants__age" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   age" vertex="1">
           <mxGeometry height="22" width="290" y="96" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__age" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   age" vertex="1">
+        <mxCell id="applicants__sex" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   sex" vertex="1">
           <mxGeometry height="22" width="290" y="118" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__sex" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   sex" vertex="1">
+        <mxCell id="applicants__barangay" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   barangay" vertex="1">
           <mxGeometry height="22" width="290" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__civil_status" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   civil_status" vertex="1">
+        <mxCell id="applicants__district" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   district" vertex="1">
           <mxGeometry height="22" width="290" y="162" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__street_address" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   street_address" vertex="1">
+        <mxCell id="applicants__education_level" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   education_level &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="290" y="184" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__barangay" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   barangay" vertex="1">
+        <mxCell id="applicants__preferred_position" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   preferred_position &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="290" y="206" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__education_level" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   education_level &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__skills" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   skills &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="290" y="228" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__course" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   course" vertex="1">
+        <mxCell id="applicants__work_experience" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   work_experience &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="290" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__skills" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   skills &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__emp_status" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   emp_status" vertex="1">
           <mxGeometry height="22" width="290" y="272" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__work_experience" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   work_experience &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__is_pwd" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_pwd" vertex="1">
           <mxGeometry height="22" width="290" y="294" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__preferred_position" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   preferred_position &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__is_archived" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_archived" vertex="1">
           <mxGeometry height="22" width="290" y="316" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__emp_status" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   emp_status" vertex="1">
-          <mxGeometry height="22" width="290" y="338" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__is_4ps" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_4ps" vertex="1">
-          <mxGeometry height="22" width="290" y="360" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__is_pwd" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_pwd" vertex="1">
-          <mxGeometry height="22" width="290" y="382" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__email" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   email" vertex="1">
-          <mxGeometry height="22" width="290" y="404" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__cellphone" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   cellphone" vertex="1">
-          <mxGeometry height="22" width="290" y="426" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__registration_date" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   registration_date" vertex="1">
-          <mxGeometry height="22" width="290" y="448" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__remarks" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   remarks" vertex="1">
-          <mxGeometry height="22" width="290" y="470" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__encoder" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   encoder" vertex="1">
-          <mxGeometry height="22" width="290" y="492" as="geometry" />
-        </mxCell>
-        <mxCell id="applicants__is_archived" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_archived" vertex="1">
-          <mxGeometry height="22" width="290" y="514" as="geometry" />
-        </mxCell>
         <mxCell id="applicants__created_at" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
-          <mxGeometry height="22" width="290" y="536" as="geometry" />
+          <mxGeometry height="22" width="290" y="338" as="geometry" />
         </mxCell>
         <mxCell id="job_vacancies" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="job_vacancies" vertex="1">
           <mxGeometry height="184" width="250" x="1170" y="-60" as="geometry" />

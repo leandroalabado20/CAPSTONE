@@ -64,7 +64,7 @@
                 </span>
                 <input type="text" id="applicant-search"
                        class="form-control border-start-0 ps-1"
-                       placeholder="Search name or position…"
+                       placeholder="Search name"
                        oninput="filterApplicants(this.value)" />
               </div>
 
@@ -172,7 +172,14 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-success w-100 mt-3 fw-bold py-2"
+          <!-- Shown when user submits without selecting an applicant -->
+          <div id="no-applicant-warning"
+               class="d-none alert alert-warning py-2 mt-3 mb-0 small d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+            <span>Please select an applicant from the list first.</span>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 mt-2 fw-bold py-2"
                   {% if not pipeline_loaded %}disabled{% endif %}>
             <i class="bi bi-stars me-2"></i>Generate Recommendations
           </button>
@@ -439,6 +446,7 @@
 function toggleMode(mode) {
   document.getElementById('panel-select').style.display = mode === 'select' ? '' : 'none';
   document.getElementById('panel-quick').style.display  = mode === 'quick'  ? '' : 'none';
+  document.getElementById('no-applicant-warning').classList.add('d-none');
 }
 
 function filterApplicants(q) {
@@ -486,11 +494,32 @@ function previewApplicant(sel) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const sel = document.getElementById('applicant-select');
+  const sel  = document.getElementById('applicant-select');
+  const form = document.getElementById('rec-form');
+  const warn = document.getElementById('no-applicant-warning');
+
+  // Block submit when in select-mode and no applicant chosen
+  form.addEventListener('submit', function (e) {
+    const mode = document.querySelector('input[name="mode"]:checked')?.value;
+    if (mode === 'select' && (!sel || !sel.value)) {
+      e.preventDefault();
+      warn.classList.remove('d-none');
+      warn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      warn.classList.add('d-none');
+    }
+  });
+
+  // Dismiss warning as soon as the user picks someone
+  if (sel) {
+    sel.addEventListener('change', () => warn.classList.add('d-none'));
+  }
+
   // Set all progress bar widths from data-pct attributes
   document.querySelectorAll('.progress-bar[data-pct]').forEach(b => {
     b.style.width = b.dataset.pct + '%';
   });
+
   // Pre-select applicant when arriving from the applicants list
   const preselect = sel ? sel.dataset.preselect : '';
   if (preselect) {

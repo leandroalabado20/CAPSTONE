@@ -57,26 +57,6 @@
   {% endfor %}
 </div>
 
-<!-- ── Registration Date filter ───────────────────────────────────────────── -->
-<form method="GET" class="d-flex flex-wrap align-items-center gap-2 mb-3">
-  <input type="hidden" name="status"   value="{{ status }}" />
-  <input type="hidden" name="district" value="{{ district }}" />
-  <input type="hidden" name="view"     value="{{ view }}" />
-  {% if archived %}<input type="hidden" name="archived" value="1" />{% endif %}
-  {% if search %}<input type="hidden" name="search" value="{{ search }}" />{% endif %}
-  <span class="text-muted small fw-semibold"><i class="bi bi-calendar3 me-1"></i>Reg. Date</span>
-  <input type="date" name="date_from" class="form-control form-control-sm" style="width:auto;"
-         value="{{ date_from }}" />
-  <span class="text-muted small">to</span>
-  <input type="date" name="date_to" class="form-control form-control-sm" style="width:auto;"
-         value="{{ date_to }}" />
-  <button class="btn btn-sm btn-outline-primary" type="submit">Apply</button>
-  {% if date_from or date_to %}
-  <a href="{{ url_for('applicants_list', status=status, district=district or none, view=view, search=search or none, archived=1 if archived else none) }}"
-     class="btn btn-sm btn-outline-secondary">Clear</a>
-  {% endif %}
-</form>
-
 <!-- ── Results ────────────────────────────────────────────────────────────── -->
 {% if not applicants %}
 <div class="card shadow-sm">
@@ -223,26 +203,3 @@
 </p>
 {% endblock %}
 
-{% block scripts %}
-<script>
-// Date range enforcement — second date must always be after the first
-document.addEventListener('DOMContentLoaded', function () {
-  var from = document.querySelector('input[name="date_from"]');
-  var to   = document.querySelector('input[name="date_to"]');
-  if (!from || !to) return;
-
-  // Restore constraints when the page loads with existing filter values
-  if (from.value) to.min = from.value;
-  if (to.value)   from.max = to.value;
-
-  from.addEventListener('change', function () {
-    to.min = this.value || '';
-    if (to.value && to.value < this.value) to.value = '';
-  });
-  to.addEventListener('change', function () {
-    from.max = this.value || '';
-    if (from.value && from.value > this.value) from.value = '';
-  });
-});
-</script>
-{% endblock %}

@@ -788,8 +788,6 @@ def applicants_list():
     status    = request.args.get('status', 'all')      # all | incomplete | employed | unemployed
     district  = request.args.get('district', '')       # '' | District 1 | District 2
     view      = request.args.get('view', 'card')        # card | table
-    date_from = request.args.get('date_from', '').strip()
-    date_to   = request.args.get('date_to', '').strip()
     page      = max(1, request.args.get('page', 1, type=int) or 1)
     per_page  = APPLICANTS_PER_PAGE
 
@@ -808,12 +806,6 @@ def applicants_list():
     if district in ('District 1', 'District 2'):
         where.append('district=?')
         params.append(district)
-    if date_from:
-        where.append('peis_reg_date >= ?')
-        params.append(date_from)
-    if date_to:
-        where.append('peis_reg_date <= ?')
-        params.append(date_to)
     where_sql = ' AND '.join(where)
 
     total  = db.execute(f'SELECT COUNT(*) FROM applicants WHERE {where_sql}', params).fetchone()[0]
@@ -828,7 +820,7 @@ def applicants_list():
     return render_template('applicants/list.html', applicants=applicants,
                            search=search, archived=archived, status=status,
                            district=district, view=view, page=page, pages=pages,
-                           total=total, date_from=date_from, date_to=date_to)
+                           total=total)
 
 @app.route('/applicants/register', methods=['GET', 'POST'])
 @login_required

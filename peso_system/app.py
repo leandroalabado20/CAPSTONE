@@ -53,9 +53,17 @@ EDUC_LEVELS = [
     'Vocational', 'ALS',
 ]
 
-# Pagination and recommendation limits
-APPLICANTS_PER_PAGE   = 24
-TOP_N_RECOMMENDATIONS = 5
+# Pagination
+APPLICANTS_PER_PAGE = 24
+
+# Icons used in the recommendation results UI (one per occupational category)
+CAT_ICONS = {
+    'Warehouse and Logistics':       'bi-box-seam',
+    'Production and Manufacturing':  'bi-gear-fill',
+    'Sales/Service/Retail':          'bi-shop',
+    'Clerical and Administrative':   'bi-file-earmark-text-fill',
+    'General Services and Security': 'bi-shield-fill',
+}
 
 # Age thresholds for Youth / Senior Citizen classification
 YOUTH_AGE_MIN  = 15
@@ -418,22 +426,34 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     model = pipeline['model']
     text  = _clean_profile(educ_level, preferred_position, skills, work_experience)
     proba = model.predict_proba(vec.transform([text]))[0]
-    cat_scores = {CATEGORIES[i]: round(float(proba[i]), 4) for i in range(len(CATEGORIES))}
-    scored = []
+
+    # Rank the 5 occupational categories by their predicted probability (descending)
+    cat_scores = sorted(
+        [(CATEGORIES[i], round(float(proba[i]), 4)) for i in range(len(CATEGORIES))],
+        key=lambda x: x[1], reverse=True,
+    )
+
+    # Group active vacancies by occupational category
+    vac_by_cat = {}
     for v in vacancies:
-        score = cat_scores.get(v['occupational_category'], 0.0)
-        scored.append({
-            'id':                v['id'],
-            'title':             v['job_title'],
-            'employer':          v['employer_name'],
-            'category':          v['occupational_category'],
+        vac_by_cat.setdefault(v['occupational_category'], []).append({
+            'id':       v['id'],
+            'title':    v['job_title'],
+            'employer': v['employer_name'],
+        })
+
+    # One result entry per category (always all 5), in score order
+    results = []
+    for rank, (cat_name, score) in enumerate(cat_scores, 1):
+        results.append({
+            'rank':              rank,
+            'category':          cat_name,
+            'icon':              CAT_ICONS.get(cat_name, 'bi-briefcase'),
             'suitability_score': score,
             'suitability_pct':   f'{score * 100:.1f}%',
+            'vacancies':         vac_by_cat.get(cat_name, []),
         })
-    scored.sort(key=lambda x: x['suitability_score'], reverse=True)
-    for i, item in enumerate(scored, 1):
-        item['rank'] = i
-    return scored[:TOP_N_RECOMMENDATIONS]
+    return results
 
 # ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 def login_required(f):
@@ -572,6 +592,8 @@ def home():
         'FROM applicants WHERE is_archived=0 '
         'ORDER BY created_at DESC, id DESC LIMIT 5'
     ).fetchall()
+    # One row per (applicant, day): the first vacancy inserted for the top-ranked
+    # category that session, so we don't show N rows for the same applicant.
     recent_recs = db.execute(
         'SELECT r.rank, r.suitability_score, r.recommended_at, '
         '       a.first_name, a.last_name, '
@@ -580,7 +602,12 @@ def home():
         'JOIN applicants a      ON r.applicant_id = a.id '
         'JOIN job_vacancies jv  ON r.vacancy_id   = jv.id '
         'WHERE r.rank = 1 '
-        'ORDER BY r.recommended_at DESC, r.id DESC LIMIT 5'
+        '  AND r.id IN ('
+        '    SELECT MIN(id) FROM recommendations '
+        '    WHERE rank = 1 '
+        '    GROUP BY applicant_id, date(recommended_at)'
+        '  ) '
+        'ORDER BY r.recommended_at DESC LIMIT 5'
     ).fetchall()
 
     return render_template('home.html',
@@ -598,7 +625,7 @@ def home():
 def recommendation():
     db = get_db()
     applicants = db.execute(
-        'SELECT id, first_name, last_name, educ_level, preferred_position FROM applicants '
+        'SELECT id, first_name, last_name, educ_level, preferred_position, skills, work_experience FROM applicants '
         'WHERE is_archived = 0 ORDER BY last_name, first_name'
     ).fetchall()
     results       = session.pop('rec_results', None)
@@ -667,12 +694,13 @@ def generate_recommendation():
                                   [dict(v) for v in vacancies])
 
     if applicant_id:
-        for item in results:
-            db.execute(
-                'INSERT INTO recommendations '
-                '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
-                (applicant_id, item['id'], item['suitability_score'], item['rank'], session['user_id'])
-            )
+        for cat in results:
+            for vac in cat['vacancies']:
+                db.execute(
+                    'INSERT INTO recommendations '
+                    '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
+                    (applicant_id, vac['id'], cat['suitability_score'], cat['rank'], session['user_id'])
+                )
         db.commit()
 
     session['rec_results']   = results

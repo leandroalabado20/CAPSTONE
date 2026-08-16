@@ -222,3 +222,27 @@
   {% if pages > 1 %}Page {{ page }} of {{ pages }} · {% endif %}{{ '{:,}'.format(total) }} record(s)
 </p>
 {% endblock %}
+
+{% block scripts %}
+<script>
+// Date range enforcement — second date must always be after the first
+document.addEventListener('DOMContentLoaded', function () {
+  var from = document.querySelector('input[name="date_from"]');
+  var to   = document.querySelector('input[name="date_to"]');
+  if (!from || !to) return;
+
+  // Restore constraints when the page loads with existing filter values
+  if (from.value) to.min = from.value;
+  if (to.value)   from.max = to.value;
+
+  from.addEventListener('change', function () {
+    to.min = this.value || '';
+    if (to.value && to.value < this.value) to.value = '';
+  });
+  to.addEventListener('change', function () {
+    from.max = this.value || '';
+    if (from.value && from.value > this.value) from.value = '';
+  });
+});
+</script>
+{% endblock %}

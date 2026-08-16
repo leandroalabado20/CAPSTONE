@@ -63,8 +63,10 @@
     <input type="date" id="date-to"   class="form-control form-control-sm" style="width:auto;" />
     <button class="btn btn-sm btn-primary" onclick="loadCharts()">Apply</button>
     <button class="btn btn-sm btn-outline-secondary" onclick="
-      document.getElementById('date-from').value='';
-      document.getElementById('date-to').value='';
+      var f=document.getElementById('date-from');
+      var t=document.getElementById('date-to');
+      f.value=''; f.removeAttribute('max');
+      t.value=''; t.removeAttribute('min');
       loadCharts();">Clear</button>
     <span class="text-muted small ms-1" id="date-label"></span>
   </div>
@@ -374,5 +376,20 @@ function loadCharts() {
 }
 
 document.addEventListener('DOMContentLoaded', loadCharts);
+
+// Date range enforcement — second date must always be after the first
+(function () {
+  var from = document.getElementById('date-from');
+  var to   = document.getElementById('date-to');
+  if (!from || !to) return;
+  from.addEventListener('change', function () {
+    to.min = this.value || '';
+    if (to.value && to.value < this.value) to.value = '';
+  });
+  to.addEventListener('change', function () {
+    from.max = this.value || '';
+    if (from.value && from.value > this.value) from.value = '';
+  });
+}());
 </script>
 {% endblock %}

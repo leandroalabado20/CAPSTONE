@@ -199,7 +199,7 @@ The proposed system is designed to address these constraints directly. It adopts
 # CHAPTER III
 ## DESIGN AND METHODOLOGY
 
-This chapter translates the operational requirements established in Chapter I and the design principles drawn from the literature in Chapter II into a concrete system design and evaluation plan. It presents the requirement analysis, the conceptual framework, the development methodology, the system design, the tools and development environment, the development cost, the evaluation methods, and the data handling and analysis procedures that produce the results reported in Chapter IV.
+This chapter translates the operational requirements established in Chapter I and the design principles drawn from the literature in Chapter II into a concrete system design and evaluation plan. The chapter presents the requirement analysis, the conceptual framework, the development methodology, the system design, the tools and development environment, the development cost, the evaluation methods, and the data handling and analysis procedures that produce the results reported in Chapter IV.
 
 ### Requirement Analysis and Documentation
 
@@ -224,25 +224,26 @@ Table 4 lists what the system shall do. FR-05 is the requirement specific to the
 | FR-01 | User Authentication | The system shall allow only authorized PESO staff to log in, verified through secure username and password authentication, so that applicant and vacancy data remain accessible to authorized personnel only. |
 | FR-02 | User Account Management | The system shall allow authorized PESO staff to create, view, edit, and deactivate staff accounts. Each account stores full name, username, email, and active status. Passwords are stored in hashed form and are changeable by the account holder. Deactivated accounts retain their records but are denied access until reactivated. The system shall also allow staff to review the login history recorded at each authentication attempt — including the user, timestamp, IP address, and outcome — as a security audit trail. |
 | FR-03 | Applicant Management | The system shall allow PESO staff to register and maintain applicant records through two methods: (1) batch upload of a CSV or Excel file exported from PEIS, mapping PEIS field headers to system fields and importing only the fields the system requires; or (2) direct manual entry through the applicant registration form, also used for walk-in applicants requiring an immediate recommendation. Each record stores the four ML-required fields (skills, education level, work experience, preferred position) plus the demographic fields consumed by the analytical dashboard (sex, age, barangay, district, employment status, and PWD status). Administrative and personal identifiers already held in PEIS — such as SRS ID, birthdate, civil status, street address, and contact details — are not stored, avoiding duplication of records PESO already maintains and limiting the personal information the system retains. |
-| FR-04 | Job Vacancy Management | The system shall allow PESO staff to register and maintain job opening records sourced from the PESO CSJDM labor market information list. Each vacancy stores the employer's company name, the job title, and the occupational category — the three fields required by the recommendation engine. |
+| FR-04 | Job Vacancy Management | The system shall allow PESO staff to register and maintain job opening records sourced from the PESO CSJDM labor market information list. Each vacancy stores the employer's company name, the job title, and the occupational category, which are the three fields required by the recommendation engine. |
 | FR-05 | ML-Based Job Recommendation | The system shall provide a dedicated Job Recommendation tab through which staff generate a ranked list of currently active job openings by suitability score for a selected job seeker, using the deployed best-performing classifier among Logistic Regression, Random Forest, and Naïve Bayes. The applicant profile may come from a stored record or direct entry. Matching is one-way: given a profile, the system ranks active vacancies. |
 | FR-06 | Analytical Dashboard | The system shall provide a dedicated Analytical Dashboard tab presenting registered job seeker data. The dashboard displays: total registered job seekers with male and female percentage breakdown; counts of youth, senior citizen, and person with disability registrants; distribution by educational attainment across ten levels (Elementary Level, Elementary Graduate, High School Level, High School Graduate, Senior High School Level, Senior High School Graduate, College Level, College Graduate, Vocational, and ALS); distribution by employment status (Unemployed and Employed); and barangay-level distribution separated by District 1 and District 2. The dashboard draws exclusively on the applicants table; job vacancy records are used only by the recommendation engine and are not aggregated in the dashboard. It is designed to support the preparation of the office's quarterly job seeker reports. |
 
 #### Non-Functional Requirements
 
-Table 5 lists how well the system shall perform. Each NFR corresponds directly to one of the seven non-functional quality characteristics of ISO/IEC 25010; Functional Suitability is addressed through the Functional Requirements (FR-01 to FR-06).
+Table 5 lists how well the system shall perform. Each NFR corresponds directly to one of the eight quality characteristics of ISO/IEC 25010.
 
 **Table 5. Non-Functional Requirements**
 
 | ID | Category | Description |
 |---|---|---|
-| NFR-01 | Performance Efficiency | The system shall respond to user requests and generate recommendation outputs within an acceptable time frame, and shall accommodate growing applicant, vacancy, and recommendation records without significant performance degradation. |
-| NFR-02 | Security | The system shall protect applicant personal information and credentials through secure authentication, input validation, and protection against unauthorized access. |
+| NFR-01 | Functional Suitability | The system shall accurately and completely deliver its specified functions, including applicant and vacancy management, job recommendation with suitability ranking, and analytical dashboard reporting. |
+| NFR-02 | Performance Efficiency | The system shall respond to user requests and generate recommendation outputs within an acceptable time frame, and shall accommodate growing applicant, vacancy, and recommendation records without significant performance degradation. |
 | NFR-03 | Compatibility | The system shall accept PEIS-exported CSV and Excel files for batch upload without format conflicts, and shall operate alongside existing PESO tools without interference. |
 | NFR-04 | Usability | The system shall provide an interface PESO staff can navigate without advanced technical skill, including the two-tab analytics structure. |
 | NFR-05 | Reliability | The system shall operate consistently, storing and retrieving data correctly and producing stable outputs under continuous daily use. |
-| NFR-06 | Maintainability | The system shall be modular enough for the deployed model to be updated and the database schema maintained without disrupting other functions. |
-| NFR-07 | Portability | The system shall operate across different browsers and devices without loss of function or layout. |
+| NFR-06 | Security | The system shall protect applicant personal information and credentials through secure authentication, input validation, and protection against unauthorized access. |
+| NFR-07 | Maintainability | The system shall be modular enough for the deployed model to be updated and the database schema maintained without disrupting other functions. |
+| NFR-08 | Portability | The system shall operate across different browsers and devices without loss of function or layout. |
 
 #### Data Requirements
 

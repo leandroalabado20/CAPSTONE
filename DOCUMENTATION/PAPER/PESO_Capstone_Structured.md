@@ -37,7 +37,7 @@ An interview conducted by the researchers at the Public Employment Service Offic
 
 The same assessment revealed a second difficulty in reporting. When staff need to produce a picture of the office's applicant pool, such as the count of applicants by age group, educational attainment, or skills profile, no consolidated view is available through PEIS. Every figure must be produced by sorting and filtering records one category at a time, a repetitive process that consumes time the office does not have and delays the submission of required reports. Both difficulties point to the same underlying need: a system that consolidates applicant data into a unified dashboard and provides structured, ranked job recommendations to replace the manual cross-referencing that currently governs every referral decision at the office.
 
-Building such a system requires selecting the right algorithm, yet studies applying supervised text classification with machine learning for job and career recommendation consistently identify Logistic Regression, Random Forest, and Naïve Bayes as the top-performing classifiers, with no agreement on which of the three performs best because results shift with every change in dataset (Sankarasetty et al., 2023; Betrand et al., 2025; Darma et al., 2026). No study has examined this on PESO placement data, despite all PESO offices across the Philippines operating under the same PEIS system and facing the same referral workflow challenges (Bachita & Bayoneta, 2021). This study addresses that gap by comparing all three classifiers on actual PESO CSJDM placement records, producing an empirical benchmark that other PESO offices nationwide and future researchers can use as a direct reference when building a similar system, without repeating the comparison from scratch.
+Building such a system requires selecting the right algorithm, yet studies applying supervised text classification with machine learning for job and career recommendation consistently identify Logistic Regression, Random Forest, and Naïve Bayes as the top-performing classifiers, with no agreement on which of the three performs best because results shift with every change in dataset (Betrand et al., 2025; Darma et al., 2026). No study has examined this on PESO placement data, despite all PESO offices across the Philippines operating under the same PEIS system and facing the same referral workflow challenges (Bachita & Bayoneta, 2021). This study addresses that gap by comparing all three classifiers on actual PESO CSJDM placement records, producing an empirical benchmark that other PESO offices nationwide and future researchers can use as a direct reference when building a similar system, without repeating the comparison from scratch.
 
 ### Statement of the Problem
 
@@ -713,7 +713,7 @@ This chapter presents the results of the study based on the specific objectives 
 
 *[Summarize how the results answer each of the three specific objectives and solve the problems stated in Chapter I — the manual referral burden and the absence of consolidated data insight.]*
 
-*[Compare ML findings with related studies from Chapter II — specifically Sankarasetty et al. (2023), Chihab et al. (2025), Tiwari and Upadhyay (2024), Heakl et al. (2024), Adillah et al. (2026), and Darma et al. (2026). Discuss similarities and differences in algorithm rankings.]*
+*[Compare ML findings with related studies from Chapter II — specifically Chihab et al. (2025), Tiwari and Upadhyay (2024), Heakl et al. (2024), Adillah et al. (2026), and Darma et al. (2026). Discuss similarities and differences in algorithm rankings.]*
 
 *[Note any limitations encountered during development or evaluation.]*
 
@@ -801,8 +801,6 @@ Qin, C., Zhang, L., Cheng, Y., Zha, R., Shen, D., Zhang, Q., Chen, X., Sun, Y., 
 Republic Act No. 8759. (1999). *An Act Institutionalizing a National Facilitation Service Network through the Establishment of a Public Employment Service Office in All Capital Towns of Provinces, Key Cities and Other Strategic Areas* (Public Employment Service Office Act of 1999). Official Gazette of the Republic of the Philippines. https://www.officialgazette.gov.ph/2000/02/14/republic-act-no-8759/
 
 Sacchi, S., & Scarano, G. (2025). Digital transformation of public employment services in the post-pandemic era. Evidence from Italy as a latecomer country. *Australian Journal of Social Issues, 60*(2), 456–472. https://doi.org/10.1002/ajs4.385
-
-Sankarasetty, S., Kakaraparti, S., Saiful Haq, M., & Jonnalagadda, S. K. (2023). A comparative study on job recommendation using classification algorithms. In *Proceedings of the 7th International Conference on Computing Methodologies and Communication (ICCMC 2023)*. IEEE. https://doi.org/10.1109/ICCMC56507.2023.10083728
 
 Schröer, C., Kruse, F., & Gómez, J. M. (2021). A systematic literature review on applying CRISP-DM process model. *Procedia Computer Science, 181*, 526–534. https://doi.org/10.1016/j.procs.2021.01.199
 

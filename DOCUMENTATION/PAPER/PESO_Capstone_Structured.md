@@ -93,7 +93,7 @@ The following terms are defined operationally, as they are used in the present s
 **Decision Support System (DSS).** A computer-based system that assists users in making informed decisions by processing and presenting relevant data in a structured format. In this study, the system supports PESO staff in referral decisions while retaining staff authority over every final outcome.
 
 
-**ISO/IEC 25010.** An international standard for software product quality used in this study to evaluate the system across seven characteristics: functional suitability, performance efficiency, usability, reliability, security, maintainability, and portability.
+**ISO/IEC 25010.** An international standard for software product quality used in this study to evaluate the system across eight characteristics: functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, and portability.
 
 **Job Recommendation Module.** The system module that applies the trained classification pipeline to a selected applicant's profile and ranks currently active vacancies by suitability score.
 
@@ -248,18 +248,19 @@ Table 4 lists what the system shall do. FR-05 is the requirement specific to the
 
 #### Non-Functional Requirements
 
-Table 5 lists how well the system shall perform.
+Table 5 lists how well the system shall perform. Each NFR corresponds directly to one of the seven non-functional quality characteristics of ISO/IEC 25010; Functional Suitability is addressed through the Functional Requirements (FR-01 to FR-06).
 
 **Table 5. Non-Functional Requirements**
 
 | ID | Category | Description |
 |---|---|---|
-| NFR-01 | Performance | The system shall respond to user requests and generate recommendation outputs within an acceptable time frame as stored data grows. |
+| NFR-01 | Performance Efficiency | The system shall respond to user requests and generate recommendation outputs within an acceptable time frame, and shall accommodate growing applicant, vacancy, and recommendation records without significant performance degradation. |
 | NFR-02 | Security | The system shall protect applicant personal information and credentials through secure authentication, input validation, and protection against unauthorized access. |
-| NFR-03 | Usability | The system shall provide an interface PESO staff can navigate without advanced technical skill, including the two-tab analytics structure. |
-| NFR-04 | Reliability | The system shall operate consistently, storing and retrieving data correctly and producing stable outputs under continuous daily use. |
-| NFR-05 | Scalability | The system shall accommodate growing applicant, vacancy, and recommendation records without significant performance degradation. |
+| NFR-03 | Compatibility | The system shall accept PEIS-exported CSV and Excel files for batch upload without format conflicts, and shall operate alongside existing PESO tools without interference. |
+| NFR-04 | Usability | The system shall provide an interface PESO staff can navigate without advanced technical skill, including the two-tab analytics structure. |
+| NFR-05 | Reliability | The system shall operate consistently, storing and retrieving data correctly and producing stable outputs under continuous daily use. |
 | NFR-06 | Maintainability | The system shall be modular enough for the deployed model to be updated and the database schema maintained without disrupting other functions. |
+| NFR-07 | Portability | The system shall operate across different browsers and devices without loss of function or layout. |
 
 #### Data Requirements
 
@@ -503,19 +504,20 @@ This section describes how the system will be evaluated following implementation
 
 **Purpose.** ISO/IEC 25010 will be used to assess the technical quality of the developed system against an international software product quality standard, following the precedent of Philippine government and institutional systems evaluated under the same model (Canlas et al., 2021; Lagman et al., 2025).
 
-**Quality characteristics.** The system will be evaluated across seven characteristics, each defined here in terms of the present system:
+**Quality characteristics.** The system will be evaluated across eight characteristics, each defined here in terms of the present system:
 
 1. **Functional Suitability** evaluates whether the system accurately and completely delivers its specified functions: applicant and vacancy management, job recommendation with suitability ranking, and dashboard reporting. This characteristic also serves as the formal verification of Objective 1's functional requirements (FR-01 to FR-06).
 2. **Performance Efficiency** covers the speed of generating recommendation outputs, loading applicant data, and handling daily use without degradation.
-3. **Usability** covers clarity of the interface, ease of navigation across the two-tab analytics structure, and overall user experience for referral workflows.
-4. **Reliability** evaluates whether the system consistently generates stable outputs and maintains uninterrupted operation under continuous daily use.
-5. **Security** covers protection of applicant personal information, credentials, and recommendation records through authentication and access control.
-6. **Maintainability** covers ease of updating the ML model, modifying features, and maintaining the database schema.
-7. **Portability** evaluates whether the system operates across different browsers and devices without loss of function.
+3. **Compatibility** covers the system's ability to accept PEIS-exported CSV and Excel files for batch upload without format conflicts, and to operate alongside existing PESO tools without interference.
+4. **Usability** covers clarity of the interface, ease of navigation across the two-tab analytics structure, and overall user experience for referral workflows.
+5. **Reliability** evaluates whether the system consistently generates stable outputs and maintains uninterrupted operation under continuous daily use.
+6. **Security** covers protection of applicant personal information, credentials, and recommendation records through authentication and access control.
+7. **Maintainability** covers ease of updating the ML model, modifying features, and maintaining the database schema.
+8. **Portability** evaluates whether the system operates across different browsers and devices without loss of function.
 
 **Evaluators.** A minimum of three (3) IT professionals with expertise in web development, database management, or machine learning systems will be invited as evaluators, selected through purposive sampling.
 
-**Instrument.** A structured evaluation form based on the seven ISO 25010 characteristics will be prepared, with each item rated on a 5-point Likert scale (5 = Strongly Agree to 1 = Strongly Disagree).
+**Instrument.** A structured evaluation form based on the eight ISO 25010 characteristics will be prepared, with each item rated on a 5-point Likert scale (5 = Strongly Agree to 1 = Strongly Disagree).
 
 **Process overview.** The system will be deployed and made accessible to the evaluators with test accounts and guided scenarios covering all modules. Each evaluator will interact with the system and complete the instrument; responses will be tabulated and analyzed in Chapter IV.
 
@@ -657,6 +659,7 @@ This chapter presents the results of the study based on the specific objectives 
 |---|---|---|
 | Functional Suitability | | |
 | Performance Efficiency | | |
+| Compatibility | | |
 | Usability | | |
 | Reliability | | |
 | Security | | |

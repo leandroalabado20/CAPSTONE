@@ -57,7 +57,7 @@ Specifically, the study aims to:
 
 1. Design, develop, and deploy a web-based data-driven job recommendation system with dashboard for PESO CSJDM.
 
-2. Compare Logistic Regression, Random Forest, and Naïve Bayes on PESO CSJDM placement data and implement the best-performing algorithm.
+2. Implement the best-performing classification algorithm, as determined through a comparative evaluation of Logistic Regression, Random Forest, and Naïve Bayes.
 
 3. Evaluate the developed system using ISO/IEC 25010 and the Technology Acceptance Model (TAM).
 
@@ -407,11 +407,21 @@ The four normalized fields are then concatenated into a single text string per r
 
 Figure 10 illustrates the ML algorithm training pipeline that receives the 1,083 preprocessed records from Figure 9 and produces the trained model used by the job recommendation module.
 
-The pipeline begins by splitting the dataset into a training set of 866 records (80%) and a test set of 217 records (20%) using stratified sampling by occupational category. Stratification ensures that each of the five categories appears in both partitions at the same proportion as the full dataset, so no category ends up underrepresented in either set. The split is performed before any vectorization to prevent data leakage — fitting TF-IDF on the full dataset first would allow IDF weights to be influenced by test records, producing performance scores that would not reflect true generalization.
+The training process begins by loading the cleaned dataset produced by the preprocessing stage. The dataset contains 1,083 applicant records, each represented as a single row with three columns: PROFILE_TEXT — a single concatenated text string combining the applicant's education level, preferred position, skills, and work experience (already cleaned and normalized); OCCUPATIONAL CATEGORY — the category name the applicant was placed into; and LABEL — a number from 0 to 4 representing that category. The 1,083 records are distributed across five occupational categories: Warehouse and Logistics (175 records, 16.2%), Production and Manufacturing (292 records, 27.0%), Sales/Service/Retail (317 records, 29.3%), Clerical and Administrative (149 records, 13.8%), and General Services and Security (150 records, 13.9%). This dataset serves as the sole input to the entire machine learning pipeline — no raw applicant data is read directly; everything has already been cleaned, structured, and labeled during preprocessing before reaching this step.
 
-TF-IDF vectorization is then fitted exclusively on the 866 training records, converting each applicant profile text into a weighted numerical vector. The same fitted vectorizer — with its fixed vocabulary and IDF weights — is then applied to the test set. This ensures the test set is treated as genuinely unseen data throughout the training phase.
+Before any conversion or training takes place, the 1,083 records are divided into two groups using an 80/20 stratified split. The training set (866 records, 80%) is the portion the algorithms study and learn patterns from, while the test set (217 records, 20%) is kept completely hidden during training and used only at the end to measure real-world performance. Two splitting methods are applied simultaneously: the 80/20 rule determines the size of each group, and stratified splitting ensures that each of the five occupational categories maintains its exact same proportion in both the training and test set — meaning if Sales/Service/Retail makes up 29.3% of the full dataset, it also makes up 29.3% in both the training and test halves. Without stratification, a small category could end up with zero records in the test set, making it impossible to evaluate performance on that group. Critically, this split happens before any text-to-number conversion — if TF-IDF were applied first, the vocabulary and word scores would be influenced by test records, making the model appear more accurate than it truly is. Once the split is complete, the 866 training records are passed to the next stage where TF-IDF converts them into numerical vectors the classifiers can learn from.
 
-The 866 training vectors are passed to three classifiers trained independently under identical conditions: Logistic Regression, Random Forest, and Naïve Bayes. All three train on identical data so that any difference in results is attributable to the algorithm alone. After training, each classifier is evaluated on the held-out test set and their Macro F1-Scores are compared. The full evaluation results and per-classifier breakdown are presented in Chapter IV. The classifier with the highest Macro F1-Score is selected and saved together with the fitted TF-IDF vectorizer as a pre-trained model file — the single artifact the Flask application loads at startup to serve job recommendations.
+Since machine learning algorithms cannot read text, each applicant's profile is converted into a row of numbers using TF-IDF (Term Frequency-Inverse Document Frequency). The process begins with tokenization, where each profile text is split into individual words. From these words, all unique terms across the 866 training profiles are collected to form a vocabulary of 356 words, where each word becomes one column in the matrix. The vectorizer is then fitted on the training set only, meaning it learns and stores the IDF weight for every word in the vocabulary based on how rarely each word appears across all 866 training profiles. Once fitted, the four computations are applied for each word in each profile: (1) TF = log(count) + 1, which measures how often a word appears in that profile with log scaling to prevent repetition from dominating; (2) IDF = log(total profiles / profiles containing the word) + 1, which gives rare words a higher score since they are stronger category signals; (3) TF-IDF = TF × IDF, combining both into one score per word; and (4) Normalization = TF-IDF / √(sum of all TF-IDF scores²), which scales every row so all values fall between 0 and 1. The same fitted vectorizer — with its fixed vocabulary and IDF weights — is then applied to the 217 test profiles using the same 356 words learned from training, without any new learning. The results are stored as a sparse matrix since most values are 0, as each profile only uses a small fraction of all 356 vocabulary words. The final output is two matrices: a training matrix (866 profiles × 356 words) and a test matrix (217 profiles × 356 words), which are passed directly to the three classifiers in the next step.
+
+Once the training matrix (866 profiles × 356 words) is produced by the vectorization step, it is passed to three classifiers that are trained independently under identical conditions. All three receive the same X_train_tfidf (the TF-IDF scores) and y_train (the correct occupational category label for each profile). The purpose of training each classifier on the same data is to ensure that any difference in results comes from the algorithm itself and not from data variation. Each classifier processes the 866 × 356 sparse matrix differently and learns a different internal representation of the patterns that connect word scores to occupational categories.
+
+Logistic Regression learns a numerical weight for each of the 356 vocabulary words per occupational category. During training, it reads each applicant's row of TF-IDF scores alongside its correct label and adjusts the weights iteratively until the weighted combination of word scores produces the highest probability for the correct category. The probability of assigning a profile to a category is computed using the Softmax function: P(category) = 1 / (1 + e^-(w1x1 + w2x2 + ... + w356x356)), where w represents the learned weight for each word and x represents the TF-IDF score of that word in the profile. A word like "cashier" accumulates a high weight for Sales/Service/Retail if it consistently appears in profiles labeled under that category during training. At prediction time, the classifier multiplies every TF-IDF score by its learned weight, sums them up, and assigns the applicant to the category with the highest resulting probability score.
+
+Random Forest builds 100 decision trees, each trained on a random subset of the 866 training profiles and a random subset of the 356 vocabulary words. Each tree learns a series of yes/no splits based on TF-IDF word scores, for example whether the score for "forklift" is above or below a certain threshold, and follows those splits down to a final category prediction. The quality of each split is measured using the Gini Impurity formula: Gini = 1 − Σ(pᵢ²), where pᵢ is the proportion of each category at a given node. The split that produces the lowest Gini score is chosen because it creates the most category-pure groups. After all 100 trees are trained, the final prediction for any profile is decided by majority vote across all 100 trees, making the result more stable than any single tree would produce on its own.
+
+Naive Bayes takes a probabilistic approach. During training, it does not learn weights or build trees — instead it calculates, for each word in the vocabulary, how likely a given TF-IDF score is to appear in each occupational category based on the training profiles. At prediction time, it applies Bayes Theorem: P(category | words) = P(words | category) × P(category) / P(words), where P(category) is how often that category appeared in training, and P(words | category) is how likely those word scores are given that category. The classifier assumes each word contributes independently to the final probability, which is the "naive" assumption the algorithm is named after. The category with the highest resulting probability is assigned to the applicant. Naive Bayes trains faster than the other two because it only needs one pass through the training data to calculate all probabilities, making it computationally lightweight while still performing competitively on text classification tasks.
+
+After training, each classifier is evaluated on the 217 test profiles it has never seen before. Predicted labels are compared against the actual labels and five metrics are computed — Accuracy, Precision, Recall, F1-Score, and Macro F1-Score — alongside a confusion matrix for each classifier. The three classifiers are then compared using Macro F1-Score as the sole selection criterion, since it gives equal weight to all five occupational categories regardless of size. The classifier with the highest Macro F1-Score is selected and saved together with the fitted TF-IDF vectorizer into a single pipeline file — the artifact the Flask application loads at startup to serve job recommendations without retraining.
 
 #### Mockups
 
@@ -608,7 +618,140 @@ The complete algorithm performance results, including the classification metrics
 ---
 
 
-## REFERENCES
+# CHAPTER IV
+## RESULTS AND DISCUSSION
+
+This chapter presents the results of the study based on the specific objectives stated in Chapter I. Each objective is addressed in sequence, supported by data, screenshots, tables, or figures, with a brief explanation of what the results show.
+
+---
+
+### Results for Specific Objective 1: Design, develop, and deploy a web-based data-driven job recommendation system with dashboard for PESO CSJDM.
+
+*[Insert screenshots of the developed system — Login Page, Job Recommendation Tab, Analytical Dashboard Tab, Applicant Management, Job Vacancy Management, User Account Management.]*
+
+*[Brief explanation of how the developed system satisfies Objective 1 — describe each module and its function as implemented.]*
+
+---
+
+### Results for Specific Objective 2: Implement the best-performing classification algorithm, as determined through a comparative evaluation of Logistic Regression, Random Forest, and Naïve Bayes.
+
+*[Insert Table showing classifier comparison results — Accuracy, Macro F1-Score, Weighted F1-Score for all three classifiers.]*
+
+*[Insert per-category performance table for the best-performing classifier — Precision, Recall, F1-Score, Support per occupational category.]*
+
+*[Insert confusion matrix for the best-performing classifier.]*
+
+*[Brief explanation of which classifier won, by what margin, and why it was selected based on Macro F1-Score. Reference the results from the ML evaluation.]*
+
+---
+
+### Results for Specific Objective 3: Evaluate the developed system using ISO/IEC 25010 and the Technology Acceptance Model (TAM).
+
+#### ISO/IEC 25010 Evaluation Results
+
+*[Insert number of IT professional evaluators (n = 3).]*
+
+**Table [X]. ISO/IEC 25010 Evaluation Results**
+
+| Quality Characteristic | Weighted Mean | Verbal Interpretation |
+|---|---|---|
+| Functional Suitability | | |
+| Performance Efficiency | | |
+| Usability | | |
+| Reliability | | |
+| Security | | |
+| Maintainability | | |
+| Portability | | |
+| **Overall** | | |
+
+*[Brief discussion of ISO/IEC 25010 results — overall rating, strengths, and any areas for improvement noted by evaluators.]*
+
+#### TAM Evaluation Results
+
+*[Insert number of PESO CSJDM staff respondents (n = 27).]*
+
+**Table [X]. TAM Evaluation Results**
+
+| TAM Construct | Weighted Mean | Verbal Interpretation |
+|---|---|---|
+| Perceived Usefulness (PU) | | |
+| Perceived Ease of Use (PEOU) | | |
+| Behavioral Intention to Use (BIU) | | |
+| **Overall** | | |
+
+*[Brief discussion of TAM results — overall rating, which construct scored highest, staff willingness to adopt the system.]*
+
+---
+
+### System Testing Results
+
+*[Brief statement of testing methods used — unit testing, integration testing, and system testing.]*
+
+**Table [X]. System Testing Results**
+
+| Test Case | Input | Expected Result | Actual Result | Status |
+|---|---|---|---|---|
+| Login with valid credentials | Valid username and password | Access granted, redirect to dashboard | | |
+| Login with invalid credentials | Wrong username or password | Access denied, error message shown | | |
+| Register applicant manually | Complete applicant profile | Record saved, confirmation shown | | |
+| Upload PEIS batch file | Valid CSV/Excel export | Records imported, summary shown | | |
+| Upload PEIS batch with missing fields | File with blank required fields | Invalid rows flagged, valid rows imported | | |
+| Add job vacancy | Complete vacancy details | Vacancy saved and listed as active | | |
+| Generate recommendation | Selected applicant with complete profile | Ranked list of top 5 vacancies displayed | | |
+| Generate recommendation with no active vacancies | Selected applicant, no active vacancy | System notifies staff of no active vacancies | | |
+| View Analytical Dashboard | Navigate to dashboard tab | Dashboard loads with all panels populated | | |
+| Change password | Current and new password entered | Password updated, session remains active | | |
+
+*[Note any issues encountered during testing and how they were resolved.]*
+
+---
+
+### Discussion of Findings
+
+*[Summarize how the results answer each of the three specific objectives and solve the problems stated in Chapter I — the manual referral burden and the absence of consolidated data insight.]*
+
+*[Compare ML findings with related studies from Chapter II — specifically Sankarasetty et al. (2023), Chihab et al. (2025), Tiwari and Upadhyay (2024), Heakl et al. (2024), Adillah et al. (2026), and Darma et al. (2026). Discuss similarities and differences in algorithm rankings.]*
+
+*[Note any limitations encountered during development or evaluation.]*
+
+---
+
+# CHAPTER V
+## CONCLUSIONS AND RECOMMENDATIONS
+
+This chapter summarizes the key findings of the study based on the project's objectives, presents conclusions drawn from the results and evaluation, and provides practical recommendations for system enhancement, deployment, or future research.
+
+---
+
+### Conclusions
+
+*[Each conclusion corresponds one-to-one with the three specific objectives. Write in past tense. Focus on interpretation and insight, not raw results.]*
+
+**Objective 1.** *[Conclusion about the design, development, and deployment of the web-based job recommendation system with dashboard for PESO CSJDM — whether the system was successfully built and what it delivers to the office.]*
+
+**Objective 2.** *[Conclusion about the implementation of the best-performing classifier — identified through comparative evaluation of Logistic Regression, Random Forest, and Naïve Bayes — which classifier was selected, what Macro F1-Score it achieved, and what this means for the recommendation engine deployed in the system.]*
+
+**Objective 3.** *[Conclusion about the ISO/IEC 25010 and TAM evaluation — whether the system met the acceptable threshold (weighted mean ≥ 3.51), and whether PESO CSJDM staff expressed willingness to adopt it.]*
+
+---
+
+### Recommendations
+
+**For Future Developers:**
+
+*[Suggestions for technical improvements — e.g., retraining the model as more placement records accumulate, adding a secondary ranking criterion for tied vacancy scores, expanding occupational categories as data grows, integrating direct PEIS sync to eliminate manual CSV uploads.]*
+
+**For PESO CSJDM (Client Institution):**
+
+*[Suggestions for deployment and use — e.g., regular data entry to keep applicant and vacancy records current, periodic review of recommendation outputs by staff, user training for new staff members, data backup procedures for the SQLite database.]*
+
+**For Future Researchers:**
+
+*[Suggestions for extending the study — e.g., evaluating advanced classifiers (XGBoost, SVM, deep learning) on a larger PESO dataset, applying the system to other PESO offices nationwide, incorporating job-title-level ranking signals, exploring multilingual support for non-English profiles, or conducting a longitudinal study on actual referral outcomes.]*
+
+---
+
+
 
 Adillah, M. F. N., Suakanto, S., & Utama, N. I. (2026). Evaluating civil servant selection through machine learning analysis of national insight, general intelligence, and personal characteristics test scores. *Advance Sustainable Science Engineering and Technology, 8*(2). https://doi.org/10.26877/asset.v8i2.2300
 

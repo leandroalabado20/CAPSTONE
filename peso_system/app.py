@@ -31,7 +31,7 @@ BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 DATABASE       = os.path.join(BASE_DIR, 'peso.db')
 PIPELINE_PATH  = os.path.join(BASE_DIR, 'ml', 'recommendation_pipeline.pkl')
 UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
-ALLOWED_EXT    = {'csv', 'xlsx', 'xls'}
+ALLOWED_EXT    = {'xlsx', 'xls'}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -917,21 +917,18 @@ def applicants_upload():
             return redirect(request.url)
         ext = file.filename.rsplit('.', 1)[-1].lower()
         if ext not in ALLOWED_EXT:
-            flash('Only CSV, XLS, or XLSX files are accepted.', 'danger')
+            flash('Only XLSX or XLS files are accepted.', 'danger')
             return redirect(request.url)
         fname    = secure_filename(file.filename)
         fpath    = os.path.join(UPLOAD_FOLDER, fname)
         file.save(fpath)
         try:
-            if ext in ('xlsx', 'xls'):
-                try:
-                    df = pd.read_excel(fpath, header=2)
-                    if 'EDUC LEVEL' not in [c.strip().upper() for c in df.columns]:
-                        df = pd.read_excel(fpath, header=0)
-                except Exception:
+            try:
+                df = pd.read_excel(fpath, header=2)
+                if 'EDUC LEVEL' not in [c.strip().upper() for c in df.columns]:
                     df = pd.read_excel(fpath, header=0)
-            else:
-                df = pd.read_csv(fpath)
+            except Exception:
+                df = pd.read_excel(fpath, header=0)
             df.columns = [str(c).strip().upper() for c in df.columns]
             db = get_db()
             ok, skip, incomplete = 0, 0, 0

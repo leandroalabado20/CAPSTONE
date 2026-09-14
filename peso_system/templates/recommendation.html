@@ -2,6 +2,109 @@
 {% block title %}Job Recommendation{% endblock %}
 {% block page_title %}<i class="bi bi-stars me-2"></i>Job Recommendation{% endblock %}
 
+{% block head %}
+<style>
+/* ── Segmented mode control ───────────────────────────────────────────────── */
+.seg-ctrl {
+  background: #e8edf3;
+  border-radius: 8px;
+  padding: 3px;
+  display: flex;
+  gap: 2px;
+}
+.seg-ctrl .btn-check + label {
+  flex: 1;
+  padding: 7px 0;
+  font-size: .83rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.seg-ctrl .btn-check:checked + label {
+  background: #fff;
+  color: #2563eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.08);
+}
+
+/* ── Custom applicant list ────────────────────────────────────────────────── */
+#applicant-list {
+  border: 1.5px solid #d8dee9;
+  border-radius: 8px;
+  overflow-y: auto;
+  max-height: 228px;
+}
+.ali-item {
+  padding: 8px 12px 8px 11px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  border-left: 3px solid transparent;
+  transition: background .1s ease;
+}
+.ali-item:last-child { border-bottom: none; }
+.ali-item:hover:not(.ali-selected) { background: #f8fafc; }
+.ali-item.ali-selected {
+  background: #eff6ff;
+  border-left-color: #2563eb;
+}
+.ali-name {
+  font-size: .84rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+}
+.ali-item.ali-selected .ali-name { color: #2563eb; }
+.ali-pref {
+  font-size: .72rem;
+  color: #94a3b8;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ali-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+.skill-chip {
+  cursor: pointer;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 500;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  background: #f8fafc;
+  transition: background .1s, color .1s, border-color .1s;
+  user-select: none;
+  white-space: nowrap;
+}
+.skill-chip:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {% if not pipeline_loaded %}
 <div class="alert alert-warning">
@@ -18,7 +121,6 @@
   <div class="col-lg-5">
     <div class="card shadow-sm h-100">
 
-      <!-- Card header with live applicant count -->
       <div class="card-header bg-primary text-white py-2 px-3">
         <div class="d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
@@ -34,30 +136,27 @@
       <div class="card-body p-3">
         <form method="POST" action="{{ url_for('generate_recommendation') }}" id="rec-form">
 
-          <!-- Mode toggle — pill selector -->
-          <div class="mb-3 p-1 rounded-3" style="background:#eef2f7;">
-            <div class="btn-group w-100" role="group">
-              <input type="radio" class="btn-check" name="mode" id="mode-select" value="select"
-                     {% if not sel_applicant and not results %}checked{% endif %}
-                     onchange="toggleMode(this.value)" />
-              <label class="btn btn-outline-primary rounded-2 fw-semibold"
-                     style="font-size:.84rem;" for="mode-select">
-                <i class="bi bi-person-check me-1"></i>Registered Applicant
-              </label>
-              <input type="radio" class="btn-check" name="mode" id="mode-quick" value="quick"
-                     onchange="toggleMode(this.value)" />
-              <label class="btn btn-outline-primary rounded-2 fw-semibold"
-                     style="font-size:.84rem;" for="mode-quick">
-                <i class="bi bi-person-plus me-1"></i>Quick Entry
-              </label>
-            </div>
+          <!-- ── Mode toggle (segmented control) ───────────────────────────── -->
+          <div class="mb-3 seg-ctrl">
+            <input type="radio" class="btn-check" name="mode" id="mode-select" value="select"
+                   {% if not results or sel_applicant %}checked{% endif %}
+                   onchange="toggleMode(this.value)" />
+            <label for="mode-select">
+              <i class="bi bi-person-check"></i>Registered Applicant
+            </label>
+            <input type="radio" class="btn-check" name="mode" id="mode-quick" value="quick"
+                   {% if results and not sel_applicant %}checked{% endif %}
+                   onchange="toggleMode(this.value)" />
+            <label for="mode-quick">
+              <i class="bi bi-person-plus"></i>Quick Entry
+            </label>
           </div>
 
-          <!-- Select applicant panel -->
+          <!-- ── Select applicant panel ─────────────────────────────────────── -->
           <div id="panel-select">
             <div class="mb-3">
 
-              <!-- Search with icon -->
+              <!-- Search -->
               <div class="input-group mb-2">
                 <span class="input-group-text bg-white border-end-0 pe-1">
                   <i class="bi bi-search text-muted" style="font-size:.82rem;"></i>
@@ -75,12 +174,47 @@
                       style="font-size:.7rem;">{{ applicants|length }}</span>
               </div>
 
-              <!-- Applicant list in styled container -->
-              <div class="rounded-3 overflow-hidden" style="border:1.5px solid #d8dee9;">
-                <select name="applicant_id" id="applicant-select"
-                        class="form-select border-0 rounded-0" size="7"
-                        style="overflow-y:auto;" onchange="previewApplicant(this)"
-                        data-preselect="{{ preselect_id or '' }}">
+              <!-- Custom styled list -->
+              {% set avatar_colors = ['#2563eb','#198754','#0dcaf0','#6f42c1','#fd7e14','#d63384','#20c997'] %}
+              <div id="applicant-list">
+                {% for ap in applicants %}
+                <div class="ali-item{% if (preselect_id and preselect_id|int == ap.id) or (sel_applicant and sel_applicant.id == ap.id) %} ali-selected{% endif %}"
+                     data-value="{{ ap.id }}"
+                     data-name="{{ ap.first_name }} {{ ap.last_name }}"
+                     data-educ="{{ ap.educ_level }}"
+                     data-pref="{{ ap.preferred_position }}"
+                     data-skills="{{ ap.skills }}"
+                     data-exp="{{ ap.work_experience or '' }}"
+                     data-incomplete="{{ '1' if not ap.skills or not ap.educ_level or not ap.preferred_position else '' }}"
+                     onclick="selectApplicant(this)">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="ali-avatar" style="background:{{ avatar_colors[ap.id % 7] }};">
+                      {{ ap.first_name[0]|upper if ap.first_name else '' }}{{ ap.last_name[0]|upper if ap.last_name else '' }}
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden">
+                      <div class="ali-name d-flex align-items-center gap-1">
+                        <span class="text-truncate">{{ ap.last_name }}, {{ ap.first_name }}</span>
+                        {% if not ap.skills or not ap.educ_level or not ap.preferred_position %}
+                        <i class="bi bi-exclamation-circle-fill flex-shrink-0"
+                           style="font-size:.62rem;color:#f59e0b;" title="Incomplete profile"></i>
+                        {% endif %}
+                      </div>
+                      <div class="ali-pref">{{ ap.preferred_position or 'No preferred position listed' }}</div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+                <div id="ali-empty" style="display:none;">
+                  <div class="d-flex flex-column align-items-center justify-content-center py-4 text-muted">
+                    <i class="bi bi-search" style="font-size:1.1rem;opacity:.35;"></i>
+                    <span class="small mt-1">No applicants found</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hidden select for form submission (holds selected value + option data) -->
+              <select name="applicant_id" id="applicant-select" class="d-none"
+                      data-preselect="{{ preselect_id or '' }}">
                 {% for ap in applicants %}
                 <option value="{{ ap.id }}"
                   {% if preselect_id and preselect_id|int == ap.id %}selected{% endif %}
@@ -94,14 +228,12 @@
                   {{ ap.last_name }}, {{ ap.first_name }}
                 </option>
                 {% endfor %}
-                </select>
-              </div><!-- /styled container -->
+              </select>
 
               <!-- Applicant profile mini-card -->
               <div id="applicant-preview" class="mt-2" style="display:none;">
                 <div class="card border shadow-sm" style="border-radius:10px;overflow:hidden;">
 
-                  <!-- Incomplete warning banner -->
                   <div id="preview-incomplete-banner"
                        class="d-none px-3 py-2 small d-flex align-items-center gap-2"
                        style="background:#fff8e1;border-bottom:1px solid #ffe082;color:#7c5700;">
@@ -109,7 +241,6 @@
                     <span><strong>Incomplete profile</strong> — fill in missing fields before generating a recommendation.</span>
                   </div>
 
-                  <!-- Avatar + name header -->
                   <div class="px-3 py-2 d-flex align-items-center gap-2"
                        style="background:#f8fafc;border-bottom:1px solid var(--peso-border);">
                     <span id="preview-avatar" class="avatar flex-shrink-0"
@@ -121,7 +252,6 @@
                     </div>
                   </div>
 
-                  <!-- Profile fields -->
                   <div class="px-3 py-2" style="font-size:.8rem;">
                     <div class="d-flex align-items-start gap-2 mb-1">
                       <i class="bi bi-mortarboard text-secondary flex-shrink-0 mt-1" style="font-size:.8rem;width:14px;"></i>
@@ -142,7 +272,7 @@
             </div>
           </div>
 
-          <!-- Quick entry panel -->
+          <!-- ── Quick entry panel ──────────────────────────────────────────── -->
           <div id="panel-quick" style="display:none;">
             <div class="mb-2">
               <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
@@ -155,31 +285,120 @@
                 {% endfor %}
               </select>
             </div>
+
+            <!-- Preferred position: type freely or pick a suggestion -->
             <div class="mb-2">
               <label class="form-label fw-semibold">Preferred Position <span class="text-danger">*</span></label>
               <input type="text" name="preferred_position" class="form-control"
-                     placeholder="e.g. Cashier, Warehouse Helper" />
+                     list="pos-list" autocomplete="off"
+                     placeholder="Type or select a position" />
+              <datalist id="pos-list">
+                <option>Warehouse Helper</option>
+                <option>Stock Clerk</option>
+                <option>Inventory Clerk</option>
+                <option>Forklift Operator</option>
+                <option>Delivery Driver / Courier</option>
+                <option>Packer / Sorter</option>
+                <option>Production Worker</option>
+                <option>Machine Operator</option>
+                <option>Quality Control Inspector</option>
+                <option>Assembler</option>
+                <option>Welder</option>
+                <option>Factory Worker</option>
+                <option>Cashier</option>
+                <option>Sales Associate</option>
+                <option>Store Clerk</option>
+                <option>Customer Service Representative</option>
+                <option>Barista</option>
+                <option>Waiter / Waitress</option>
+                <option>Service Crew</option>
+                <option>Food Service Worker</option>
+                <option>Data Encoder</option>
+                <option>Office Clerk</option>
+                <option>Administrative Assistant</option>
+                <option>Receptionist</option>
+                <option>Secretary</option>
+                <option>Bookkeeper</option>
+                <option>Payroll Clerk</option>
+                <option>Security Guard</option>
+                <option>Janitor / Janitress</option>
+                <option>Utility Worker</option>
+                <option>Maintenance Staff</option>
+                <option>Building Attendant</option>
+                <option>Messengerial Staff</option>
+              </datalist>
             </div>
+
+            <!-- Skills: type freely and/or click chips to add -->
             <div class="mb-2">
-              <label class="form-label fw-semibold">Skills <span class="text-danger">*</span></label>
-              <textarea name="skills" class="form-control" rows="2"
-                        placeholder="e.g. Customer Service, Cashiering, Product Knowledge"></textarea>
+              <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+                <span>Skills <span class="text-danger">*</span></span>
+                <span class="text-muted fw-normal" style="font-size:.72rem;">Click chips to add</span>
+              </label>
+              <textarea name="skills" id="skills-textarea" class="form-control mb-1" rows="2"
+                        placeholder="e.g. Customer Service, Cashiering, Sales"></textarea>
+              <div class="d-flex flex-wrap gap-1">
+                {% for skill in ['Customer Service','Cashiering','Sales / Marketing',
+                                 'Inventory Management','Forklift Operation','Driving',
+                                 'Machine Operation','Quality Control','Welding',
+                                 'Packing / Sorting','Physical Labor','Food Preparation',
+                                 'Data Encoding','Filing / Records','Bookkeeping',
+                                 'Receptionist','Cleaning / Sanitation','Security / Guard Duties',
+                                 'Communication Skills'] %}
+                <span class="skill-chip" onclick="addSkillChip('{{ skill }}')">{{ skill }}</span>
+                {% endfor %}
+              </div>
             </div>
+
+            <!-- Work experience: type freely or pick a specific example -->
             <div class="mb-2">
               <label class="form-label fw-semibold">Work Experience</label>
-              <textarea name="work_experience" class="form-control" rows="2"
-                        placeholder="e.g. 1 year as Cashier (leave blank if none)"></textarea>
+              <input type="text" name="work_experience" class="form-control"
+                     list="exp-list" autocomplete="off"
+                     placeholder="e.g. Cashier (leave blank if none)" />
+              <datalist id="exp-list">
+                <option>No work experience</option>
+                <option>Cashier</option>
+                <option>Store Clerk</option>
+                <option>Service Crew</option>
+                <option>Sales Associate</option>
+                <option>Food Service Worker</option>
+                <option>Barista</option>
+                <option>Waiter / Waitress</option>
+                <option>Warehouse Helper</option>
+                <option>Packer / Sorter</option>
+                <option>Inventory Clerk</option>
+                <option>Forklift Operator</option>
+                <option>Delivery Driver / Courier</option>
+                <option>Production Worker</option>
+                <option>Machine Operator</option>
+                <option>Assembler</option>
+                <option>Welder</option>
+                <option>Quality Control Inspector</option>
+                <option>Security Guard</option>
+                <option>Utility Worker</option>
+                <option>Janitor / Janitress</option>
+                <option>Maintenance Staff</option>
+                <option>Building Attendant</option>
+                <option>Data Encoder</option>
+                <option>Office Clerk</option>
+                <option>Administrative Assistant</option>
+                <option>Receptionist</option>
+                <option>Bookkeeper</option>
+              </datalist>
             </div>
           </div>
 
-          <!-- Shown when user submits without selecting an applicant -->
+          <!-- Warning -->
           <div id="no-applicant-warning"
                class="d-none alert alert-warning py-2 mt-3 mb-0 small d-flex align-items-center gap-2">
             <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
             <span>Please select an applicant from the list first.</span>
           </div>
 
-          <button type="submit" class="btn btn-success w-100 mt-2 fw-bold py-2"
+          <!-- Generate button -->
+          <button type="submit" class="btn w-100 mt-3 fw-bold py-2 text-white"
+                  style="background:linear-gradient(135deg,#1e3a5f,#2563eb);border:none;"
                   {% if not pipeline_loaded %}disabled{% endif %}>
             <i class="bi bi-stars me-2"></i>Generate Recommendations
           </button>
@@ -215,35 +434,41 @@
     </div>
     {% endif %}
 
-    <!-- ── Rank #1 Hero card ────────────────────────────────────────────────── -->
+    <!-- ── Rank #1 Hero card ─────────────────────────────────────────────────── -->
     {% set top = results[0] %}
-    <div class="card shadow mb-3 border-success">
+    <div class="card shadow mb-3" style="border:1.5px solid #86efac;background:#f0fdf4;">
       <div class="card-body p-3">
 
-        <!-- Category header -->
         <div class="d-flex align-items-start gap-3 mb-2">
-          <div class="text-success flex-shrink-0" style="font-size:2rem;line-height:1;">
-            <i class="bi bi-trophy-fill"></i>
+          <!-- Trophy in a circle -->
+          <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width:44px;height:44px;border-radius:50%;background:#dcfce7;">
+            <i class="bi bi-trophy-fill text-success" style="font-size:1.3rem;"></i>
           </div>
           <div class="flex-grow-1">
-            <div class="text-success fw-bold small text-uppercase mb-1">Best Match &mdash; Rank #1</div>
+            <div class="fw-bold text-success mb-1"
+                 style="font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;">
+              Best Match &mdash; Rank #1
+            </div>
             <div class="d-flex align-items-center gap-2">
               <i class="bi {{ top.icon }} text-success"></i>
               <span class="fw-bold fs-5">{{ top.category }}</span>
             </div>
           </div>
+          <!-- Score -->
           <div class="text-end flex-shrink-0">
-            <div class="fw-bold fs-4 text-success">{{ top.suitability_pct }}</div>
+            <div class="fw-bold" style="font-size:1.5rem;color:#16a34a;line-height:1;">
+              {{ top.suitability_pct }}
+            </div>
             <div class="text-muted small">Suitability</div>
           </div>
         </div>
 
-        <div class="progress mb-3" style="height:8px;">
-          <div class="progress-bar bg-success"
+        <div class="progress mb-3" style="height:8px;border-radius:4px;">
+          <div class="progress-bar bg-success" style="border-radius:4px;"
                data-pct="{{ (top.suitability_score * 100)|round(0)|int }}"></div>
         </div>
 
-        <!-- Vacancies in this category -->
         {% if top.vacancies %}
         <div class="small fw-semibold text-muted mb-2">
           <i class="bi bi-list-task me-1"></i>Available Positions
@@ -267,7 +492,7 @@
       </div>
     </div>
 
-    <!-- ── Ranks 2–5 ─────────────────────────────────────────────────────────── -->
+    <!-- ── Ranks 2–5 ──────────────────────────────────────────────────────────── -->
     <div class="card shadow-sm">
       <div class="card-header fw-semibold small text-muted">
         <i class="bi bi-list-ol me-1"></i>Other Category Matches
@@ -275,20 +500,23 @@
 
       {% for item in results %}
       {% if item.rank > 1 %}
-      <div class="px-3 py-2 border-bottom">
+      <div class="px-3 border-bottom" style="padding-top:.7rem;padding-bottom:.7rem;">
 
-        <!-- Category row -->
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-secondary rounded-pill fw-semibold" style="min-width:26px;text-align:center;">
+          <!-- Rank circle -->
+          <span class="d-inline-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                style="width:22px;height:22px;border-radius:50%;background:#f1f5f9;
+                       font-size:.72rem;color:#64748b;">
             {{ item.rank }}
           </span>
           <i class="bi {{ item.icon }} text-muted flex-shrink-0" style="font-size:.85rem;"></i>
           <span class="fw-semibold small flex-grow-1">{{ item.category }}</span>
-          <div class="progress flex-shrink-0" style="height:5px;width:70px;">
+          <div class="progress flex-shrink-0" style="height:6px;width:80px;border-radius:3px;">
             <div class="progress-bar
               {% if item.suitability_score >= 0.4 %}bg-success
               {% elif item.suitability_score >= 0.2 %}bg-warning
               {% else %}bg-danger{% endif %}"
+              style="border-radius:3px;"
               data-pct="{{ (item.suitability_score * 100)|round(0)|int }}"></div>
           </div>
           <span class="small fw-bold text-muted" style="min-width:38px;text-align:right;">
@@ -296,7 +524,6 @@
           </span>
         </div>
 
-        <!-- Vacancies in this category -->
         {% if item.vacancies %}
         <div class="ps-4">
           {% for vac in item.vacancies %}
@@ -327,7 +554,6 @@
     <!-- ── Empty state ───────────────────────────────────────────────────────── -->
     <div class="card shadow-sm h-100">
 
-      <!-- Header -->
       <div class="card-header bg-primary text-white py-3 px-4">
         <div class="d-flex align-items-center gap-3">
           <div style="font-size:2rem;opacity:.9;line-height:1;">
@@ -344,7 +570,6 @@
 
       <div class="card-body px-4 py-4">
 
-        <!-- How it works -->
         <p class="text-muted fw-semibold mb-3"
            style="font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;">
           How to Generate a Recommendation
@@ -392,7 +617,6 @@
 
         <hr class="my-3" />
 
-        <!-- Occupational categories -->
         <p class="text-muted fw-semibold mb-2"
            style="font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;">
           Occupational Categories
@@ -415,7 +639,6 @@
           </span>
         </div>
 
-        <!-- Applicant count pill -->
         <div class="rounded-3 px-3 py-2 d-flex align-items-center gap-2"
              style="background:#eff6ff;border:1px solid #bfdbfe;">
           <i class="bi bi-people-fill text-primary"></i>
@@ -449,54 +672,106 @@ function toggleMode(mode) {
   document.getElementById('no-applicant-warning').classList.add('d-none');
 }
 
-function filterApplicants(q) {
-  const sel   = document.getElementById('applicant-select');
-  const lower = q.toLowerCase();
-  for (const opt of sel.options) {
-    const text = opt.dataset.name.toLowerCase() + ' ' + opt.dataset.pref.toLowerCase();
-    opt.style.display = text.includes(lower) ? '' : 'none';
+function addSkillChip(skill) {
+  const ta      = document.getElementById('skills-textarea');
+  const current = ta.value.trim();
+  if (current) {
+    const existing = current.split(',').map(s => s.trim());
+    if (!existing.includes(skill)) ta.value = current + ', ' + skill;
+  } else {
+    ta.value = skill;
   }
+}
+
+function filterApplicants(q) {
+  const lower = q.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('#applicant-list .ali-item').forEach(item => {
+    const text = (item.dataset.name || '').toLowerCase() + ' '
+               + (item.dataset.pref || '').toLowerCase();
+    const show = text.includes(lower);
+    item.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const empty = document.getElementById('ali-empty');
+  if (empty) empty.style.display = visible === 0 ? '' : 'none';
 }
 
 const AVATAR_COLORS = ['#2563eb','#198754','#0dcaf0','#6f42c1','#fd7e14','#d63384','#20c997'];
 
-function previewApplicant(sel) {
-  const opt = sel.options[sel.selectedIndex];
+function _applyPreview(data) {
   const box = document.getElementById('applicant-preview');
-  if (!opt || !opt.value) { box.style.display = 'none'; return; }
+  if (!data || !data.value) { box.style.display = 'none'; return; }
 
-  const id         = parseInt(opt.value, 10);
-  const name       = opt.dataset.name   || '';
-  const educ       = opt.dataset.educ   || '—';
-  const pref       = opt.dataset.pref   || '—';
-  const skills     = opt.dataset.skills || '';
-  const exp        = opt.dataset.exp    || '';
-  const incomplete = opt.dataset.incomplete === '1';
+  const id         = parseInt(data.value, 10);
+  const name       = data.name   || '';
+  const educ       = data.educ   || '—';
+  const pref       = data.pref   || '—';
+  const skills     = data.skills || '';
+  const exp        = data.exp    || '';
+  const incomplete = data.incomplete;
 
-  // Avatar initials + colour
   const parts    = name.trim().split(/\s+/);
   const initials = ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   const avatar   = document.getElementById('preview-avatar');
   avatar.textContent      = initials;
   avatar.style.background = AVATAR_COLORS[id % 7];
 
-  // Text fields
   document.getElementById('preview-name').textContent   = name;
   document.getElementById('preview-pref').textContent   = pref;
   document.getElementById('preview-educ').textContent   = educ;
   document.getElementById('preview-skills').textContent = skills || '—';
   document.getElementById('preview-exp').textContent    = exp   || 'No experience listed';
 
-  // Incomplete banner
   document.getElementById('preview-incomplete-banner').classList.toggle('d-none', !incomplete);
-
   box.style.display = '';
+}
+
+function selectApplicant(el) {
+  document.querySelectorAll('#applicant-list .ali-item').forEach(i => i.classList.remove('ali-selected'));
+  el.classList.add('ali-selected');
+
+  const sel = document.getElementById('applicant-select');
+  sel.value = el.dataset.value;
+  sel.dispatchEvent(new Event('change'));
+
+  _applyPreview({
+    value:      el.dataset.value,
+    name:       el.dataset.name,
+    educ:       el.dataset.educ,
+    pref:       el.dataset.pref,
+    skills:     el.dataset.skills,
+    exp:        el.dataset.exp,
+    incomplete: el.dataset.incomplete === '1'
+  });
+}
+
+// Used by the preselect path on page load
+function previewApplicant(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  document.querySelectorAll('#applicant-list .ali-item').forEach(item => {
+    item.classList.toggle('ali-selected', item.dataset.value === opt.value);
+  });
+  _applyPreview({
+    value:      opt.value,
+    name:       opt.dataset.name   || '',
+    educ:       opt.dataset.educ   || '',
+    pref:       opt.dataset.pref   || '',
+    skills:     opt.dataset.skills || '',
+    exp:        opt.dataset.exp    || '',
+    incomplete: opt.dataset.incomplete === '1'
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   const sel  = document.getElementById('applicant-select');
   const form = document.getElementById('rec-form');
   const warn = document.getElementById('no-applicant-warning');
+
+  // Ensure the correct panel is visible based on the initially-checked radio
+  const initialMode = document.querySelector('input[name="mode"]:checked');
+  if (initialMode) toggleMode(initialMode.value);
 
   // Block submit when in select-mode and no applicant chosen
   form.addEventListener('submit', function (e) {
@@ -515,17 +790,20 @@ window.addEventListener('DOMContentLoaded', () => {
     sel.addEventListener('change', () => warn.classList.add('d-none'));
   }
 
-  // Set all progress bar widths from data-pct attributes
+  // Set all progress bar widths from data-pct
   document.querySelectorAll('.progress-bar[data-pct]').forEach(b => {
     b.style.width = b.dataset.pct + '%';
   });
 
-  // Pre-select applicant when arriving from the applicants list
+  // Show preview for any pre-selected applicant (URL preselect param or sel_applicant)
   const preselect = sel ? sel.dataset.preselect : '';
   if (preselect) {
     for (const opt of sel.options) {
-      if (opt.value === preselect) { opt.selected = true; previewApplicant(sel); break; }
+      if (opt.value === preselect) { opt.selected = true; break; }
     }
+  }
+  if (sel && sel.value) {
+    previewApplicant(sel);
   }
 });
 </script>

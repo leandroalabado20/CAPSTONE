@@ -1,52 +1,52 @@
 <mxfile host="app.diagrams.net">
   <diagram id="EERqGaUEbmjwiocknIpU" name="Page-1">
-    <mxGraphModel dx="1178" dy="619" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1650" math="0" shadow="0">
+    <mxGraphModel dx="2357" dy="1238" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1650" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;" value="START" vertex="1">
           <mxGeometry height="50" width="150" x="325" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Load Dataset&lt;br&gt;PLACEMENT_DATASET.xlsx&lt;br&gt;1,451 records × 44 columns" vertex="1">
+        <mxCell id="3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;shape=parallelogram;perimeter=parallelogramPerimeter;shapeInside=1;fixedSize=1;" value="Load Dataset&lt;br&gt;PLACEMENT_DATASET.xlsx&lt;br&gt;1,451 records × 44 columns" vertex="1">
           <mxGeometry height="70" width="220" x="290" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Select 5 Columns&lt;br&gt;Drop remaining 39" vertex="1">
+        <mxCell id="4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Select 5 Columns&lt;br&gt;Drop remaining 39" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="250" as="geometry" />
         </mxCell>
         <mxCell id="5" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="WORK EXPERIENCE&lt;br&gt;blank?" vertex="1">
           <mxGeometry height="80" width="200" x="300" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Fill &quot;NO EXPERIENCE&quot;" vertex="1">
+        <mxCell id="6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Fill &quot;NO EXPERIENCE&quot;" vertex="1">
           <mxGeometry height="50" width="180" x="60" y="440" as="geometry" />
         </mxCell>
         <mxCell id="7" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="Exact duplicate&lt;br&gt;record?" vertex="1">
           <mxGeometry height="80" width="200" x="300" y="490" as="geometry" />
         </mxCell>
-        <mxCell id="8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Remove record" vertex="1">
+        <mxCell id="8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Remove record" vertex="1">
           <mxGeometry height="50" width="180" x="640" y="570" as="geometry" />
         </mxCell>
         <mxCell id="9" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="Job Position in&lt;br&gt;mapping table?" vertex="1">
           <mxGeometry height="80" width="200" x="300" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Exclude record" vertex="1">
+        <mxCell id="10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Exclude record" vertex="1">
           <mxGeometry height="50" width="180" x="30" y="690" as="geometry" />
         </mxCell>
-        <mxCell id="11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Assign Occupational&lt;br&gt;Category (0–4)" vertex="1">
+        <mxCell id="11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Assign Occupational&lt;br&gt;Category (0–4)" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="750" as="geometry" />
         </mxCell>
-        <mxCell id="12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Convert to Lowercase" vertex="1">
+        <mxCell id="12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Convert to Lowercase" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="840" as="geometry" />
         </mxCell>
-        <mxCell id="13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Remove Special Characters&lt;br&gt;and Punctuation" vertex="1">
+        <mxCell id="13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Remove Special Characters&lt;br&gt;and Punctuation" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="920" as="geometry" />
         </mxCell>
-        <mxCell id="14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Strip Numeric Noise&lt;br&gt;from WORK EXPERIENCE" vertex="1">
+        <mxCell id="14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Strip Numeric Noise&lt;br&gt;from WORK EXPERIENCE" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="1000" as="geometry" />
         </mxCell>
-        <mxCell id="15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Concatenate 4 Fields&lt;br&gt;into 1 Text String" vertex="1">
+        <mxCell id="15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Concatenate 4 Fields&lt;br&gt;into 1 Text String" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="1080" as="geometry" />
         </mxCell>
-        <mxCell id="16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;" value="Encode Label (0–4)" vertex="1">
+        <mxCell id="16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Encode Label (0–4)" vertex="1">
           <mxGeometry height="60" width="220" x="290" y="1160" as="geometry" />
         </mxCell>
         <mxCell id="17" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=15;fontSize=11;" value="Output: Preprocessed Records&lt;br&gt;Ready for TF-IDF" vertex="1">

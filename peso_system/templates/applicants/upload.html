@@ -7,15 +7,15 @@
   <div class="col-lg-6">
     <div class="card shadow-sm">
       <div class="card-header fw-semibold">
-        <i class="bi bi-file-earmark-arrow-up me-2"></i>Upload CSV or Excel File
+        <i class="bi bi-file-earmark-arrow-up me-2"></i>Upload Excel File
       </div>
       <div class="card-body">
         <form method="POST" enctype="multipart/form-data" action="{{ url_for('applicants_upload') }}">
           <div class="mb-3">
             <label class="form-label fw-semibold">Select File</label>
             <input type="file" name="file" class="form-control"
-                   accept=".csv,.xlsx,.xls" required />
-            <div class="form-text">Accepted formats: CSV, XLSX, XLS. Maximum 10 MB.</div>
+                   accept=".xlsx,.xls" required />
+            <div class="form-text">Accepted formats: XLSX, XLS. Maximum 10 MB.</div>
           </div>
           <button type="submit" class="btn btn-primary fw-semibold">
             <i class="bi bi-cloud-upload me-1"></i>Upload and Import

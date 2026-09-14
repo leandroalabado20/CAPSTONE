@@ -37,7 +37,9 @@ from sklearn.metrics              import (
 # ── PATHS ──────────────────────────────────────────────────────────────────────
 BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 INPUT_PATH    = os.path.join(BASE_DIR, '..', 'preprocessing', 'preprocessed_dataset.csv')
-OUTPUT_PATH   = os.path.join(BASE_DIR, 'recommendation_pipeline.pkl')
+OUTPUT_PATH         = os.path.join(BASE_DIR, 'recommendation_pipeline.pkl')
+TFIDF_TRAIN_PATH    = os.path.join(BASE_DIR, 'tfidf_train_matrix.xlsx')
+TFIDF_TEST_PATH     = os.path.join(BASE_DIR, 'tfidf_test_matrix.xlsx')
 
 # ── OCCUPATIONAL CATEGORY LABELS ───────────────────────────────────────────────
 CATEGORIES = {
@@ -181,6 +183,27 @@ print(f"  Training matrix size       : {X_train_tfidf.shape[0]:,} profiles × {X
 print(f"  Test matrix size           : {X_test_tfidf.shape[0]:,}  profiles × {X_test_tfidf.shape[1]:,} words")
 print(f"\n  Sample words from vocabulary (first 30):")
 print(f"  {list(vocab[:30])}")
+
+if os.path.exists(TFIDF_TRAIN_PATH) and os.path.exists(TFIDF_TEST_PATH):
+    print(f"\n  TF-IDF Excel files already exist — skipping export.")
+    print(f"  {TFIDF_TRAIN_PATH}")
+    print(f"  {TFIDF_TEST_PATH}")
+else:
+    print(f"\n  Saving TF-IDF matrices to Excel...")
+
+    # Training set
+    train_label_df = df.loc[X_train.index].reset_index(drop=True)
+    train_tfidf_df = pd.DataFrame(X_train_tfidf.toarray(), columns=vocab)
+    train_export   = pd.concat([train_label_df, train_tfidf_df], axis=1)
+    train_export.to_excel(TFIDF_TRAIN_PATH, index=False)
+    print(f"  Saved training set : {TFIDF_TRAIN_PATH}  ({len(train_export):,} rows)")
+
+    # Test set
+    test_label_df = df.loc[X_test.index].reset_index(drop=True)
+    test_tfidf_df = pd.DataFrame(X_test_tfidf.toarray(), columns=vocab)
+    test_export   = pd.concat([test_label_df, test_tfidf_df], axis=1)
+    test_export.to_excel(TFIDF_TEST_PATH, index=False)
+    print(f"  Saved test set     : {TFIDF_TEST_PATH}  ({len(test_export):,} rows)")
 
 
 # ==============================================================================

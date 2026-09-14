@@ -49,7 +49,7 @@ Specifically, the study aims to:
 
 2. Implement the best-performing classification algorithm, as determined through a comparative evaluation of Logistic Regression, Random Forest, and Naïve Bayes.
 
-3. Evaluate the developed system using ISO/IEC 25010 and the Technology Acceptance Model (TAM).
+3. Evaluate the developed system using ISO/IEC 25010:2023 and the Technology Acceptance Model (TAM).
 
 
 ### Significance of the Study
@@ -62,7 +62,7 @@ This study contributes to three areas: the operational improvement of a specific
 
 **Other PESO Offices Nationwide.** The operational problem at PESO CSJDM is not unique to one city. Other PESO offices facing the same referral challenges can look to this study as a documented reference for what a similar system looks like, how it performs, and which algorithm to adopt when building one for their own placement data, without repeating the comparison from scratch.
 
-**Future Researchers.** The study contributes the first empirical comparison of Logistic Regression, Random Forest, and Naïve Bayes on the operational placement records of a Philippine public employment office, together with a replicable development process and a dual ISO/IEC 25010 and TAM evaluation framework, giving future researchers a grounded starting point for studying job recommendation in government contexts where data is small, imbalanced, and operationally collected.
+**Future Researchers.** The study contributes the first empirical comparison of Logistic Regression, Random Forest, and Naïve Bayes on the operational placement records of a Philippine public employment office, together with a replicable development process and a dual ISO/IEC 25010:2023 and TAM evaluation framework, giving future researchers a grounded starting point for studying job recommendation in government contexts where data is small, imbalanced, and operationally collected.
 
 ### Scope and Delimitations
 
@@ -83,7 +83,7 @@ The following terms are defined operationally, as they are used in the present s
 **Decision Support System (DSS).** A computer-based system that assists users in making informed decisions by processing and presenting relevant data in a structured format. In this study, the system supports PESO staff in referral decisions while retaining staff authority over every final outcome.
 
 
-**ISO/IEC 25010.** An international standard for software product quality used in this study to evaluate the system across eight characteristics: functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, and portability.
+**ISO/IEC 25010.** An international standard for software product quality used in this study to evaluate the system across nine characteristics: functional suitability, performance efficiency, compatibility, interaction capability, reliability, security, maintainability, flexibility, and safety (Rojas et al., 2025).
 
 **Job Recommendation Module.** The system module that applies the trained classification pipeline to a selected applicant's profile and ranks currently active vacancies by suitability score.
 
@@ -232,7 +232,7 @@ Table 4 lists what the system shall do. FR-05 is the requirement specific to the
 
 #### Non-Functional Requirements
 
-Table 5 lists how well the system shall perform. Each NFR corresponds directly to one of the eight quality characteristics of ISO/IEC 25010.
+Table 5 lists how well the system shall perform. Each NFR corresponds directly to one of the nine quality characteristics of ISO/IEC 25010:2023 (Rojas et al., 2025).
 
 **Table 5. Non-Functional Requirements**
 
@@ -241,11 +241,12 @@ Table 5 lists how well the system shall perform. Each NFR corresponds directly t
 | NFR-01 | Functional Suitability | The system shall accurately and completely deliver its specified functions, including applicant and vacancy management, job recommendation with suitability ranking, and analytical dashboard reporting. |
 | NFR-02 | Performance Efficiency | The system shall respond to user requests and generate recommendation outputs within an acceptable time frame, and shall accommodate growing applicant, vacancy, and recommendation records without significant performance degradation. |
 | NFR-03 | Compatibility | The system shall accept PEIS-exported Excel files for batch upload without format conflicts, and shall operate alongside existing PESO tools without interference. |
-| NFR-04 | Usability | The system shall provide an interface PESO staff can navigate without advanced technical skill, including the two-tab analytics structure. |
+| NFR-04 | Interaction Capability | The system shall provide an interface PESO staff can recognize as appropriate for their tasks, learn to operate without advanced technical skill, and navigate the two-tab analytics structure and all core referral workflows with minimal error. |
 | NFR-05 | Reliability | The system shall operate consistently, storing and retrieving data correctly and producing stable outputs under continuous daily use. |
 | NFR-06 | Security | The system shall protect applicant personal information and credentials through secure authentication, input validation, and protection against unauthorized access. |
 | NFR-07 | Maintainability | The system shall be modular enough for the deployed model to be updated and the database schema maintained without disrupting other functions. |
-| NFR-08 | Portability | The system shall operate across different browsers and devices without loss of function or layout. |
+| NFR-08 | Flexibility | The system shall operate across different browsers and devices without loss of function or layout, and shall be adaptable to different deployment environments. |
+| NFR-09 | Safety | The system shall prevent actions that could result in unauthorized exposure or compromise of applicant data, enforcing authentication controls and input validation to restrict access to authorized PESO staff only. |
 
 #### Data Requirements
 
@@ -270,7 +271,7 @@ The recommendation engine is trained on historical placement records provided by
 
 Figure 1 presents the conceptual framework of the study using the Input–Process–Output (IPO) model.
 
-**Input.** The input column is organized into four sections. *Knowledge Requirements* cover the domain knowledge applied in the study: job recommendation systems, machine learning classification, decision support systems, and the ISO 25010 and TAM evaluation frameworks. *Software Requirements* list the technologies used to build the system: HTML5, CSS3, and JavaScript for the frontend; Python, Flask, and SQLite for the backend; and scikit-learn, pandas, NumPy, joblib, and openpyxl for machine learning and data handling. *Data Requirements* identify the three data sources the system depends on: applicant profiles, job vacancy records from the PESO CSJDM LMI list, and historical placement records from PESO CSJDM. *User Inputs* represent the actions PESO staff perform to interact with the system: login credentials to authenticate and access the system, applicant registration or Excel batch upload, job vacancy entries, and recommendation requests to trigger the classification pipeline for a selected applicant.
+**Input.** The input column is organized into four sections. *Knowledge Requirements* cover the domain knowledge applied in the study: job recommendation systems, machine learning classification, decision support systems, and the ISO/IEC 25010:2023 and TAM evaluation frameworks. *Software Requirements* list the technologies used to build the system: HTML5, CSS3, and JavaScript for the frontend; Python, Flask, and SQLite for the backend; and scikit-learn, pandas, NumPy, joblib, and openpyxl for machine learning and data handling. *Data Requirements* identify the three data sources the system depends on: applicant profiles, job vacancy records from the PESO CSJDM LMI list, and historical placement records from PESO CSJDM. *User Inputs* represent the actions PESO staff perform to interact with the system: login credentials to authenticate and access the system, applicant registration or Excel batch upload, job vacancy entries, and recommendation requests to trigger the classification pipeline for a selected applicant.
 
 **Process.** The process column presents the four phases of Rapid Application Development (RAD), each paired with the corresponding CRISP-DM activities that govern the machine learning component. Phase 1 (Requirements Planning) covers staff interviews and on-site observation at PESO CSJDM, dataset profiling, and requirements specification, aligned with the Business Understanding phase of CRISP-DM. Phase 2 (User Design) covers system architecture, ERD, and DFD design alongside UI/UX prototyping reviewed with PESO staff, aligned with the Data Understanding and Data Preparation phases of CRISP-DM, in which the placement dataset is cleaned and prepared for modeling. Phase 3 (Construction) covers the development of all system modules integrated with the machine learning pipeline, aligned with the Modeling, Evaluation, and Deployment phases of CRISP-DM, in which the three classifiers are trained, compared by Macro F1-Score, and the best-performing model is serialized as a pre-trained model file for deployment. Phase 4 (Cutover) covers ISO/IEC 25010 evaluation by IT professionals, TAM evaluation by PESO CSJDM staff, and system deployment and handover.
 
@@ -299,7 +300,7 @@ Table 7 presents how the RAD and CRISP-DM phases were carried out in parallel.
 | 1. Requirements Planning | Conduct interviews and on-site observation with PESO CSJDM staff; profile the historical placement dataset; define functional and non-functional requirements | Business Understanding: identify the referral decision problem, confirm placement data availability, and define model performance goals | Requirements specification; Data Sharing Agreement |
 | 2. User Design | Design system architecture, DFDs, ERD, and high-fidelity mockups for all system modules; review prototypes with PESO CSJDM staff; refine per feedback | Data Understanding: examine dataset structure, field completeness, and class distribution. Data Preparation: remove incomplete records, fill blank work experience entries, consolidate 88 job titles into five occupational categories as the target label, and split 80/20 stratified | Validated system design; cleaned dataset; selected feature set |
 | 3. Construction | Develop all system modules; integrate the ML pipeline with the Flask application for recommendation inference | Modeling: fit TF-IDF vectorizer on the training partition; train Logistic Regression, Random Forest, and Naïve Bayes. Evaluation: evaluate all three classifiers on the held-out test set using Accuracy, Precision, Recall, and Macro F1-Score; select the best-performing model. Deployment: serialize the selected pipeline with joblib and deploy through the Flask application | Working system; algorithm comparison results; deployed recommendation model |
-| 4. Cutover | Conduct ISO/IEC 25010 evaluation by IT professionals and TAM evaluation by PESO CSJDM staff; apply corrections; prepare system handover | All CRISP-DM phases completed; this phase covers post-deployment review and evaluation of the deployed model in operational context | Evaluated system; handover package |
+| 4. Cutover | Conduct ISO/IEC 25010:2023 evaluation by IT professionals and TAM evaluation by PESO CSJDM staff; apply corrections; prepare system handover | All CRISP-DM phases completed; this phase covers post-deployment review and evaluation of the deployed model in operational context | Evaluated system; handover package |
 
 ---
 
@@ -474,22 +475,23 @@ The total estimated development cost of ₱173,250.00 is low primarily because a
 
 ### Evaluation Methods
 
-This section describes how the system will be evaluated following implementation. The objective of the evaluation is to assess the **technical quality** of the system and its **acceptability to users**. Two established evaluation models will be used: the ISO/IEC 25010 Software Product Quality Model and the Technology Acceptance Model (TAM).
+This section describes how the system will be evaluated following implementation. The objective of the evaluation is to assess the **technical quality** of the system and its **acceptability to users**. Two established evaluation models will be used: the ISO/IEC 25010:2023 Software Product Quality Model and the Technology Acceptance Model (TAM).
 
-#### Evaluation Using ISO/IEC 25010
+#### Evaluation Using ISO/IEC 25010:2023
 
-**Purpose.** ISO/IEC 25010 will be used to assess the technical quality of the developed system against an international software product quality standard, following the precedent of Philippine government and institutional systems evaluated under the same model (Canlas et al., 2021; Lagman et al., 2025).
+**Purpose.** ISO/IEC 25010:2023 will be used to assess the technical quality of the developed system against an international software product quality standard (Rojas et al., 2025).
 
-**Quality characteristics.** The system will be evaluated across eight characteristics, each defined here in terms of the present system:
+**Quality characteristics.** The system will be evaluated across nine characteristics, each defined here in terms of the present system:
 
 1. **Functional Suitability** evaluates whether the system accurately and completely delivers its specified functions: applicant and vacancy management, job recommendation with suitability ranking, and dashboard reporting. This characteristic also serves as the formal verification of Objective 1's functional requirements (FR-01 to FR-06).
 2. **Performance Efficiency** covers the speed of generating recommendation outputs, loading applicant data, and handling daily use without degradation.
 3. **Compatibility** covers the system's ability to accept PEIS-exported Excel files for batch upload without format conflicts, and to operate alongside existing PESO tools without interference.
-4. **Usability** covers clarity of the interface, ease of navigation across the two-tab analytics structure, and overall user experience for referral workflows.
+4. **Interaction Capability** covers the degree to which PESO staff can recognize the interface as appropriate for their tasks, learn to navigate it without advanced technical skill, and complete referral and dashboard workflows with minimal error.
 5. **Reliability** evaluates whether the system consistently generates stable outputs and maintains uninterrupted operation under continuous daily use.
 6. **Security** covers protection of applicant personal information, credentials, and recommendation records through authentication and access control.
 7. **Maintainability** covers ease of updating the ML model, modifying features, and maintaining the database schema.
-8. **Portability** evaluates whether the system operates across different browsers and devices without loss of function.
+8. **Flexibility** evaluates whether the system operates across different browsers and devices without loss of function, and whether it can be adapted to different deployment environments.
+9. **Safety** evaluates whether the system prevents unacceptable risk to applicant data, including enforcement of authentication controls that restrict access to authorized PESO staff only and input validation that protects stored records from unauthorized modification.
 
 **Evaluators.** At least three (3) IT professionals with expertise in web development, database management, or machine learning systems will be invited as evaluators, selected through purposive sampling.
 
@@ -501,11 +503,11 @@ This section describes how the system will be evaluated following implementation
 
 **Purpose.** TAM will be used to measure user perceptions of usefulness, ease of use, and intention to adopt the system, following its validated application to web-based systems in public service contexts (Alsyouf et al., 2023).
 
-**TAM constructs.** Because this is a Data and Business Analytics capstone, the questionnaire items explicitly reference the analytics features:
+**TAM constructs.**
 
-1. **Perceived Usefulness (PU)** assesses whether the system helps staff do their job better. Sample items: *The ranked job recommendations help me identify suitable vacancies for applicants more efficiently than my current process*; *The Analytical Dashboard gives me a clearer picture of registered job seeker trends than my current process.*
-2. **Perceived Ease of Use (PEOU)** assesses whether the interface is clear and navigable, the two-tab analytics structure intuitive, and data entry and result review achievable without advanced technical skill.
-3. **Behavioral Intention to Use (BIU)** assesses whether staff are willing to use the system regularly and intend to integrate both tabs into daily operations.
+1. **Perceived Usefulness (PU)** assesses whether the system helps staff do their job better, including whether it improves performance, increases productivity, and helps accomplish tasks more quickly.
+2. **Perceived Ease of Use (PEOU)** assesses whether the interface is clear and navigable, and whether staff find the system easy to learn and operate without advanced technical skill.
+3. **Behavioral Intention to Use (BI)** assesses whether staff are willing to use the system regularly and would recommend or prefer it over manual methods.
 
 **Respondents.** Twenty-seven (27) respondents will be selected through purposive sampling. Respondents are individuals who will interact with the system and can provide meaningful feedback on its usability and usefulness based on their experience with the system's workflows.
 
@@ -522,7 +524,7 @@ The total evaluation population is thirty (30) respondents, broken down into two
 | Respondent Group | Evaluation Framework | Sampling Method | n |
 |---|---|---|---|
 | PESO CSJDM staff (end-user respondents who directly manage applicant data and referral operations) | TAM | Purposive | 27 |
-| IT professionals (web development, database management, or ML systems expertise) | ISO/IEC 25010 | Purposive | 3 |
+| IT professionals (web development, database management, or ML systems expertise) | ISO/IEC 25010:2023 | Purposive | 3 |
 | **Total** | | | **30** |
 
 ##### B. Data Analysis
@@ -553,7 +555,7 @@ Where:
 - fᵢ = Frequency of responses for each weight
 - n = Total number of respondents
 
-AM will be computed per questionnaire item, per ISO/IEC 25010 quality characteristic, per TAM construct, and for the overall score of each instrument.
+AM will be computed per questionnaire item, per ISO/IEC 25010:2023 quality characteristic, per TAM construct, and for the overall score of each instrument.
 
 ##### D. Statistical Tools Used
 
@@ -623,27 +625,28 @@ This chapter presents the results of the study based on the specific objectives 
 
 ---
 
-### Results for Specific Objective 3: Evaluate the developed system using ISO/IEC 25010 and the Technology Acceptance Model (TAM).
+### Results for Specific Objective 3: Evaluate the developed system using ISO/IEC 25010:2023 and the Technology Acceptance Model (TAM).
 
-#### ISO/IEC 25010 Evaluation Results
+#### ISO/IEC 25010:2023 Evaluation Results
 
 *[Insert number of IT professional evaluators (n = 3).]*
 
-**Table [X]. ISO/IEC 25010 Evaluation Results**
+**Table [X]. ISO/IEC 25010:2023 Evaluation Results**
 
 | Quality Characteristic | Weighted Mean | Verbal Interpretation |
 |---|---|---|
 | Functional Suitability | | |
 | Performance Efficiency | | |
 | Compatibility | | |
-| Usability | | |
+| Interaction Capability | | |
 | Reliability | | |
 | Security | | |
 | Maintainability | | |
-| Portability | | |
+| Flexibility | | |
+| Safety | | |
 | **Overall** | | |
 
-*[Brief discussion of ISO/IEC 25010 results — overall rating, strengths, and any areas for improvement noted by evaluators.]*
+*[Brief discussion of ISO/IEC 25010:2023 results — overall rating, strengths, and any areas for improvement noted by evaluators.]*
 
 #### TAM Evaluation Results
 
@@ -655,7 +658,7 @@ This chapter presents the results of the study based on the specific objectives 
 |---|---|---|
 | Perceived Usefulness (PU) | | |
 | Perceived Ease of Use (PEOU) | | |
-| Behavioral Intention to Use (BIU) | | |
+| Behavioral Intention to Use (BI) | | |
 | **Overall** | | |
 
 *[Brief discussion of TAM results — overall rating, which construct scored highest, staff willingness to adopt the system.]*
@@ -710,7 +713,7 @@ This chapter summarizes the key findings of the study based on the project's obj
 
 **Objective 2.** *[Conclusion about the implementation of the best-performing classifier — identified through comparative evaluation of Logistic Regression, Random Forest, and Naïve Bayes — which classifier was selected, what Macro F1-Score it achieved, and what this means for the recommendation engine deployed in the system.]*
 
-**Objective 3.** *[Conclusion about the ISO/IEC 25010 and TAM evaluation — whether the system met the acceptable threshold (weighted mean ≥ 3.51), and whether PESO CSJDM staff expressed willingness to adopt it.]*
+**Objective 3.** *[Conclusion about the ISO/IEC 25010:2023 and TAM evaluation — whether the system met the acceptable threshold (weighted mean ≥ 3.51), and whether PESO CSJDM staff expressed willingness to adopt it.]*
 
 ---
 
@@ -746,7 +749,6 @@ Beręsewicz, M., Wydmuch, M., Cherniaiev, H., & Pater, R. (2024). *Multilingual 
 
 Betrand, C. U., Aliche, O. B., Onukwugha, C. G., Ofoegbu, C. I., Kelechi, D. A., Ugbor, I. C., & Oragba, N. M. (2025). Career guidance system using Decision Tree, Random Forest, and Naïve Bayes algorithm. *International Journal of Science, Technology and Society, 13*(2), 35–42. https://doi.org/10.11648/j.ijsts.20251302.11
 
-Canlas, R. B., Piad, K. C., & Lagman, A. C. (2021). An ISO/IEC 25010 based software quality assessment of a faculty research productivity monitoring and prediction system. In *Proceedings of the 2021 9th International Conference on Information Technology: IoT and Smart City* (pp. 1–8). ACM. https://doi.org/10.1145/3512576.3512619
 
 Chihab, M., Boussatta, H., Chiny, M., Mabrouk, N., Chihab, Y., & Hadi, M. Y. (2025). AI-driven professional profile categorization and recommendation system. *International Journal of Advanced Computer Science and Applications, 16*(11). https://doi.org/10.14569/IJACSA.2025.0161140
 
@@ -762,7 +764,6 @@ Kumar, D., Grosz, T., Rekabsaz, N., Greif, E., & Schedl, M. (2023). Fairness of 
 
 Kumar, N., Gupta, M., Sharma, D., & Ofori, I. (2022). Technical job recommendation system using APIs and web crawling. *Computational Intelligence and Neuroscience, 2022*, Article 7797548. https://doi.org/10.1155/2022/7797548
 
-Lagman, A. C., Ramirez, I. C. R., Esteban, A. P., Rivera, R. P. L., Santos, R. D., & Juliano, J. J. (2025). Development and evaluation of an enterprise-level information system for digital governance in Philippine SUCs using Agile software methodology and ISO/IEC 25010 software quality model. *2024 IEEE 16th International Conference on Humanoid, Nanotechnology, Information Technology, Communication and Control, Environment, and Management (HNICEM)*, 1–6. https://doi.org/10.1109/hnicem64917.2024.11258693
 
 Najjar, A., Amro, B., & Macedo, M. (2021). An intelligent decision support system for recruitment: Resumes screening and applicants ranking. *Informatica, 45*(4), 617–623. https://doi.org/10.31449/inf.v45i4.3356
 
@@ -773,6 +774,8 @@ Qin, C., Zhang, L., Cheng, Y., Zha, R., Shen, D., Zhang, Q., Chen, X., Sun, Y., 
 Republic Act No. 8759. (1999). *An Act Institutionalizing a National Facilitation Service Network through the Establishment of a Public Employment Service Office in All Capital Towns of Provinces, Key Cities and Other Strategic Areas* (Public Employment Service Office Act of 1999). Official Gazette of the Republic of the Philippines. https://www.officialgazette.gov.ph/2000/02/14/republic-act-no-8759/
 
 Riadi, I., Yudhana, A., & Elvina, A. (2024). Analysis impact of Rapid Application Development method on development cycle and user satisfaction: A case study on web-based registration service. *Scientific Journal of Informatics, 11*(1). https://doi.org/10.15294/sji.v11i1.49590
+
+Rojas, H., Renteria, R., Duran, V. M., Gutiérrez, Y. T., Ibarra-Cabrera, M. J., & Aminuddin, A. (2025). Mapping the evolution and future directions of ISO/IEC 25010: A bibliometric and thematic analysis. *Engineering, Technology & Applied Science Research, 15*(5), 27530–27541. https://doi.org/10.48084/etasr.11772
 
 Sacchi, S., & Scarano, G. (2025). Digital transformation of public employment services in the post-pandemic era. Evidence from Italy as a latecomer country. *Australian Journal of Social Issues, 60*(2), 456–472. https://doi.org/10.1002/ajs4.385
 

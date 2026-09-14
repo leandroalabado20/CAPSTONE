@@ -395,8 +395,15 @@ def load_pipeline():
     if os.path.exists(PIPELINE_PATH):
         try:
             pipeline = joblib.load(PIPELINE_PATH)
-        except Exception:
+            model = pipeline.get('model')
+            if model is not None and not hasattr(model, 'multi_class'):
+                model.multi_class = 'auto'
+        except Exception as e:
+            import traceback
+            app.logger.error(f"ML pipeline load failed: {e}\n{traceback.format_exc()}")
             pipeline = None
+    else:
+        app.logger.error(f"ML pipeline file not found at: {PIPELINE_PATH}")
 
 def _strip_numeric_noise(text):
     text = re.sub(r'\b\d+\s*(?:mos?|years?)\s*as\s*', '', text, flags=re.IGNORECASE)

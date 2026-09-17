@@ -1164,6 +1164,23 @@ def user_edit(uid):
             flash('Email already exists.', 'danger')
     return render_template('users/form.html', user=dict(u), action='edit')
 
+@app.route('/users/<int:uid>/delete', methods=['POST'])
+@login_required
+def user_delete(uid):
+    if uid == session['user_id']:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('users_list'))
+    db = get_db()
+    u  = db.execute('SELECT full_name, username FROM users WHERE id=?', (uid,)).fetchone()
+    if not u:
+        flash('User not found.', 'danger')
+        return redirect(url_for('users_list'))
+    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
+    db.execute('DELETE FROM users WHERE id=?', (uid,))
+    db.commit()
+    flash(f'Account for {u["full_name"]} (@{u["username"]}) has been permanently deleted.', 'success')
+    return redirect(url_for('users_list'))
+
 @app.route('/users/<int:uid>/toggle', methods=['POST'])
 @login_required
 def user_toggle(uid):

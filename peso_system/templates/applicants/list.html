@@ -116,6 +116,12 @@
                 <button class="btn btn-sm btn-outline-danger" title="Archive" onclick="return confirm('Archive this applicant?')"><i class="bi bi-archive"></i></button>
               </form>
               {% endif %}
+              <button class="btn btn-sm btn-danger" title="Delete permanently"
+                data-coreui-toggle="modal" data-coreui-target="#deleteModal"
+                data-aid="{{ ap.id }}"
+                data-name="{{ ap.first_name }} {{ ap.last_name }}">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -163,6 +169,12 @@
           <button class="btn btn-sm btn-outline-danger" title="Archive" onclick="return confirm('Archive this applicant?')"><i class="bi bi-archive"></i></button>
         </form>
         {% endif %}
+        <button class="btn btn-sm btn-danger" title="Delete permanently"
+          data-coreui-toggle="modal" data-coreui-target="#deleteModal"
+          data-aid="{{ ap.id }}"
+          data-name="{{ ap.first_name }} {{ ap.last_name }}">
+          <i class="bi bi-trash3-fill"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -201,5 +213,40 @@
 <p class="text-center text-muted small mt-2">
   {% if pages > 1 %}Page {{ page }} of {{ pages }} · {% endif %}{{ '{:,}'.format(total) }} record(s)
 </p>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Applicant</h5>
+        <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to <strong>permanently delete</strong> the record for:</p>
+        <p class="fs-5 fw-bold text-center mb-3" id="deleteModalName"></p>
+        <div class="alert alert-danger mb-0 py-2 small">
+          <i class="bi bi-exclamation-circle-fill me-1"></i>
+          This action cannot be undone. All recommendation history for this applicant will also be deleted.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST">
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill me-1"></i>Delete Permanently</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const deleteModal = document.getElementById('deleteModal');
+  deleteModal.addEventListener('show.coreui.modal', function (e) {
+    const btn = e.relatedTarget.closest('[data-aid]') || e.relatedTarget;
+    document.getElementById('deleteModalName').textContent = btn.dataset.name;
+    document.getElementById('deleteForm').action = '/applicants/' + btn.dataset.aid + '/delete';
+  });
+</script>
 {% endblock %}
 

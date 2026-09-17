@@ -110,6 +110,13 @@
                   <i class="bi {% if v.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
                 </button>
               </form>
+              <button class="btn btn-sm btn-danger" title="Delete permanently"
+                data-coreui-toggle="modal" data-coreui-target="#deleteVacancyModal"
+                data-vid="{{ v.id }}"
+                data-title="{{ v.job_title }}"
+                data-employer="{{ v.employer_name }}">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -162,6 +169,13 @@
             <i class="bi {% if v.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
           </button>
         </form>
+        <button class="btn btn-sm btn-danger" title="Delete permanently"
+          data-coreui-toggle="modal" data-coreui-target="#deleteVacancyModal"
+          data-vid="{{ v.id }}"
+          data-title="{{ v.job_title }}"
+          data-employer="{{ v.employer_name }}">
+          <i class="bi bi-trash3-fill"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -170,4 +184,41 @@
 {% endif %}
 
 <p class="text-center text-muted small mt-3">{{ vacancies|length }} vacancy/vacancies found</p>
+
+<!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
+<div class="modal fade" id="deleteVacancyModal" tabindex="-1" aria-labelledby="deleteVacancyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteVacancyModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Vacancy</h5>
+        <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to <strong>permanently delete</strong> the vacancy:</p>
+        <p class="fs-5 fw-bold text-center mb-1" id="deleteVacancyTitle"></p>
+        <p class="text-center text-muted small mb-3" id="deleteVacancyEmployer"></p>
+        <div class="alert alert-danger mb-0 py-2 small">
+          <i class="bi bi-exclamation-circle-fill me-1"></i>
+          This action cannot be undone. All recommendation history linked to this vacancy will also be deleted.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
+        <form id="deleteVacancyForm" method="POST">
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill me-1"></i>Delete Permanently</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const deleteVacancyModal = document.getElementById('deleteVacancyModal');
+  deleteVacancyModal.addEventListener('show.coreui.modal', function (e) {
+    const btn = e.relatedTarget.closest('[data-vid]') || e.relatedTarget;
+    document.getElementById('deleteVacancyTitle').textContent = btn.dataset.title;
+    document.getElementById('deleteVacancyEmployer').textContent = btn.dataset.employer;
+    document.getElementById('deleteVacancyForm').action = '/vacancies/' + btn.dataset.vid + '/delete';
+  });
+</script>
 {% endblock %}

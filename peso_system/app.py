@@ -914,6 +914,20 @@ def applicant_restore(aid):
     flash('Applicant restored.', 'success')
     return redirect(url_for('applicants_list') + '?archived=1')
 
+@app.route('/applicants/<int:aid>/delete', methods=['POST'])
+@login_required
+def applicant_delete(aid):
+    db = get_db()
+    ap = db.execute('SELECT first_name, last_name FROM applicants WHERE id=?', (aid,)).fetchone()
+    if not ap:
+        flash('Applicant not found.', 'danger')
+        return redirect(url_for('applicants_list'))
+    db.execute('DELETE FROM recommendations WHERE applicant_id=?', (aid,))
+    db.execute('DELETE FROM applicants WHERE id=?', (aid,))
+    db.commit()
+    flash(f'Applicant {ap["first_name"]} {ap["last_name"]} has been permanently deleted.', 'success')
+    return redirect(url_for('applicants_list'))
+
 @app.route('/applicants/upload', methods=['GET', 'POST'])
 @login_required
 def applicants_upload():
@@ -1058,6 +1072,20 @@ def vacancy_toggle(vid):
         flash('Vacancy status updated.', 'success')
     return redirect(url_for('vacancies_list'))
 
+@app.route('/vacancies/<int:vid>/delete', methods=['POST'])
+@login_required
+def vacancy_delete(vid):
+    db = get_db()
+    v  = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE id=?', (vid,)).fetchone()
+    if not v:
+        flash('Vacancy not found.', 'danger')
+        return redirect(url_for('vacancies_list'))
+    db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
+    db.execute('DELETE FROM job_vacancies WHERE id=?', (vid,))
+    db.commit()
+    flash(f'Vacancy "{v["job_title"]}" ({v["employer_name"]}) has been permanently deleted.', 'success')
+    return redirect(url_for('vacancies_list'))
+
 # ── USERS ─────────────────────────────────────────────────────────────────────
 @app.route('/users')
 @login_required
@@ -1169,4 +1197,5 @@ if __name__ == '__main__':
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
+    print("PESO CSJDM running at: http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -1,0 +1,139 @@
+{% extends 'base_public.html' %}
+{% block title %}Register as Employer{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+             style="width:56px;height:56px;background:#f0fdf4;">
+          <i class="bi bi-building text-success" style="font-size:1.4rem;"></i>
+        </div>
+        <h3 class="fw-bold mb-0">Register Your Company</h3>
+        <p class="text-muted small mt-1">Partner with PESO CSJDM to find qualified workers.</p>
+      </div>
+
+      <div class="alert alert-info d-flex gap-2 mb-4">
+        <i class="bi bi-info-circle-fill flex-shrink-0"></i>
+        <span class="small">After registration, your account will be reviewed and approved by PESO staff. Your job vacancies will go live automatically upon approval.</span>
+      </div>
+
+      <div class="card shadow-sm border-0" style="border-radius:12px;">
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('register_employer') }}">
+
+            <p class="fw-semibold text-muted mb-3"
+               style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
+              Company Information
+            </p>
+            <div class="row g-3 mb-4">
+              <div class="col-12">
+                <label class="form-label fw-semibold">Company / Employer Name <span class="text-danger">*</span></label>
+                <input type="text" name="company_name" class="form-control"
+                       value="{{ form.get('company_name','') }}" required
+                       placeholder="e.g. ABC Manufacturing Corp." />
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Contact Person <span class="text-danger">*</span></label>
+                <input type="text" name="contact_person" class="form-control"
+                       value="{{ form.get('contact_person','') }}" required
+                       placeholder="HR Manager or authorized representative" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Phone Number</label>
+                <input type="text" name="phone" class="form-control"
+                       value="{{ form.get('phone','') }}" placeholder="09XX-XXX-XXXX" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Address</label>
+                <input type="text" name="address" class="form-control"
+                       value="{{ form.get('address','') }}" placeholder="Business address" />
+              </div>
+            </div>
+
+            <hr class="my-3" />
+            <p class="fw-semibold text-muted mb-1"
+               style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
+              Initial Job Vacancy
+              <span class="fw-normal text-muted ms-1">(optional — will go live upon approval)</span>
+            </p>
+            <p class="text-muted mb-3" style="font-size:.78rem;">
+              Add at least one vacancy now so PESO staff can see your hiring needs when reviewing your application.
+            </p>
+            <div class="row g-3 mb-4">
+              <div class="col-12">
+                <label class="form-label fw-semibold">Job Title</label>
+                <input type="text" name="job_title" class="form-control"
+                       value="{{ form.get('job_title','') }}"
+                       placeholder="e.g. Cashier, Warehouse Helper, Data Encoder" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Occupational Category</label>
+                <select name="occupational_category" class="form-select">
+                  <option value="">-- Select Category --</option>
+                  {% for cat in categories %}
+                  <option value="{{ cat }}"
+                    {% if form.get('occupational_category') == cat %}selected{% endif %}>
+                    {{ cat }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Job Location</label>
+                <select name="is_local" class="form-select">
+                  <option value="1" {% if form.get('is_local','1') == '1' %}selected{% endif %}>Local (CSJDM)</option>
+                  <option value="0" {% if form.get('is_local') == '0' %}selected{% endif %}>Outside CSJDM</option>
+                </select>
+              </div>
+            </div>
+
+            <hr class="my-3" />
+            <p class="fw-semibold text-muted mb-3"
+               style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
+              Login Credentials
+            </p>
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                <input type="text" name="username" class="form-control"
+                       value="{{ form.get('username','') }}" required autocomplete="username" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                <input type="email" name="email" class="form-control"
+                       value="{{ form.get('email','') }}" required />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                <input type="password" name="password" class="form-control"
+                       required minlength="8" autocomplete="new-password" />
+                <div class="form-text">Minimum 8 characters</div>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                <input type="password" name="confirm_password" class="form-control"
+                       required autocomplete="new-password" />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 fw-semibold mt-4">
+              <i class="bi bi-building me-2"></i>Submit Registration
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        <span class="text-muted small">Already have an account?</span>
+        <a href="{{ url_for('login') }}" class="small fw-semibold ms-1">Sign in</a>
+        <span class="text-muted small ms-2">|</span>
+        <a href="{{ url_for('register_jobseeker') }}" class="small ms-2">Register as Jobseeker</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

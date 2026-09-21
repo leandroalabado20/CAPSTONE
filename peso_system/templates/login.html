@@ -55,10 +55,17 @@
   </form>
 
   <hr class="my-3" />
-  <p class="text-center text-muted small mb-0">
-    <i class="bi bi-info-circle me-1"></i>
-    For authorized PESO CSJDM staff only.
-  </p>
+  <div class="text-center">
+    <p class="text-muted small mb-2">Not a staff member?</p>
+    <div class="d-flex gap-2 justify-content-center">
+      <a href="{{ url_for('register_jobseeker') }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-person-plus me-1"></i>Jobseeker
+      </a>
+      <a href="{{ url_for('register_employer') }}" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-building me-1"></i>Employer
+      </a>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>

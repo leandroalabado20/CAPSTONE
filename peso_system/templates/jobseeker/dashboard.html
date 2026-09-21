@@ -1,0 +1,180 @@
+{% extends 'base_jobseeker.html' %}
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-0">Welcome, {{ session.get('full_name', '') }}</h4>
+  <p class="text-muted small">Here's your job matching overview.</p>
+</div>
+
+<!-- Profile completeness alert -->
+{% if not ap %}
+<div class="alert alert-warning d-flex gap-2">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <span>Your profile was not found. Contact PESO staff for assistance.</span>
+</div>
+{% elif not ap.educ_level or not ap.preferred_position or not ap.skills %}
+<div class="alert alert-warning d-flex gap-2">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <div>
+    <strong>Your profile is incomplete.</strong> Fill in your education level, preferred position, and skills to receive job recommendations.
+    <a href="{{ url_for('jobseeker_profile') }}" class="ms-2 fw-semibold">Complete Profile →</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- KPI row -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
+      <div class="fw-bold fs-3 text-primary">{{ active_vacancies }}</div>
+      <div class="text-muted small">Active Vacancies</div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
+      <div class="fw-bold fs-3 text-success">{{ referrals|length }}</div>
+      <div class="text-muted small">My Referrals</div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
+      {% set hired_count = referrals | selectattr('status', 'equalto', 'hired') | list | length %}
+      <div class="fw-bold fs-3 text-warning">{{ hired_count }}</div>
+      <div class="text-muted small">Hired</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Top recommendation -->
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header fw-semibold bg-transparent border-bottom py-2 px-3">
+        <i class="bi bi-stars text-primary me-2"></i>Top Job Match
+      </div>
+      <div class="card-body p-3">
+        {% if not ap or not ap.educ_level or not ap.preferred_position or not ap.skills %}
+        <div class="text-muted small text-center py-3">
+          <i class="bi bi-person-dash" style="font-size:1.5rem;opacity:.3;"></i>
+          <p class="mt-2 mb-0">Complete your profile to see job recommendations.</p>
+          <a href="{{ url_for('jobseeker_profile') }}" class="btn btn-sm btn-primary mt-2">Complete Profile</a>
+        </div>
+        {% elif not pipeline_loaded %}
+        <div class="text-muted small text-center py-3">ML engine unavailable.</div>
+        {% elif top_rec %}
+        <div class="d-flex align-items-start gap-3">
+          <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width:44px;height:44px;border-radius:50%;background:#dcfce7;">
+            <i class="bi {{ top_rec.icon }} text-success" style="font-size:1.2rem;"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-bold">{{ top_rec.category }}</div>
+            <div class="text-success fw-bold fs-5">{{ top_rec.suitability_pct }}</div>
+            <div class="progress mt-2" style="height:6px;">
+              <div class="progress-bar bg-success"
+                   style="width:{{ (top_rec.suitability_score * 100)|round(0)|int }}%;border-radius:3px;"></div>
+            </div>
+            {% if top_rec.vacancies %}
+            <p class="text-muted small mt-2 mb-0">
+              <i class="bi bi-briefcase me-1"></i>{{ top_rec.vacancies|length }} open position{{ 's' if top_rec.vacancies|length != 1 else '' }}
+            </p>
+            {% else %}
+            <p class="text-muted small mt-2 mb-0 fst-italic">No openings currently.</p>
+            {% endif %}
+          </div>
+        </div>
+        <a href="{{ url_for('jobseeker_recommendations') }}" class="btn btn-outline-primary btn-sm w-100 mt-3">
+          See All Recommendations
+        </a>
+        {% else %}
+        <div class="text-muted small text-center py-3">No recommendations yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent referrals -->
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100" style="border-radius:12px;">
+      <div class="card-header fw-semibold bg-transparent border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-send text-primary me-2"></i>Recent Referrals</span>
+        <a href="{{ url_for('jobseeker_referrals') }}" class="small text-primary">View all</a>
+      </div>
+      <div class="card-body p-3">
+        {% if referrals %}
+        {% for r in referrals %}
+        <div class="d-flex align-items-start gap-2 py-2 {% if not loop.last %}border-bottom{% endif %}">
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold small text-truncate">{{ r.job_title }}</div>
+            <div class="text-muted" style="font-size:.73rem;">{{ r.employer_name }}</div>
+          </div>
+          {% if r.status == 'referred' %}
+          <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0">Referred</span>
+          {% elif r.status == 'hired' %}
+          <span class="badge bg-success-subtle text-success-emphasis flex-shrink-0">Hired</span>
+          {% elif r.status == 'not_hired' %}
+          <span class="badge bg-secondary-subtle text-secondary-emphasis flex-shrink-0">Not Hired</span>
+          {% elif r.status == 'cancelled' %}
+          <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0">Cancelled</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center text-muted py-3 small">
+          <i class="bi bi-send" style="font-size:1.5rem;opacity:.25;"></i>
+          <p class="mt-2 mb-0">No referrals yet. PESO staff will issue one once your profile is reviewed.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Quick links -->
+<div class="row g-3 mt-2">
+  <div class="col-sm-3">
+    <a href="{{ url_for('jobseeker_profile') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
+      <i class="bi bi-person-circle text-primary fs-4"></i>
+      <span class="fw-semibold small text-dark">Edit Profile</span>
+    </a>
+  </div>
+  <div class="col-sm-3">
+    <a href="{{ url_for('jobseeker_recommendations') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
+      <i class="bi bi-stars text-success fs-4"></i>
+      <span class="fw-semibold small text-dark">Recommendations</span>
+    </a>
+  </div>
+  <div class="col-sm-3">
+    <a href="{{ url_for('jobseeker_referrals') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
+      <i class="bi bi-send-fill text-warning fs-4"></i>
+      <span class="fw-semibold small text-dark">My Referrals</span>
+    </a>
+  </div>
+  <div class="col-sm-3">
+    <a href="{{ url_for('public_jobs') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
+      <i class="bi bi-list-task text-info fs-4"></i>
+      <span class="fw-semibold small text-dark">Browse Jobs</span>
+    </a>
+  </div>
+</div>
+
+<!-- Request Referral CTA -->
+{% if ap and ap.educ_level and ap.preferred_position and ap.skills %}
+<div class="card border-0 shadow-sm mt-3" style="border-radius:12px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);">
+  <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <div class="fw-bold mb-1"><i class="bi bi-bell-fill text-primary me-2"></i>Ready for a referral?</div>
+      <p class="text-muted small mb-0">
+        Submit a request and PESO staff will review your profile and match you to a job vacancy.
+      </p>
+    </div>
+    <a href="{{ url_for('jobseeker_referrals') }}" class="btn btn-primary btn-sm fw-semibold flex-shrink-0">
+      <i class="bi bi-send me-1"></i>Request Referral
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

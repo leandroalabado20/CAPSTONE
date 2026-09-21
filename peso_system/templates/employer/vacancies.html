@@ -1,0 +1,72 @@
+{% extends 'base_employer.html' %}
+{% block title %}My Vacancies{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h4 class="fw-bold mb-0">My Vacancies</h4>
+    <p class="text-muted small mb-0">{{ vacancies|length }} vacancy/ies for {{ emp.company_name }}</p>
+  </div>
+  <a href="{{ url_for('employer_vacancy_add') }}" class="btn btn-primary fw-semibold">
+    <i class="bi bi-plus-circle me-1"></i>Post New Vacancy
+  </a>
+</div>
+
+<!-- Status filter -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+  {% for s, label in [('all','All'),('active','Active'),('inactive','Inactive')] %}
+  <a href="{{ url_for('employer_vacancies', status=s) }}"
+     class="btn btn-sm {% if status == s %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+{% if vacancies %}
+<div class="row g-3">
+  {% for v in vacancies %}
+  <div class="col-md-6">
+    <div class="card border shadow-sm h-100" style="border-radius:10px;">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <div class="overflow-hidden">
+            <div class="fw-bold text-truncate">{{ v.job_title }}</div>
+            <span class="badge bg-primary-subtle text-primary-emphasis mt-1" style="font-size:.68rem;">
+              {{ v.occupational_category }}
+            </span>
+            {% if v.is_local %}
+            <span class="badge bg-success-subtle text-success-emphasis ms-1" style="font-size:.68rem;">Local</span>
+            {% endif %}
+          </div>
+          <span class="badge flex-shrink-0 {% if v.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+            {{ 'Active' if v.is_active else 'Inactive' }}
+          </span>
+        </div>
+        <div class="text-muted small mt-2">
+          <i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_dt }}
+        </div>
+      </div>
+      <div class="card-footer bg-transparent border-top px-3 pb-2 pt-2 d-flex gap-2">
+        <a href="{{ url_for('employer_vacancy_edit', vid=v.id) }}"
+           class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <form method="POST" action="{{ url_for('employer_vacancy_toggle', vid=v.id) }}" class="d-inline">
+          <button type="submit" class="btn btn-sm {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
+            {% if v.is_active %}<i class="bi bi-pause-circle me-1"></i>Deactivate
+            {% else %}<i class="bi bi-play-circle me-1"></i>Activate{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-list-task" style="font-size:2.5rem;opacity:.25;"></i>
+  <p class="mt-3">No vacancies posted yet.</p>
+  <a href="{{ url_for('employer_vacancy_add') }}" class="btn btn-primary">Post Your First Vacancy</a>
+</div>
+{% endif %}
+{% endblock %}

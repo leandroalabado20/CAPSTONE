@@ -5,6 +5,26 @@
   {% if action == 'register' %}Register New Applicant{% else %}Edit Applicant{% endif %}
 {% endblock %}
 
+{% block head %}
+<style>
+.skill-chip {
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 500;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  background: #f8fafc;
+  transition: background .1s, color .1s, border-color .1s;
+  user-select: none;
+  white-space: nowrap;
+  display: inline-block;
+}
+.skill-chip:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="card shadow-sm" style="max-width:860px;">
   <div class="card-header fw-semibold">
@@ -17,16 +37,17 @@
       {% if applicant and (not applicant.educ_level or not applicant.preferred_position or not applicant.skills) %}
       <div class="alert alert-warning d-flex align-items-center gap-2">
         <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-        <div>This applicant has <strong>incomplete required fields</strong> (highlighted in red below).
+        <div>This applicant has <strong>incomplete required fields</strong> (highlighted below).
              Please complete them so the applicant can be recommended.</div>
       </div>
       {% endif %}
 
-      <!-- Section: Personal Information -->
+      <!-- ── Personal Information ──────────────────────────────────────────── -->
       <h6 class="text-primary fw-bold mb-3 border-bottom pb-1">
         <i class="bi bi-person me-2"></i>Personal Information
       </h6>
       <div class="row g-3 mb-4">
+
         <div class="col-md-4">
           <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
           <input type="text" name="first_name" class="form-control"
@@ -42,6 +63,7 @@
           <input type="number" name="age" class="form-control" min="0" max="120"
                  value="{{ applicant.age if applicant and applicant.age is not none else '' }}" />
         </div>
+
         <div class="col-md-3">
           <label class="form-label fw-semibold">Sex</label>
           <select name="sex" class="form-select">
@@ -51,20 +73,30 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-3">
+
+        <!-- Barangay with datalist + auto-fill district -->
+        <div class="col-md-5">
           <label class="form-label fw-semibold">Barangay</label>
-          <input type="text" name="barangay" class="form-control"
-                 value="{{ applicant.barangay if applicant else '' }}" />
+          <input type="text" name="barangay" id="barangay-input" class="form-control"
+                 list="barangay-list" autocomplete="off"
+                 value="{{ applicant.barangay if applicant else '' }}"
+                 placeholder="Type or select barangay"
+                 oninput="autoFillDistrict(this.value)" />
+          <datalist id="barangay-list">
+            {% for b in barangays %}
+            <option value="{{ b|title }}">{{ b|title }}</option>
+            {% endfor %}
+          </datalist>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label fw-semibold">District</label>
-          <select name="district" class="form-select">
-            <option value="">-- Select --</option>
-            <option {% if applicant and applicant.district == 'District 1' %}selected{% endif %}>District 1</option>
-            <option {% if applicant and applicant.district == 'District 2' %}selected{% endif %}>District 2</option>
-          </select>
+          <input type="text" name="district" id="district-input" class="form-control"
+                 value="{{ applicant.district if applicant else '' }}"
+                 placeholder="Auto-filled from barangay" readonly
+                 style="background:#f8fafc;" />
         </div>
-        <div class="col-md-3">
+
+        <div class="col-md-4">
           <label class="form-label fw-semibold">Employment Status</label>
           <select name="employment_status" class="form-select">
             {% for opt in ['Unemployed','Employed'] %}
@@ -77,7 +109,7 @@
           <label class="form-label fw-semibold">PEIS Registration Date</label>
           <input type="date" name="peis_reg_date" class="form-control"
                  value="{{ applicant.peis_reg_date if applicant and applicant.peis_reg_date else '' }}" />
-          <div class="form-text">Date the applicant registered in PEIS. Auto-filled from batch upload.</div>
+          <div class="form-text">Auto-filled from batch upload.</div>
         </div>
         <div class="col-12">
           <div class="form-check">
@@ -86,17 +118,21 @@
             <label class="form-check-label" for="is_pwd">Person with Disability (PWD)</label>
           </div>
         </div>
+
       </div>
 
-      <!-- Section: ML Profile (Required) -->
+      <!-- ── Applicant Profile (ML + Recommendation) ───────────────────────── -->
       <h6 class="text-success fw-bold mb-3 border-bottom pb-1">
         <i class="bi bi-cpu me-2"></i>Applicant Profile
         <small class="text-muted fw-normal">(Required for job recommendation)</small>
       </h6>
       <div class="row g-3 mb-4">
+
         <div class="col-md-6">
           <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
-          <select name="educ_level" class="form-select {% if applicant and not applicant.educ_level %}is-invalid{% endif %}" required>
+          <select name="educ_level"
+                  class="form-select {% if applicant and not applicant.educ_level %}is-invalid{% endif %}"
+                  required>
             <option value="">-- Select Education Level --</option>
             {% for level in educ_levels %}
             <option {% if applicant and applicant.educ_level == level %}selected{% endif %}>{{ level }}</option>
@@ -104,28 +140,57 @@
           </select>
           <div class="invalid-feedback">Please select an education level.</div>
         </div>
+
+        <!-- Preferred Position with datalist -->
         <div class="col-md-6">
           <label class="form-label fw-semibold">Preferred Position <span class="text-danger">*</span></label>
-          <input type="text" name="preferred_position"
+          <input type="text" name="preferred_position" id="pref-pos"
+                 list="pos-list"
                  class="form-control {% if applicant and not applicant.preferred_position %}is-invalid{% endif %}"
                  value="{{ applicant.preferred_position if applicant else '' }}"
-                 placeholder="e.g. Cashier, Warehouse Helper, Data Encoder" required />
+                 placeholder="Type or select a position" autocomplete="off" required />
+          <datalist id="pos-list">
+            {% for p in positions %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+          </datalist>
           <div class="invalid-feedback">Please enter a preferred position.</div>
         </div>
-        <div class="col-md-12">
-          <label class="form-label fw-semibold">Skills <span class="text-danger">*</span></label>
-          <textarea name="skills" rows="3"
-                    class="form-control {% if applicant and not applicant.skills %}is-invalid{% endif %}"
-                    placeholder="e.g. Customer Service, Cashiering, Microsoft Office, Forklift Operation"
+
+        <!-- Skills with chip selector -->
+        <div class="col-12">
+          <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+            <span>Skills <span class="text-danger">*</span></span>
+            <span class="text-muted fw-normal small">Click chips to add</span>
+          </label>
+          <textarea name="skills" id="skills-input" rows="2"
+                    class="form-control mb-2 {% if applicant and not applicant.skills %}is-invalid{% endif %}"
+                    placeholder="e.g. Customer Service, Cashiering, Microsoft Office"
                     required>{{ applicant.skills if applicant else '' }}</textarea>
+          <div class="d-flex flex-wrap gap-1">
+            {% for skill in skills_list %}
+            <span class="skill-chip" onclick="addChip('skills-input', '{{ skill }}')">{{ skill }}</span>
+            {% endfor %}
+          </div>
           <div class="invalid-feedback">Please enter at least one skill.</div>
         </div>
-        <div class="col-md-12">
+
+        <!-- Work Experience with datalist -->
+        <div class="col-12">
           <label class="form-label fw-semibold">Work Experience</label>
-          <textarea name="work_experience" class="form-control" rows="3"
-                    placeholder="e.g. 1 year as Cashier, 6 mos as Data Encoder (leave blank if none)">{{ applicant.work_experience if applicant else '' }}</textarea>
+          <input type="text" name="work_experience" id="work-exp"
+                 list="exp-list" autocomplete="off"
+                 class="form-control"
+                 value="{{ applicant.work_experience if applicant else '' }}"
+                 placeholder="e.g. Cashier — leave blank if none" />
+          <datalist id="exp-list">
+            {% for exp in work_exp_list %}
+            <option value="{{ exp }}">{{ exp }}</option>
+            {% endfor %}
+          </datalist>
           <div class="form-text">Leave blank if the applicant has no prior work experience.</div>
         </div>
+
       </div>
 
       <!-- Actions -->
@@ -141,7 +206,41 @@
         {% endif %}
         <a href="{{ url_for('applicants_list') }}" class="btn btn-outline-secondary">Cancel</a>
       </div>
+
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const BRGY_DISTRICT = {{ barangay_district_map | tojson }};
+
+function autoFillDistrict(val) {
+  const key = val.trim().toUpperCase();
+  const dist = BRGY_DISTRICT[key] || '';
+  document.getElementById('district-input').value = dist;
+}
+
+function addChip(fieldId, value) {
+  const ta = document.getElementById(fieldId);
+  const current = ta.value.trim();
+  if (current) {
+    const existing = current.split(',').map(s => s.trim().toLowerCase());
+    if (!existing.includes(value.toLowerCase())) {
+      ta.value = current + ', ' + value;
+    }
+  } else {
+    ta.value = value;
+  }
+}
+
+// Auto-fill district on page load if barangay already has a value
+window.addEventListener('DOMContentLoaded', function () {
+  const brgyInput = document.getElementById('barangay-input');
+  if (brgyInput && brgyInput.value) {
+    autoFillDistrict(brgyInput.value);
+  }
+});
+</script>
 {% endblock %}

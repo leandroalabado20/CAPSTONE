@@ -1,0 +1,52 @@
+{% extends 'base_employer.html' %}
+{% block title %}{{ 'Edit' if action == 'edit' else 'Post' }} Vacancy{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-0">{{ 'Edit Vacancy' if action == 'edit' else 'Post a New Vacancy' }}</h4>
+  <p class="text-muted small">The employer name is set automatically from your company profile.</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow-sm border-0" style="border-radius:12px;">
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Job Title <span class="text-danger">*</span></label>
+            <input type="text" name="job_title" class="form-control" required
+                   value="{{ vacancy.job_title if vacancy else '' }}"
+                   placeholder="e.g. Production Worker, Cashier, Security Guard" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Occupational Category <span class="text-danger">*</span></label>
+            <select name="occupational_category" class="form-select" required>
+              <option value="">-- Select Category --</option>
+              {% for cat in categories %}
+              <option value="{{ cat }}"
+                {% if vacancy and vacancy.occupational_category == cat %}selected{% endif %}>
+                {{ cat }}
+              </option>
+              {% endfor %}
+            </select>
+            <div class="form-text">This determines which jobseekers will be matched to this vacancy.</div>
+          </div>
+          <div class="mb-4">
+            <div class="form-check">
+              <input type="checkbox" name="is_local" value="1" class="form-check-input" id="is_local"
+                     {% if not vacancy or vacancy.get('is_local', 1) %}checked{% endif %} />
+              <label class="form-check-label" for="is_local">Local vacancy (within CSJDM)</label>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary fw-semibold">
+              <i class="bi bi-check2 me-1"></i>{{ 'Save Changes' if action == 'edit' else 'Post Vacancy' }}
+            </button>
+            <a href="{{ url_for('employer_vacancies') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

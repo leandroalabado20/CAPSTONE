@@ -1,0 +1,228 @@
+{% extends 'base_public.html' %}
+{% block title %}Register as Jobseeker{% endblock %}
+
+{% block head %}
+<style>
+.skill-chip {
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 500;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  background: #f8fafc;
+  transition: background .1s, color .1s, border-color .1s;
+  user-select: none;
+  white-space: nowrap;
+  display: inline-block;
+}
+.skill-chip:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+             style="width:56px;height:56px;background:#eff6ff;">
+          <i class="bi bi-person-plus-fill text-primary" style="font-size:1.4rem;"></i>
+        </div>
+        <h3 class="fw-bold mb-0">Create Your Jobseeker Account</h3>
+        <p class="text-muted small mt-1">Join the PESO CSJDM job matching system.</p>
+      </div>
+
+      <div class="card shadow-sm border-0" style="border-radius:12px;">
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('register_jobseeker') }}">
+
+            <p class="fw-semibold text-muted mb-3"
+               style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
+              Account Details
+            </p>
+            <div class="row g-3 mb-4">
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                <input type="text" name="first_name" class="form-control"
+                       value="{{ form.get('first_name','') }}" required />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+                <input type="text" name="last_name" class="form-control"
+                       value="{{ form.get('last_name','') }}" required />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                <input type="text" name="username" class="form-control"
+                       value="{{ form.get('username','') }}" required autocomplete="username" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                <input type="email" name="email" class="form-control"
+                       value="{{ form.get('email','') }}" required />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                <input type="password" name="password" class="form-control"
+                       required minlength="8" autocomplete="new-password" />
+                <div class="form-text">Minimum 8 characters</div>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                <input type="password" name="confirm_password" class="form-control"
+                       required autocomplete="new-password" />
+              </div>
+            </div>
+
+            <hr class="my-3" />
+            <p class="fw-semibold text-muted mb-3"
+               style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
+              Your Profile <span class="fw-normal">(fill now or complete later)</span>
+            </p>
+
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Sex</label>
+                <select name="sex" class="form-select">
+                  <option value="">-- Select --</option>
+                  <option value="Male"   {% if form.get('sex')=='Male' %}selected{% endif %}>Male</option>
+                  <option value="Female" {% if form.get('sex')=='Female' %}selected{% endif %}>Female</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Age</label>
+                <input type="number" name="age" class="form-control" min="15" max="80"
+                       value="{{ form.get('age','') }}" />
+              </div>
+
+              <!-- Barangay with datalist + auto-fill district -->
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Barangay</label>
+                <input type="text" name="barangay" id="barangay-input" class="form-control"
+                       list="barangay-list" autocomplete="off"
+                       value="{{ form.get('barangay','') }}"
+                       placeholder="Type or select barangay"
+                       oninput="autoFillDistrict(this.value)" />
+                <datalist id="barangay-list">
+                  {% for b in barangays %}
+                  <option value="{{ b|title }}">{{ b|title }}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">District</label>
+                <input type="text" name="district" id="district-input" class="form-control"
+                       value="{{ form.get('district','') }}"
+                       placeholder="Auto-filled from barangay" readonly
+                       style="background:#f8fafc;" />
+              </div>
+
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Education Level</label>
+                <select name="educ_level" class="form-select">
+                  <option value="">-- Select --</option>
+                  {% for lvl in educ_levels %}
+                  <option value="{{ lvl }}" {% if form.get('educ_level')==lvl %}selected{% endif %}>{{ lvl }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Preferred Position with datalist -->
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Preferred Position</label>
+                <input type="text" name="preferred_position" id="pref-pos"
+                       list="pos-list" autocomplete="off"
+                       class="form-control"
+                       value="{{ form.get('preferred_position','') }}"
+                       placeholder="Type or select a position" />
+                <datalist id="pos-list">
+                  {% for p in positions %}
+                  <option value="{{ p }}">{{ p }}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+
+              <!-- Skills with chip selector -->
+              <div class="col-12">
+                <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+                  <span>Skills</span>
+                  <span class="text-muted fw-normal" style="font-size:.7rem;">Click chips to add</span>
+                </label>
+                <textarea name="skills" id="skills-input" class="form-control mb-2" rows="2"
+                          placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ form.get('skills','') }}</textarea>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for skill in skills_list %}
+                  <span class="skill-chip" onclick="addChip('skills-input', '{{ skill }}')">{{ skill }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Work Experience with datalist -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Work Experience</label>
+                <input type="text" name="work_experience" id="work-exp"
+                       list="exp-list" autocomplete="off"
+                       class="form-control"
+                       value="{{ form.get('work_experience','') }}"
+                       placeholder="e.g. Cashier — leave blank if none" />
+                <datalist id="exp-list">
+                  {% for exp in work_exp_list %}
+                  <option value="{{ exp }}">{{ exp }}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-semibold mt-4">
+              <i class="bi bi-person-check me-2"></i>Create Account
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        <span class="text-muted small">Already have an account?</span>
+        <a href="{{ url_for('login') }}" class="small fw-semibold ms-1">Sign in</a>
+        <span class="text-muted small ms-2">|</span>
+        <a href="{{ url_for('register_employer') }}" class="small ms-2">Register as Employer</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const BRGY_DISTRICT = {{ barangay_district_map | tojson }};
+
+function autoFillDistrict(val) {
+  const key = val.trim().toUpperCase();
+  const dist = BRGY_DISTRICT[key] || '';
+  document.getElementById('district-input').value = dist;
+}
+
+function addChip(fieldId, value) {
+  const ta = document.getElementById(fieldId);
+  const current = ta.value.trim();
+  if (current) {
+    const existing = current.split(',').map(s => s.trim().toLowerCase());
+    if (!existing.includes(value.toLowerCase())) {
+      ta.value = current + ', ' + value;
+    }
+  } else {
+    ta.value = value;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+  const brgyInput = document.getElementById('barangay-input');
+  if (brgyInput && brgyInput.value) {
+    autoFillDistrict(brgyInput.value);
+  }
+});
+</script>
+{% endblock %}

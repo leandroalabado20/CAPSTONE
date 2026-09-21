@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Referrals{% endblock %}
+{% block page_title %}<i class="bi bi-send me-2"></i>Referrals{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h5 class="fw-bold mb-0">Referral Management</h5>
+    <p class="text-muted small mb-0">All referrals issued by PESO staff.</p>
+  </div>
+  <a href="{{ url_for('recommendation') }}" class="btn btn-primary btn-sm fw-semibold">
+    <i class="bi bi-stars me-1"></i>Issue Referral via Recommendation
+  </a>
+</div>
+
+<!-- Filters -->
+<form method="GET" action="{{ url_for('referrals_list') }}"
+      class="d-flex gap-2 flex-wrap mb-4">
+  <input type="text" name="search" value="{{ search }}"
+         class="form-control form-control-sm" style="max-width:220px;"
+         placeholder="Search applicant or vacancy…" />
+  <select name="status" class="form-select form-select-sm" style="max-width:150px;">
+    {% for s, label in [('all','All Statuses'),('referred','Referred'),('hired','Hired'),('not_hired','Not Hired'),('cancelled','Cancelled')] %}
+    <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+  {% if search or status != 'all' %}
+  <a href="{{ url_for('referrals_list') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+  {% endif %}
+</form>
+
+{% if referrals %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light" style="font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">
+        <tr>
+          <th class="px-3">Applicant</th>
+          <th>Vacancy</th>
+          <th>Employer</th>
+          <th>Category</th>
+          <th>Referred By</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in referrals %}
+        <tr>
+          <td class="px-3 py-2 fw-semibold small">{{ r.first_name }} {{ r.last_name }}</td>
+          <td class="py-2 small">{{ r.job_title }}</td>
+          <td class="py-2 small text-muted">{{ r.employer_name }}</td>
+          <td class="py-2">
+            <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.62rem;">
+              {{ r.occupational_category }}
+            </span>
+          </td>
+          <td class="py-2 small">{{ r.referred_by_name }}</td>
+          <td class="py-2 small text-muted">{{ r.referred_at|friendly_dt }}</td>
+          <td class="py-2">
+            {% if r.status == 'referred' %}
+            <span class="badge bg-primary">Referred</span>
+            {% elif r.status == 'hired' %}
+            <span class="badge bg-success">Hired</span>
+            {% elif r.status == 'not_hired' %}
+            <span class="badge bg-secondary">Not Hired</span>
+            {% elif r.status == 'cancelled' %}
+            <span class="badge bg-danger">Cancelled</span>
+            {% endif %}
+          </td>
+          <td class="py-2">
+            {% if r.status == 'referred' %}
+            <form method="POST" action="{{ url_for('referral_cancel', rid=r.id) }}"
+                  onsubmit="return confirm('Cancel this referral?')">
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.72rem;">
+                Cancel
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer text-muted small">
+    {{ referrals|length }} referral{{ 's' if referrals|length != 1 else '' }}
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-send" style="font-size:2rem;opacity:.2;"></i>
+  <p class="mt-3">No referrals found.</p>
+  <a href="{{ url_for('recommendation') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-stars me-1"></i>Generate Recommendations &amp; Issue Referrals
+  </a>
+</div>
+{% endif %}
+{% endblock %}

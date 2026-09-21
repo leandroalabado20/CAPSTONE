@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Referral Requests{% endblock %}
+{% block page_title %}
+  <i class="bi bi-bell-fill me-2"></i>Referral Requests
+{% endblock %}
+
+{% block content %}
+
+<!-- Status filter tabs -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+  {% set tabs = [
+    ('pending',   'Pending',   'warning',   counts.pending),
+    ('reviewing', 'Reviewing', 'primary',   counts.reviewing),
+    ('referred',  'Referred',  'success',   counts.referred),
+    ('rejected',  'Rejected',  'secondary', counts.rejected),
+    ('all',       'All',       'dark',      counts.pending + counts.reviewing + counts.referred + counts.rejected),
+  ] %}
+  {% for val, label, color, count in tabs %}
+  <a href="{{ url_for('staff_referral_requests') }}?status={{ val }}"
+     class="btn btn-sm {% if status == val %}btn-{{ color }}{% else %}btn-outline-{{ color }}{% endif %}">
+    {{ label }}
+    <span class="badge bg-white text-{{ color }} ms-1">{{ count }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+{% if reqs %}
+<div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+  <table class="table table-hover mb-0">
+    <thead style="background:#f8fafc;font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">
+      <tr>
+        <th class="px-3 py-2">Jobseeker</th>
+        <th class="py-2">Preferred Position</th>
+        <th class="py-2">Education</th>
+        <th class="py-2">Requested</th>
+        <th class="py-2">Status</th>
+        <th class="py-2 text-end pe-3">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reqs %}
+      <tr>
+        <td class="px-3 py-2">
+          <div class="fw-semibold small">{{ r.first_name }} {{ r.last_name }}</div>
+          {% if r.message %}
+          <div class="text-muted" style="font-size:.72rem;"><i class="bi bi-chat-left-text me-1"></i>{{ r.message|truncate(60) }}</div>
+          {% endif %}
+        </td>
+        <td class="py-2 small">{{ r.preferred_position or '—' }}</td>
+        <td class="py-2 small text-muted">{{ r.educ_level or '—' }}</td>
+        <td class="py-2 small text-muted">{{ r.requested_at|friendly_dt }}</td>
+        <td class="py-2">
+          {% if r.status == 'pending' %}
+          <span class="badge bg-warning-subtle text-warning-emphasis">
+            <i class="bi bi-clock me-1"></i>Pending
+          </span>
+          {% elif r.status == 'reviewing' %}
+          <span class="badge bg-primary-subtle text-primary-emphasis">
+            <i class="bi bi-eye me-1"></i>Reviewing
+          </span>
+          {% elif r.status == 'referred' %}
+          <span class="badge bg-success-subtle text-success-emphasis">
+            <i class="bi bi-check-circle me-1"></i>Referred
+          </span>
+          {% elif r.status == 'rejected' %}
+          <span class="badge bg-secondary-subtle text-secondary-emphasis">
+            <i class="bi bi-x-circle me-1"></i>Rejected
+          </span>
+          {% endif %}
+        </td>
+        <td class="py-2 text-end pe-3">
+          {% if r.status in ('pending', 'reviewing') %}
+          <a href="{{ url_for('staff_review_request', rid=r.id) }}"
+             class="btn btn-sm btn-primary">
+            <i class="bi bi-eye me-1"></i>Review
+          </a>
+          {% else %}
+          <a href="{{ url_for('staff_review_request', rid=r.id) }}"
+             class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-eye me-1"></i>View
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+  <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+       style="width:64px;height:64px;background:#f1f5f9;">
+    <i class="bi bi-bell" style="font-size:1.6rem;color:#cbd5e1;"></i>
+  </div>
+  <h6 class="fw-semibold">No requests found</h6>
+  <p class="text-muted small">No referral requests with status "{{ status }}".</p>
+</div>
+{% endif %}
+
+{% endblock %}

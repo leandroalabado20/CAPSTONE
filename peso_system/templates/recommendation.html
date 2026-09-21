@@ -477,10 +477,19 @@
         {% for vac in top.vacancies %}
         <div class="d-flex align-items-center gap-2 py-1 {% if not loop.last %}border-bottom{% endif %}">
           <i class="bi bi-briefcase-fill text-success flex-shrink-0" style="font-size:.75rem;"></i>
-          <span class="small">
+          <span class="small flex-grow-1">
             <strong>{{ vac.title }}</strong>
             <span class="text-muted">— {{ vac.employer }}</span>
           </span>
+          {% if sel_applicant %}
+          <form method="POST" action="{{ url_for('referral_issue') }}" class="d-inline flex-shrink-0">
+            <input type="hidden" name="applicant_id" value="{{ sel_applicant.id }}">
+            <input type="hidden" name="vacancy_id" value="{{ vac.id }}">
+            <button type="submit" class="btn btn-success py-0 px-2" style="font-size:.68rem;font-weight:600;">
+              <i class="bi bi-send me-1"></i>Refer
+            </button>
+          </form>
+          {% endif %}
         </div>
         {% endfor %}
         {% else %}
@@ -527,10 +536,21 @@
         {% if item.vacancies %}
         <div class="ps-4">
           {% for vac in item.vacancies %}
-          <div class="small text-muted py-1 {% if not loop.last %}border-bottom{% endif %}">
-            <i class="bi bi-briefcase me-1"></i>
-            <strong class="text-dark">{{ vac.title }}</strong>
-            <span>— {{ vac.employer }}</span>
+          <div class="small text-muted py-1 d-flex align-items-center gap-2 {% if not loop.last %}border-bottom{% endif %}">
+            <i class="bi bi-briefcase me-1 flex-shrink-0"></i>
+            <span class="flex-grow-1">
+              <strong class="text-dark">{{ vac.title }}</strong>
+              <span>— {{ vac.employer }}</span>
+            </span>
+            {% if sel_applicant %}
+            <form method="POST" action="{{ url_for('referral_issue') }}" class="d-inline flex-shrink-0">
+              <input type="hidden" name="applicant_id" value="{{ sel_applicant.id }}">
+              <input type="hidden" name="vacancy_id" value="{{ vac.id }}">
+              <button type="submit" class="btn btn-outline-primary py-0 px-2" style="font-size:.65rem;font-weight:600;">
+                <i class="bi bi-send me-1"></i>Refer
+              </button>
+            </form>
+            {% endif %}
           </div>
           {% endfor %}
         </div>

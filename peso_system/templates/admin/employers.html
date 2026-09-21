@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Employer Approvals{% endblock %}
+{% block page_title %}<i class="bi bi-building me-2"></i>Employer Approvals{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h5 class="fw-bold mb-0">Employer Registrations</h5>
+    <p class="text-muted small mb-0">Review and approve employer accounts before they can post vacancies.</p>
+  </div>
+  {% if pending_count > 0 %}
+  <span class="badge bg-danger fs-6">{{ pending_count }} pending</span>
+  {% endif %}
+</div>
+
+<!-- Tab filter -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+  {% for s, label in [('pending','Pending'),('approved','Approved'),('all','All')] %}
+  <a href="{{ url_for('admin_employers', status=s) }}"
+     class="btn btn-sm {% if status == s %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ label }}
+    {% if s == 'pending' and pending_count > 0 %}
+    <span class="badge bg-danger ms-1">{{ pending_count }}</span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+{% if employers %}
+<div class="row g-3">
+  {% for e in employers %}
+  <div class="col-md-6">
+    <div class="card border shadow-sm" style="border-radius:10px;">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+          <div class="overflow-hidden">
+            <div class="fw-bold text-truncate">{{ e.company_name }}</div>
+            <div class="text-muted small">Contact: {{ e.contact_person }}</div>
+          </div>
+          <span class="badge flex-shrink-0 {% if e.is_approved %}bg-success{% else %}bg-warning text-dark{% endif %}">
+            {{ 'Approved' if e.is_approved else 'Pending' }}
+          </span>
+        </div>
+        <div class="row g-1 small text-muted mb-3">
+          <div class="col-12">
+            <i class="bi bi-person me-1"></i>@{{ e.username }} &middot; {{ e.email }}
+          </div>
+          {% if e.phone %}
+          <div class="col-12"><i class="bi bi-telephone me-1"></i>{{ e.phone }}</div>
+          {% endif %}
+          {% if e.address %}
+          <div class="col-12"><i class="bi bi-geo-alt me-1"></i>{{ e.address }}</div>
+          {% endif %}
+          <div class="col-12"><i class="bi bi-calendar3 me-1"></i>Registered {{ e.created_at|friendly_dt }}</div>
+        </div>
+        <div class="d-flex gap-2">
+          {% if not e.is_approved %}
+          <form method="POST" action="{{ url_for('admin_employer_approve', eid=e.id) }}">
+            <button type="submit" class="btn btn-sm btn-success fw-semibold">
+              <i class="bi bi-check2 me-1"></i>Approve
+            </button>
+          </form>
+          <form method="POST" action="{{ url_for('admin_employer_reject', eid=e.id) }}"
+                onsubmit="return confirm('Reject this employer registration?')">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-x me-1"></i>Reject
+            </button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('admin_employer_reject', eid=e.id) }}"
+                onsubmit="return confirm('Deactivate this employer?')">
+            <button type="submit" class="btn btn-sm btn-outline-warning">
+              <i class="bi bi-pause-circle me-1"></i>Deactivate
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-building" style="font-size:2rem;opacity:.2;"></i>
+  <p class="mt-3">No {{ status }} employer registrations.</p>
+</div>
+{% endif %}
+{% endblock %}

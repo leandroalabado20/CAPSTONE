@@ -80,12 +80,38 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link {% if request.endpoint in ['referrals_list','referral_issue','referral_cancel'] %}active{% endif %}"
+         href="{{ url_for('referrals_list') }}">
+        <span class="nav-icon"><i class="bi bi-send-fill"></i></span>
+        Referrals
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if 'referral_request' in request.endpoint or 'review_request' in request.endpoint %}active{% endif %}"
+         href="{{ url_for('staff_referral_requests') }}">
+        <span class="nav-icon"><i class="bi bi-bell-fill"></i></span>
+        Referral Requests
+        {% if pending_requests_count > 0 %}
+        <span class="badge bg-danger ms-auto" style="font-size:.65rem;">{{ pending_requests_count }}</span>
+        {% endif %}
+      </a>
+    </li>
+    {% if session_role == 'admin' %}
+    <li class="nav-item">
       <a class="nav-link {% if request.endpoint in ['users_list','user_add','user_edit'] %}active{% endif %}"
          href="{{ url_for('users_list') }}">
         <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
         Staff Accounts
       </a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link {% if 'admin_employer' in request.endpoint %}active{% endif %}"
+         href="{{ url_for('admin_employers') }}">
+        <span class="nav-icon"><i class="bi bi-building"></i></span>
+        Employer Approvals
+      </a>
+    </li>
+    {% endif %}
 
     <li class="nav-divider"></li>
     <li class="nav-title">Account</li>

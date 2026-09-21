@@ -1945,10 +1945,11 @@ def user_edit(uid):
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
     if request.method == 'POST':
-        f    = request.form
-        name = f.get('full_name','').strip()
-        mail = f.get('email','').strip()
-        pw   = f.get('new_password','')
+        f        = request.form
+        name     = f.get('full_name','').strip()
+        mail     = f.get('email','').strip()
+        username = f.get('username','').strip()
+        pw       = f.get('new_password','')
         new_role = f.get('role', u['role'])
         # Prevent removing the last admin
         if u['role'] == ROLE_ADMIN and new_role != ROLE_ADMIN:
@@ -1963,16 +1964,16 @@ def user_edit(uid):
                 if len(pw) < 8:
                     flash('Password must be at least 8 characters.', 'danger')
                     return render_template('users/form.html', user=dict(u), action='edit')
-                db.execute('UPDATE users SET full_name=?,email=?,password_hash=?,role=? WHERE id=?',
-                           (name, mail, generate_password_hash(pw), new_role, uid))
+                db.execute('UPDATE users SET full_name=?,username=?,email=?,password_hash=?,role=? WHERE id=?',
+                           (name, username, mail, generate_password_hash(pw), new_role, uid))
             else:
-                db.execute('UPDATE users SET full_name=?,email=?,role=? WHERE id=?',
-                           (name, mail, new_role, uid))
+                db.execute('UPDATE users SET full_name=?,username=?,email=?,role=? WHERE id=?',
+                           (name, username, mail, new_role, uid))
             db.commit()
             flash('User updated.', 'success')
             return redirect(url_for('users_list'))
         except sqlite3.IntegrityError:
-            flash('Email already exists.', 'danger')
+            flash('Username or email already exists.', 'danger')
     return render_template('users/form.html', user=dict(u), action='edit')
 
 @app.route('/users/<int:uid>/delete', methods=['POST'])

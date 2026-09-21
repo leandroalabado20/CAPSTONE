@@ -109,6 +109,9 @@
          href="{{ url_for('admin_employers') }}">
         <span class="nav-icon"><i class="bi bi-building"></i></span>
         Employer Approvals
+        {% if pending_employers_count > 0 %}
+        <span class="badge bg-danger ms-auto" style="font-size:.65rem;">{{ pending_employers_count }}</span>
+        {% endif %}
       </a>
     </li>
     {% endif %}

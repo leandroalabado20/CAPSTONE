@@ -546,18 +546,24 @@ def current_user():
 # ── CONTEXT PROCESSOR ─────────────────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
-    pending_count = 0
+    pending_requests_count = 0
+    pending_employers_count = 0
     if session.get('role') in (ROLE_ADMIN, ROLE_STAFF):
         try:
-            pending_count = get_db().execute(
+            db = get_db()
+            pending_requests_count = db.execute(
                 "SELECT COUNT(*) FROM referral_requests WHERE status='pending'"
             ).fetchone()[0]
+            pending_employers_count = db.execute(
+                "SELECT COUNT(*) FROM employers WHERE is_approved=0"
+            ).fetchone()[0]
         except Exception:
-            pending_count = 0
+            pass
     return {
-        'pipeline_loaded':        pipeline is not None,
-        'session_role':           session.get('role', ''),
-        'pending_requests_count': pending_count,
+        'pipeline_loaded':         pipeline is not None,
+        'session_role':            session.get('role', ''),
+        'pending_requests_count':  pending_requests_count,
+        'pending_employers_count': pending_employers_count,
     }
 
 # ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────

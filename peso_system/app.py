@@ -1872,20 +1872,33 @@ def vacancy_delete(vid):
 def users_list():
     db     = get_db()
     status = request.args.get('status', 'all')
+    role   = request.args.get('role', 'staff')
     view   = request.args.get('view', 'card')
+
+    role_cond = {
+        'staff':     "role IN ('admin','staff')",
+        'employer':  "role = 'employer'",
+        'jobseeker': "role = 'jobseeker'",
+        'all':       "1=1",
+    }.get(role, "role IN ('admin','staff')")
+
+    status_cond = ''
     if status == 'active':
-        users = db.execute(
-            "SELECT * FROM users WHERE is_active=1 AND role IN ('admin','staff') ORDER BY full_name"
-        ).fetchall()
+        status_cond = ' AND is_active=1'
     elif status == 'inactive':
-        users = db.execute(
-            "SELECT * FROM users WHERE is_active=0 AND role IN ('admin','staff') ORDER BY full_name"
-        ).fetchall()
-    else:
-        users = db.execute(
-            "SELECT * FROM users WHERE role IN ('admin','staff') ORDER BY full_name"
-        ).fetchall()
-    return render_template('users/list.html', users=users, status=status, view=view)
+        status_cond = ' AND is_active=0'
+
+    users = get_db().execute(
+        f'SELECT * FROM users WHERE {role_cond}{status_cond} ORDER BY role, full_name'
+    ).fetchall()
+
+    counts = {
+        'staff':     db.execute("SELECT COUNT(*) FROM users WHERE role IN ('admin','staff')").fetchone()[0],
+        'employer':  db.execute("SELECT COUNT(*) FROM users WHERE role='employer'").fetchone()[0],
+        'jobseeker': db.execute("SELECT COUNT(*) FROM users WHERE role='jobseeker'").fetchone()[0],
+    }
+    return render_template('users/list.html', users=users, status=status,
+                           role=role, view=view, counts=counts)
 
 @app.route('/users/add', methods=['GET', 'POST'])
 @admin_required

@@ -40,6 +40,24 @@
                value="{{ user.email if user else '' }}" required autocomplete="off" />
       </div>
 
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+        <select name="role" class="form-select">
+          <option value="staff"
+            {% if (user and user.role == 'staff') or not user %}selected{% endif %}>
+            Staff
+          </option>
+          <option value="admin"
+            {% if user and user.role == 'admin' %}selected{% endif %}>
+            Admin
+          </option>
+        </select>
+        <div class="form-text">
+          <strong>Admin</strong> — full access including user management and employer approvals.<br>
+          <strong>Staff</strong> — operational access (applicants, vacancies, referrals, recommendations).
+        </div>
+      </div>
+
       {% if action == 'add' %}
       <div class="mb-3">
         <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>

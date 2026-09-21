@@ -417,9 +417,12 @@ def init_db():
              generate_password_hash('admin123'), ROLE_ADMIN)
         )
     else:
-        # Ensure first user has admin role if role column was just added
-        db.execute("UPDATE users SET role=? WHERE username='admin'",
-                   (ROLE_ADMIN,))
+        # If no admin exists at all, promote the first user to admin
+        has_admin = db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]
+        if not has_admin:
+            first = db.execute("SELECT id FROM users ORDER BY id LIMIT 1").fetchone()
+            if first:
+                db.execute("UPDATE users SET role='admin' WHERE id=?", (first['id'],))
 
     db.commit()
     db.close()
@@ -1946,16 +1949,25 @@ def user_edit(uid):
         name = f.get('full_name','').strip()
         mail = f.get('email','').strip()
         pw   = f.get('new_password','')
+        new_role = f.get('role', u['role'])
+        # Prevent removing the last admin
+        if u['role'] == ROLE_ADMIN and new_role != ROLE_ADMIN:
+            admin_count = get_db().execute(
+                "SELECT COUNT(*) FROM users WHERE role='admin'"
+            ).fetchone()[0]
+            if admin_count <= 1:
+                flash('Cannot remove admin role — at least one admin must exist.', 'danger')
+                return render_template('users/form.html', user=dict(u), action='edit')
         try:
             if pw:
                 if len(pw) < 8:
                     flash('Password must be at least 8 characters.', 'danger')
                     return render_template('users/form.html', user=dict(u), action='edit')
-                db.execute('UPDATE users SET full_name=?,email=?,password_hash=? WHERE id=?',
-                           (name, mail, generate_password_hash(pw), uid))
+                db.execute('UPDATE users SET full_name=?,email=?,password_hash=?,role=? WHERE id=?',
+                           (name, mail, generate_password_hash(pw), new_role, uid))
             else:
-                db.execute('UPDATE users SET full_name=?,email=? WHERE id=?',
-                           (name, mail, uid))
+                db.execute('UPDATE users SET full_name=?,email=?,role=? WHERE id=?',
+                           (name, mail, new_role, uid))
             db.commit()
             flash('User updated.', 'success')
             return redirect(url_for('users_list'))

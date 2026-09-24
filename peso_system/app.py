@@ -1950,6 +1950,26 @@ def user_edit(uid):
     if not u:
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
+
+    ep = None  # employer profile
+    ap = None  # applicant/jobseeker profile
+    if u['role'] == ROLE_EMPLOYER:
+        row = db.execute('SELECT * FROM employers WHERE user_id=?', (uid,)).fetchone()
+        ep = dict(row) if row else {}
+    elif u['role'] == ROLE_JOBSEEKER:
+        row = db.execute('SELECT * FROM applicants WHERE user_id=?', (uid,)).fetchone()
+        ap = dict(row) if row else {}
+
+    def _render(user_override=None):
+        return render_template('users/form.html',
+            user=user_override or dict(u), action='edit',
+            employer_profile=ep, applicant_profile=ap,
+            educ_levels=EDUC_LEVELS,
+            barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
+            barangay_district_map=BARANGAY_DISTRICT,
+            positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
+            work_exp_list=WORK_EXPERIENCE_LIST)
+
     if request.method == 'POST':
         f        = request.form
         name     = f.get('full_name','').strip()
@@ -1957,30 +1977,90 @@ def user_edit(uid):
         username = f.get('username','').strip()
         pw       = f.get('new_password','')
         new_role = f.get('role', u['role'])
-        # Prevent removing the last admin
         if u['role'] == ROLE_ADMIN and new_role != ROLE_ADMIN:
-            admin_count = get_db().execute(
+            admin_count = db.execute(
                 "SELECT COUNT(*) FROM users WHERE role='admin'"
             ).fetchone()[0]
             if admin_count <= 1:
                 flash('Cannot remove admin role — at least one admin must exist.', 'danger')
-                return render_template('users/form.html', user=dict(u), action='edit')
+                return _render()
+        if pw and len(pw) < 8:
+            flash('Password must be at least 8 characters.', 'danger')
+            return _render()
         try:
             if pw:
-                if len(pw) < 8:
-                    flash('Password must be at least 8 characters.', 'danger')
-                    return render_template('users/form.html', user=dict(u), action='edit')
                 db.execute('UPDATE users SET full_name=?,username=?,email=?,password_hash=?,role=? WHERE id=?',
                            (name, username, mail, generate_password_hash(pw), new_role, uid))
             else:
                 db.execute('UPDATE users SET full_name=?,username=?,email=?,role=? WHERE id=?',
                            (name, username, mail, new_role, uid))
+
+            if u['role'] == ROLE_EMPLOYER:
+                company  = f.get('company_name', '').strip()
+                contact  = f.get('contact_person', '').strip()
+                phone    = f.get('phone', '').strip()
+                address  = f.get('address', '').strip()
+                if db.execute('SELECT id FROM employers WHERE user_id=?', (uid,)).fetchone():
+                    db.execute(
+                        'UPDATE employers SET company_name=?,contact_person=?,phone=?,address=? WHERE user_id=?',
+                        (company, contact, phone, address, uid))
+                else:
+                    db.execute(
+                        'INSERT INTO employers (user_id,company_name,contact_person,phone,address) VALUES (?,?,?,?,?)',
+                        (uid, company, contact, phone, address))
+
+            elif u['role'] == ROLE_JOBSEEKER:
+                ap_row = db.execute('SELECT id FROM applicants WHERE user_id=?', (uid,)).fetchone()
+                if ap_row:
+                    db.execute('''
+                        UPDATE applicants SET sex=?,age=?,barangay=?,district=?,
+                            employment_status=?,is_pwd=?,educ_level=?,
+                            preferred_position=?,skills=?,work_experience=?
+                        WHERE user_id=?
+                    ''', (
+                        f.get('sex', ''),
+                        f.get('age', '') or None,
+                        f.get('barangay', '').strip(),
+                        f.get('district', '').strip(),
+                        f.get('employment_status', 'Unemployed'),
+                        1 if f.get('is_pwd') else 0,
+                        f.get('educ_level', ''),
+                        f.get('preferred_position', '').strip(),
+                        f.get('skills', '').strip(),
+                        f.get('work_experience', '').strip(),
+                        uid,
+                    ))
+
             db.commit()
             flash('User updated.', 'success')
-            return redirect(url_for('users_list'))
+            return redirect(url_for('users_list', role=u['role']))
         except sqlite3.IntegrityError:
             flash('Username or email already exists.', 'danger')
-    return render_template('users/form.html', user=dict(u), action='edit')
+    return _render()
+
+TEMP_PASSWORDS = {
+    ROLE_STAFF:     'Staff@1234',
+    ROLE_EMPLOYER:  'Employer@1234',
+    ROLE_JOBSEEKER: 'Seeker@1234',
+}
+
+@app.route('/users/<int:uid>/reset-password', methods=['POST'])
+@admin_required
+def user_reset_password(uid):
+    db = get_db()
+    u  = db.execute('SELECT full_name, role FROM users WHERE id=?', (uid,)).fetchone()
+    if not u:
+        flash('User not found.', 'danger')
+        return redirect(url_for('users_list'))
+    temp_pw = TEMP_PASSWORDS.get(u['role'])
+    if not temp_pw:
+        flash('Password reset is not available for this role.', 'danger')
+        return redirect(url_for('user_edit', uid=uid))
+    db.execute('UPDATE users SET password_hash=? WHERE id=?',
+               (generate_password_hash(temp_pw), uid))
+    db.commit()
+    flash(f'Password for {u["full_name"]} has been reset to: {temp_pw}', 'success')
+    return redirect(url_for('user_edit', uid=uid))
 
 @app.route('/users/<int:uid>/delete', methods=['POST'])
 @admin_required

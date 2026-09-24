@@ -119,12 +119,10 @@
           <td class="small text-muted">{{ u.created_at[:10] if u.created_at else '—' }}</td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
-              {% if u.role in ('admin', 'staff') %}
               <a href="{{ url_for('user_edit', uid=u.id) }}"
                  class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
               </a>
-              {% endif %}
               {% if u.id != session.user_id %}
               <form method="POST" action="{{ url_for('user_toggle', uid=u.id) }}" style="display:inline;">
                 <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
@@ -192,12 +190,10 @@
         </div>
       </div>
       <div class="card-footer bg-transparent d-flex gap-1 pt-2">
-        {% if u.role in ('admin', 'staff') %}
         <a href="{{ url_for('user_edit', uid=u.id) }}"
            class="btn btn-sm btn-outline-primary flex-fill" title="Edit">
           <i class="bi bi-pencil me-1"></i>Edit
         </a>
-        {% endif %}
         {% if u.id != session.user_id %}
         <form method="POST" action="{{ url_for('user_toggle', uid=u.id) }}" style="display:inline;">
           <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"

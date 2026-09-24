@@ -1,117 +1,348 @@
 {% extends 'base.html' %}
-{% block title %}{% if action == 'add' %}Add Staff Account{% else %}Edit Staff Account{% endif %}{% endblock %}
+{% block title %}{% if action == 'add' %}Add Staff Account{% else %}Edit Account{% endif %}{% endblock %}
 {% block page_title %}
   <i class="bi bi-person-{% if action == 'add' %}plus{% else %}pencil{% endif %}-fill me-2"></i>
-  {% if action == 'add' %}Add Staff Account{% else %}Edit Staff Account{% endif %}
+  {% if action == 'add' %}Add Staff Account{% else %}Edit Account{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="card shadow-sm" style="max-width:520px;">
-  <div class="card-header fw-semibold">
-    {% if action == 'add' %}New Staff Account{% else %}Edit Account{% endif %}
-  </div>
-  <div class="card-body">
-    <form method="POST"
-          action="{% if action == 'add' %}{{ url_for('user_add') }}{% else %}{{ url_for('user_edit', uid=user.id) }}{% endif %}">
+<div style="max-width:600px;">
+  <form method="POST"
+        action="{% if action == 'add' %}{{ url_for('user_add') }}{% else %}{{ url_for('user_edit', uid=user.id) }}{% endif %}">
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
-        <input type="text" name="full_name" class="form-control"
-               value="{{ user.full_name if user else '' }}" required />
+    <!-- ── Account Details ────────────────────────────────────────────────── -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold">
+        {% if action == 'add' %}New Staff Account
+        {% else %}Account Details — <span class="text-muted fw-normal">{{ user.full_name }}</span>
+        {% endif %}
       </div>
+      <div class="card-body">
 
-      {% if action == 'add' %}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-        <input type="text" name="username" class="form-control" required
-               autocomplete="off" placeholder="Must be unique" />
-      </div>
-      {% else %}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-        <input type="text" name="username" class="form-control"
-               value="{{ user.username }}" required autocomplete="off" />
-      </div>
-      {% endif %}
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
-        <input type="email" name="email" class="form-control"
-               value="{{ user.email if user else '' }}" required autocomplete="off" />
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
-        <select name="role" class="form-select">
-          <option value="staff"
-            {% if (user and user.role == 'staff') or not user %}selected{% endif %}>
-            Staff
-          </option>
-          <option value="admin"
-            {% if user and user.role == 'admin' %}selected{% endif %}>
-            Admin
-          </option>
-        </select>
-        <div class="form-text">
-          <strong>Admin</strong> — full access including user management and employer approvals.<br>
-          <strong>Staff</strong> — operational access (applicants, vacancies, referrals, recommendations).
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+          <input type="text" name="full_name" class="form-control"
+                 value="{{ user.full_name if user else '' }}" required />
         </div>
-      </div>
 
-      {% if action == 'add' %}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <input type="password" name="password" class="form-control" required
-                 minlength="8" autocomplete="new-password" />
-          <button class="btn btn-outline-secondary" type="button"
-                  onclick="togglePw(this)" aria-label="Show or hide password">
-            <i class="bi bi-eye"></i>
-          </button>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+          <input type="text" name="username" class="form-control"
+                 value="{{ user.username if user else '' }}" required
+                 autocomplete="off" placeholder="Must be unique" />
         </div>
-        <div class="form-text">Minimum 8 characters.</div>
-      </div>
-      <div class="mb-4">
-        <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <input type="password" name="confirm_password" class="form-control"
-                 required autocomplete="new-password" />
-          <button class="btn btn-outline-secondary" type="button"
-                  onclick="togglePw(this)" aria-label="Show or hide password">
-            <i class="bi bi-eye"></i>
-          </button>
-        </div>
-      </div>
-      {% else %}
-      <hr class="my-3" />
-      <p class="fw-semibold small text-muted mb-2">
-        <i class="bi bi-key-fill me-1"></i>Change Password
-      </p>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">New Password</label>
-        <div class="input-group">
-          <input type="password" name="new_password" class="form-control"
-                 autocomplete="new-password" minlength="8"
-                 placeholder="Leave blank to keep current password" />
-          <button class="btn btn-outline-secondary" type="button"
-                  onclick="togglePw(this)" aria-label="Show or hide password">
-            <i class="bi bi-eye"></i>
-          </button>
-        </div>
-        <div class="form-text">Minimum 8 characters if changing.</div>
-      </div>
-      {% endif %}
 
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary fw-semibold">
-          <i class="bi bi-save me-1"></i>
-          {% if action == 'add' %}Create Account{% else %}Save Changes{% endif %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+          <input type="email" name="email" class="form-control"
+                 value="{{ user.email if user else '' }}" required autocomplete="off" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+          {% if action == 'add' or user.role in ('staff', 'admin') %}
+          <select name="role" class="form-select">
+            {% if action == 'add' %}
+            <option value="staff" selected>Staff</option>
+            <option value="admin">Admin</option>
+            {% else %}
+            <option value="staff" {% if user.role == 'staff' %}selected{% endif %}>Staff</option>
+            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+            {% endif %}
+          </select>
+          <div class="form-text">
+            <strong>Admin</strong> — full access including user management and employer approvals.<br>
+            <strong>Staff</strong> — operational access (applicants, vacancies, referrals, recommendations).
+          </div>
+          {% else %}
+          <input type="hidden" name="role" value="{{ user.role }}" />
+          <input type="text" class="form-control"
+                 value="{{ user.role | capitalize }}" disabled />
+          <div class="form-text">Role cannot be changed for {{ user.role }} accounts.</div>
+          {% endif %}
+        </div>
+
+        {% if action == 'add' %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <input type="password" name="password" class="form-control" required
+                   minlength="8" autocomplete="new-password" />
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="togglePw(this)" aria-label="Show or hide password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <div class="form-text">Minimum 8 characters.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <input type="password" name="confirm_password" class="form-control"
+                   required autocomplete="new-password" />
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="togglePw(this)" aria-label="Show or hide password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+        {% else %}
+        <hr class="my-3" />
+        <p class="fw-semibold small text-muted mb-2">
+          <i class="bi bi-key-fill me-1"></i>Change Password
+        </p>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">New Password</label>
+          <div class="input-group">
+            <input type="password" name="new_password" class="form-control"
+                   autocomplete="new-password" minlength="8"
+                   placeholder="Leave blank to keep current password" />
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="togglePw(this)" aria-label="Show or hide password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <div class="form-text">Minimum 8 characters if changing.</div>
+        </div>
+        {% if user.role in ('staff', 'employer', 'jobseeker') %}
+        <button type="button" class="btn btn-outline-warning btn-sm"
+                data-coreui-toggle="modal" data-coreui-target="#resetPwModal">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to Temporary Password
         </button>
-        <a href="{{ url_for('users_list') }}" class="btn btn-outline-secondary">Cancel</a>
+        {% endif %}
+        {% endif %}
+
       </div>
-    </form>
+    </div>
+
+    <!-- ── Employer Profile ───────────────────────────────────────────────── -->
+    {% if action == 'edit' and user.role == 'employer' %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-building me-2"></i>Employer Profile
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Company Name <span class="text-danger">*</span></label>
+          <input type="text" name="company_name" class="form-control"
+                 value="{{ employer_profile.company_name if employer_profile else '' }}" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Contact Person <span class="text-danger">*</span></label>
+          <input type="text" name="contact_person" class="form-control"
+                 value="{{ employer_profile.contact_person if employer_profile else '' }}" required />
+        </div>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold">Phone</label>
+            <input type="text" name="phone" class="form-control"
+                   value="{{ employer_profile.phone if employer_profile else '' }}" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold">Address</label>
+            <input type="text" name="address" class="form-control"
+                   value="{{ employer_profile.address if employer_profile else '' }}" />
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Jobseeker Profile ──────────────────────────────────────────────── -->
+    {% if action == 'edit' and user.role == 'jobseeker' %}
+    {% set js = applicant_profile or {} %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-person-badge me-2"></i>Jobseeker Profile
+        {% if not js %}
+        <span class="badge bg-warning text-dark ms-2">No profile yet</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4">
+            <label class="form-label fw-semibold small">Sex</label>
+            <select name="sex" class="form-select">
+              <option value="">-- Select --</option>
+              <option value="Male"   {% if js.get('sex') == 'Male'   %}selected{% endif %}>Male</option>
+              <option value="Female" {% if js.get('sex') == 'Female' %}selected{% endif %}>Female</option>
+            </select>
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label fw-semibold small">Age</label>
+            <input type="number" name="age" class="form-control" min="15" max="80"
+                   value="{{ js.get('age') or '' }}" />
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label fw-semibold small">PWD</label>
+            <div class="form-check mt-2">
+              <input type="checkbox" name="is_pwd" class="form-check-input" id="is_pwd"
+                     {% if js.get('is_pwd') %}checked{% endif %} />
+              <label class="form-check-label small" for="is_pwd">Person with Disability</label>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small">Barangay</label>
+            <input type="text" name="barangay" id="barangay-input" class="form-control"
+                   list="barangay-list" autocomplete="off"
+                   value="{{ js.get('barangay') or '' }}"
+                   placeholder="Type or select barangay"
+                   oninput="autoFillDistrict(this.value)" />
+            <datalist id="barangay-list">
+              {% for b in barangays %}
+              <option value="{{ b|title }}">{{ b|title }}</option>
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small">District</label>
+            <input type="text" name="district" id="district-input" class="form-control"
+                   value="{{ js.get('district') or '' }}"
+                   placeholder="Auto-filled from barangay" readonly
+                   style="background:#f8fafc;" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small">Employment Status</label>
+            <select name="employment_status" class="form-select">
+              <option value="Unemployed" {% if js.get('employment_status','Unemployed') == 'Unemployed' %}selected{% endif %}>Unemployed</option>
+              <option value="Employed"   {% if js.get('employment_status') == 'Employed'   %}selected{% endif %}>Employed</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="my-3" />
+        <p class="fw-semibold small text-muted mb-2">Job Profile <span class="text-primary">(used for ML recommendations)</span></p>
+
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small">Education Level <span class="text-danger">*</span></label>
+            <select name="educ_level" class="form-select">
+              <option value="">-- Select --</option>
+              {% for lvl in educ_levels %}
+              <option value="{{ lvl }}" {% if js.get('educ_level') == lvl %}selected{% endif %}>{{ lvl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small">Preferred Position <span class="text-danger">*</span></label>
+            <input type="text" name="preferred_position" id="pref-pos"
+                   list="pos-list" autocomplete="off" class="form-control"
+                   value="{{ js.get('preferred_position') or '' }}"
+                   placeholder="Type or select a position" />
+            <datalist id="pos-list">
+              {% for p in positions %}
+              <option value="{{ p }}">{{ p }}</option>
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold small d-flex align-items-center justify-content-between">
+              <span>Skills <span class="text-danger">*</span></span>
+              <span class="text-muted fw-normal" style="font-size:.7rem;">Click chips to add</span>
+            </label>
+            <textarea name="skills" id="skills-input" rows="2" class="form-control mb-2"
+                      placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ js.get('skills') or '' }}</textarea>
+            <div class="d-flex flex-wrap gap-1">
+              {% for skill in skills_list %}
+              <span class="skill-chip" onclick="addChip('skills-input', '{{ skill }}')">{{ skill }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Work Experience</label>
+            <input type="text" name="work_experience" id="work-exp"
+                   list="exp-list" autocomplete="off" class="form-control"
+                   value="{{ js.get('work_experience') or '' }}"
+                   placeholder="e.g. Cashier — leave blank if none" />
+            <datalist id="exp-list">
+              {% for exp in work_exp_list %}
+              <option value="{{ exp }}">{{ exp }}</option>
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ────────────────────────────────────────────────────────── -->
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary fw-semibold">
+        <i class="bi bi-save me-1"></i>
+        {% if action == 'add' %}Create Account{% else %}Save Changes{% endif %}
+      </button>
+      <a href="{{ url_for('users_list', role=user.role if user else 'staff') }}"
+         class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<!-- ── Reset Password Confirmation Modal ──────────────────────────────────── -->
+{% if action == 'edit' and user.role in ('staff', 'employer', 'jobseeker') %}
+<div class="modal fade" id="resetPwModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title">
+          <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Password
+        </h5>
+        <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to reset the password for:</p>
+        <p class="fw-bold fs-6 mb-1">{{ user.full_name }}</p>
+        <p class="text-muted small mb-3"><code>@{{ user.username }}</code></p>
+        <div class="alert alert-warning py-2 small mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Their current password will be <strong>permanently replaced</strong> with the temporary password below.
+          Make sure to inform them after resetting.
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-muted small">Temporary password:</span>
+          <code class="fs-6 fw-bold text-danger">
+            {% if user.role == 'staff' %}Staff@1234
+            {% elif user.role == 'employer' %}Employer@1234
+            {% elif user.role == 'jobseeker' %}Seeker@1234
+            {% endif %}
+          </code>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
+        <form method="POST" action="{{ url_for('user_reset_password', uid=user.id) }}">
+          <button type="submit" class="btn btn-warning fw-semibold">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Yes, Reset Password
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block head %}
+{% if action == 'edit' and user and user.role == 'jobseeker' %}
+<style>
+.skill-chip {
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .72rem;
+  font-weight: 500;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  background: #f8fafc;
+  transition: background .1s, color .1s, border-color .1s;
+  user-select: none;
+  white-space: nowrap;
+  display: inline-block;
+}
+.skill-chip:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+</style>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -124,5 +355,30 @@
     icon.classList.toggle('bi-eye', !show);
     icon.classList.toggle('bi-eye-slash', show);
   }
+
+  {% if action == 'edit' and user and user.role == 'jobseeker' %}
+  const BRGY_DISTRICT = {{ barangay_district_map | tojson }};
+
+  function autoFillDistrict(val) {
+    const key = val.trim().toUpperCase();
+    document.getElementById('district-input').value = BRGY_DISTRICT[key] || '';
+  }
+
+  function addChip(fieldId, value) {
+    const ta = document.getElementById(fieldId);
+    const current = ta.value.trim();
+    if (current) {
+      const existing = current.split(',').map(s => s.trim().toLowerCase());
+      if (!existing.includes(value.toLowerCase())) ta.value = current + ', ' + value;
+    } else {
+      ta.value = value;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    const b = document.getElementById('barangay-input');
+    if (b && b.value) autoFillDistrict(b.value);
+  });
+  {% endif %}
 </script>
 {% endblock %}

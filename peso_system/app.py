@@ -693,29 +693,53 @@ def register_jobseeker():
             )
             db.commit()
             uid = db.execute('SELECT last_insert_rowid()').fetchone()[0]
-            age = f.get('age', '').strip()
-            educ       = f.get('educ_level', '')
-            preferred  = f.get('preferred_position', '').strip()
-            skills     = f.get('skills', '').strip()
-            work_exp   = f.get('work_experience', '').strip()
-            barangay   = f.get('barangay', '').strip()
-            db.execute('''
-                INSERT INTO applicants
-                    (first_name, last_name, sex, age, barangay, district,
-                     employment_status, is_pwd, educ_level, preferred_position,
-                     skills, work_experience, user_id)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ''', (
-                first, last,
-                f.get('sex', ''),
-                int(age) if age.isdigit() else None,
-                barangay,
-                barangay_to_district(barangay),
-                'Unemployed',
-                0,
-                educ, preferred, skills, work_exp,
-                uid,
-            ))
+            age      = f.get('age', '').strip()
+            educ     = f.get('educ_level', '')
+            preferred= f.get('preferred_position', '').strip()
+            skills   = f.get('skills', '').strip()
+            work_exp = f.get('work_experience', '').strip()
+            barangay = f.get('barangay', '').strip()
+            sex      = f.get('sex', '')
+
+            # Match to an existing unlinked PEIS record (batch-uploaded walk-in)
+            existing = db.execute(
+                '''SELECT id FROM applicants
+                   WHERE LOWER(first_name)=LOWER(?)
+                     AND LOWER(last_name)=LOWER(?)
+                     AND LOWER(barangay)=LOWER(?)
+                     AND user_id IS NULL''',
+                (first, last, barangay)
+            ).fetchone()
+
+            if existing:
+                # Link the account and update profile fields from the registration form
+                db.execute('''
+                    UPDATE applicants
+                    SET user_id=?, sex=?, age=?, educ_level=?,
+                        preferred_position=?, skills=?, work_experience=?
+                    WHERE id=?
+                ''', (
+                    uid, sex,
+                    int(age) if age.isdigit() else None,
+                    educ, preferred, skills, work_exp,
+                    existing['id'],
+                ))
+            else:
+                db.execute('''
+                    INSERT INTO applicants
+                        (first_name, last_name, sex, age, barangay, district,
+                         employment_status, is_pwd, educ_level, preferred_position,
+                         skills, work_experience, user_id)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (
+                    first, last, sex,
+                    int(age) if age.isdigit() else None,
+                    barangay,
+                    barangay_to_district(barangay),
+                    'Unemployed', 0,
+                    educ, preferred, skills, work_exp,
+                    uid,
+                ))
             db.commit()
             flash('Account created! Please log in.', 'success')
             return redirect(url_for('login'))

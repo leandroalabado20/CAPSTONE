@@ -1539,12 +1539,22 @@ def applicants_upload():
                 df = pd.read_excel(fpath, header=0)
             df.columns = [str(c).strip().upper() for c in df.columns]
             db = get_db()
-            ok, skip, incomplete = 0, 0, 0
+            ok, skip, duplicate, incomplete = 0, 0, 0, 0
             for idx, row in df.iterrows():
                 try:
                     rec = normalize_peis_row(row)
                     if rec is None:
                         skip += 1
+                        continue
+                    existing = db.execute(
+                        '''SELECT id FROM applicants
+                           WHERE LOWER(first_name)=LOWER(?)
+                             AND LOWER(last_name)=LOWER(?)
+                             AND LOWER(barangay)=LOWER(?)''',
+                        (rec['first_name'], rec['last_name'], rec['barangay'])
+                    ).fetchone()
+                    if existing:
+                        duplicate += 1
                         continue
                     if not rec['skills'] or not rec['educ_level'] or not rec['preferred_position']:
                         incomplete += 1
@@ -1564,8 +1574,12 @@ def applicants_upload():
                 except Exception:
                     skip += 1
             db.commit()
-            flash(f'Upload complete: {ok} applicant(s) imported'
-                  + (f', {skip} blank row(s) skipped' if skip else '') + '.',
+            parts = [f'{ok} applicant(s) imported']
+            if duplicate:
+                parts.append(f'{duplicate} duplicate(s) skipped')
+            if skip:
+                parts.append(f'{skip} blank/invalid row(s) skipped')
+            flash('Upload complete: ' + ', '.join(parts) + '.',
                   'success' if ok > 0 else 'warning')
             if incomplete:
                 flash(f'{incomplete} applicant(s) were imported with an incomplete profile '

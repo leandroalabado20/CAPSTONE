@@ -2,7 +2,7 @@
 PESO CSJDM Web-Based Data-Driven Job Recommendation System
 Flask Application Entry Point — Multi-Entity Version
 
-Roles: admin | staff | employer | jobseeker
+Roles: admin | employer | jobseeker
 Run:  python app.py
 Default login: username=admin  password=admin123
 """
@@ -288,7 +288,7 @@ def init_db():
             username      TEXT    UNIQUE NOT NULL,
             email         TEXT    UNIQUE NOT NULL,
             password_hash TEXT    NOT NULL,
-            role          TEXT    DEFAULT 'staff',
+            role          TEXT    DEFAULT 'admin',
             is_active     INTEGER DEFAULT 1,
             created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
         );
@@ -661,9 +661,6 @@ def role_required(*roles):
         return decorated
     return decorator
 
-def staff_required(f):
-    return role_required(ROLE_ADMIN)(f)
-
 def admin_required(f):
     return role_required(ROLE_ADMIN)(f)
 
@@ -948,7 +945,7 @@ def register_employer():
                      1 if f.get('is_local', '1') == '1' else 0, uid)
                 )
             db.commit()
-            flash('Employer account submitted! PESO staff will review and approve your registration.', 'success')
+            flash('Employer account submitted! PESO admin will review and approve your registration.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists.', 'danger')
@@ -1026,7 +1023,7 @@ def jobseeker_profile():
     db = get_db()
     ap = _get_my_applicant()
     if not ap:
-        flash('Profile not found. Contact PESO staff.', 'danger')
+        flash('Profile not found. Contact PESO admin.', 'danger')
         return redirect(url_for('jobseeker_dashboard'))
     if request.method == 'POST':
         f   = request.form
@@ -1361,9 +1358,9 @@ def employer_referral_outcome(rid):
         flash('Referral not found.', 'danger')
     return redirect(url_for('employer_referred'))
 
-# ── HOME / OVERVIEW (staff) ──────────────────────────────────────────────────
+# ── HOME / OVERVIEW (admin) ──────────────────────────────────────────────────
 @app.route('/home')
-@staff_required
+@admin_required
 def home():
     db = get_db()
     total_applicants = db.execute(
@@ -1418,12 +1415,12 @@ def home():
 
 # ── ANALYTICS ─────────────────────────────────────────────────────────────────
 @app.route('/analytics')
-@staff_required
+@admin_required
 def analytics():
     return render_template('analytics.html')
 
 @app.route('/api/analytics')
-@staff_required
+@admin_required
 def api_analytics():
     db = get_db()
     date_from = request.args.get('date_from', '').strip()
@@ -1480,7 +1477,7 @@ def api_analytics():
 
 # ── APPLICANTS ────────────────────────────────────────────────────────────────
 @app.route('/applicants')
-@staff_required
+@admin_required
 def applicants_list():
     db = get_db()
     search    = request.args.get('search', '').strip()
@@ -1523,7 +1520,7 @@ def applicants_list():
                            total=total)
 
 @app.route('/applicants/register', methods=['GET', 'POST'])
-@staff_required
+@admin_required
 def applicant_register():
     form_kwargs = dict(
         educ_levels=EDUC_LEVELS, action='register',
@@ -1580,7 +1577,7 @@ def applicant_register():
     return render_template('applicants/form.html', applicant=None, **form_kwargs)
 
 @app.route('/applicants/<int:aid>/edit', methods=['GET', 'POST'])
-@staff_required
+@admin_required
 def applicant_edit(aid):
     db = get_db()
     ap = db.execute('SELECT * FROM applicants WHERE id=?', (aid,)).fetchone()
@@ -1616,7 +1613,7 @@ def applicant_edit(aid):
                            work_exp_list=WORK_EXPERIENCE_LIST)
 
 @app.route('/applicants/<int:aid>/archive', methods=['POST'])
-@staff_required
+@admin_required
 def applicant_archive(aid):
     get_db().execute('UPDATE applicants SET is_archived=1 WHERE id=?', (aid,))
     get_db().commit()
@@ -1624,7 +1621,7 @@ def applicant_archive(aid):
     return redirect(url_for('applicants_list'))
 
 @app.route('/applicants/<int:aid>/restore', methods=['POST'])
-@staff_required
+@admin_required
 def applicant_restore(aid):
     get_db().execute('UPDATE applicants SET is_archived=0 WHERE id=?', (aid,))
     get_db().commit()
@@ -1632,7 +1629,7 @@ def applicant_restore(aid):
     return redirect(url_for('applicants_list') + '?archived=1')
 
 @app.route('/applicants/<int:aid>/delete', methods=['POST'])
-@staff_required
+@admin_required
 def applicant_delete(aid):
     db = get_db()
     ap = db.execute('SELECT first_name, last_name FROM applicants WHERE id=?', (aid,)).fetchone()
@@ -1647,7 +1644,7 @@ def applicant_delete(aid):
     return redirect(url_for('applicants_list'))
 
 @app.route('/applicants/upload', methods=['GET', 'POST'])
-@staff_required
+@admin_required
 def applicants_upload():
     if request.method == 'POST':
         file = request.files.get('file')
@@ -1712,9 +1709,9 @@ def applicants_upload():
         return redirect(url_for('applicants_list'))
     return render_template('applicants/upload.html')
 
-# ── REFERRALS (staff) ─────────────────────────────────────────────────────────
+# ── REFERRALS (admin) ─────────────────────────────────────────────────────────
 @app.route('/referrals')
-@staff_required
+@admin_required
 def referrals_list():
     db     = get_db()
     status = request.args.get('status', 'all')
@@ -1744,7 +1741,7 @@ def referrals_list():
                            status=status, search=search)
 
 @app.route('/referrals/<int:rid>/cancel', methods=['POST'])
-@staff_required
+@admin_required
 def referral_cancel(rid):
     db = get_db()
     r  = db.execute('SELECT * FROM referrals WHERE id=?', (rid,)).fetchone()
@@ -1791,7 +1788,7 @@ def referral_slip(rid):
 
 # ── VACANCIES ─────────────────────────────────────────────────────────────────
 @app.route('/vacancies')
-@staff_required
+@admin_required
 def vacancies_list():
     db     = get_db()
     search = request.args.get('search', '').strip()
@@ -1815,7 +1812,7 @@ def vacancies_list():
                            search=search, status=status, view=view)
 
 @app.route('/vacancies/add', methods=['GET', 'POST'])
-@staff_required
+@admin_required
 def vacancy_add():
     if request.method == 'POST':
         f = request.form
@@ -1844,7 +1841,7 @@ def vacancy_add():
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
 
 @app.route('/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
-@staff_required
+@admin_required
 def vacancy_edit(vid):
     db = get_db()
     v  = db.execute('SELECT * FROM job_vacancies WHERE id=?', (vid,)).fetchone()
@@ -1877,7 +1874,7 @@ def vacancy_edit(vid):
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
 
 @app.route('/vacancies/<int:vid>/toggle', methods=['POST'])
-@staff_required
+@admin_required
 def vacancy_toggle(vid):
     db = get_db()
     v  = db.execute('SELECT is_active FROM job_vacancies WHERE id=?', (vid,)).fetchone()
@@ -1889,7 +1886,7 @@ def vacancy_toggle(vid):
     return redirect(url_for('vacancies_list'))
 
 @app.route('/vacancies/<int:vid>/delete', methods=['POST'])
-@staff_required
+@admin_required
 def vacancy_delete(vid):
     db = get_db()
     v  = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE id=?', (vid,)).fetchone()
@@ -1909,11 +1906,11 @@ def vacancy_delete(vid):
 def users_list():
     db     = get_db()
     status = request.args.get('status', 'all')
-    role   = request.args.get('role', 'staff')
+    role   = request.args.get('role', 'admin')
     view   = request.args.get('view', 'card')
 
     role_cond = {
-        'staff':     "role = 'admin'",
+        'admin':     "role = 'admin'",
         'employer':  "role = 'employer'",
         'jobseeker': "role = 'jobseeker'",
         'all':       "1=1",
@@ -1930,7 +1927,7 @@ def users_list():
     ).fetchall()
 
     counts = {
-        'staff':     db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0],
+        'admin':     db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0],
         'employer':  db.execute("SELECT COUNT(*) FROM users WHERE role='employer'").fetchone()[0],
         'jobseeker': db.execute("SELECT COUNT(*) FROM users WHERE role='jobseeker'").fetchone()[0],
     }
@@ -2043,7 +2040,7 @@ def user_toggle(uid):
     return redirect(url_for('users_list'))
 
 @app.route('/users/login-history')
-@staff_required
+@admin_required
 def login_history():
     logs = get_db().execute(
         'SELECT ll.*, u.full_name FROM login_logs ll '
@@ -2162,6 +2159,5 @@ if __name__ == '__main__':
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
-    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
     print("PESO CSJDM running at: http://localhost:5000")
-    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)

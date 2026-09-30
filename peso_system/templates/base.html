@@ -83,16 +83,6 @@
         Referrals
       </a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link {% if 'referral_request' in request.endpoint or 'review_request' in request.endpoint %}active{% endif %}"
-         href="{{ url_for('staff_referral_requests') }}">
-        <span class="nav-icon"><i class="bi bi-bell-fill"></i></span>
-        Referral Requests
-        {% if pending_requests_count > 0 %}
-        <span class="badge bg-danger ms-auto" style="font-size:.65rem;">{{ pending_requests_count }}</span>
-        {% endif %}
-      </a>
-    </li>
     {% if session_role == 'admin' %}
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint in ['users_list','user_add','user_edit'] %}active{% endif %}"

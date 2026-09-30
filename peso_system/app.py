@@ -43,7 +43,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ── ROLE CONSTANTS ────────────────────────────────────────────────────────────
 ROLE_ADMIN     = 'admin'
-ROLE_STAFF     = 'staff'
 ROLE_EMPLOYER  = 'employer'
 ROLE_JOBSEEKER = 'jobseeker'
 
@@ -452,6 +451,8 @@ def init_db():
     ucols = [r[1] for r in db.execute("PRAGMA table_info(users)").fetchall()]
     if 'role' not in ucols:
         db.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'staff'")
+    # Merge staff role into admin
+    db.execute("UPDATE users SET role='admin' WHERE role='staff'")
 
     # ── Seed default admin ─────────────────────────────────────────────────────
     existing = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
@@ -661,7 +662,7 @@ def role_required(*roles):
     return decorator
 
 def staff_required(f):
-    return role_required(ROLE_ADMIN, ROLE_STAFF)(f)
+    return role_required(ROLE_ADMIN)(f)
 
 def admin_required(f):
     return role_required(ROLE_ADMIN)(f)
@@ -673,7 +674,7 @@ def jobseeker_required(f):
     return role_required(ROLE_JOBSEEKER)(f)
 
 def _role_home():
-    role = session.get('role', ROLE_STAFF)
+    role = session.get('role', ROLE_ADMIN)
     if role == ROLE_JOBSEEKER:
         return url_for('jobseeker_dashboard')
     if role == ROLE_EMPLOYER:
@@ -688,15 +689,10 @@ def current_user():
 # ── CONTEXT PROCESSOR ─────────────────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
-    pending_requests_count = 0
     pending_employers_count = 0
-    if session.get('role') in (ROLE_ADMIN, ROLE_STAFF):
+    if session.get('role') == ROLE_ADMIN:
         try:
-            db = get_db()
-            pending_requests_count = db.execute(
-                "SELECT COUNT(*) FROM referral_requests WHERE status='pending'"
-            ).fetchone()[0]
-            pending_employers_count = db.execute(
+            pending_employers_count = get_db().execute(
                 "SELECT COUNT(*) FROM employers WHERE is_approved=0"
             ).fetchone()[0]
         except Exception:
@@ -704,7 +700,6 @@ def inject_globals():
     return {
         'pipeline_loaded':         pipeline is not None,
         'session_role':            session.get('role', ''),
-        'pending_requests_count':  pending_requests_count,
         'pending_employers_count': pending_employers_count,
     }
 
@@ -790,7 +785,7 @@ def login():
                 session['user_id']   = user['id']
                 session['username']  = user['username']
                 session['full_name'] = user['full_name']
-                session['role']      = user['role'] or ROLE_STAFF
+                session['role']      = user['role'] or ROLE_ADMIN
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
                            (user['id'], username, ip, 'success'))
                 db.commit()
@@ -1075,7 +1070,6 @@ def jobseeker_recommendations():
     ap  = _get_my_applicant()
     results = []
     generated = False
-    requested_ids = set()
     profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
     if profile_ok and request.args.get('generate') and pipeline:
         vacancies = db.execute(
@@ -1097,15 +1091,15 @@ def jobseeker_recommendations():
                     (ap['id'], vac['id'], cat['suitability_score'], cat['rank'], session['user_id'])
                 )
         db.commit()
+    applied_ids = set()
     if ap:
-        requested_ids = {r['vacancy_id'] for r in db.execute(
-            "SELECT vacancy_id FROM referral_requests "
-            "WHERE applicant_id=? AND vacancy_id IS NOT NULL AND status IN ('pending','reviewing','referred')",
+        applied_ids = {r['vacancy_id'] for r in db.execute(
+            "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status NOT IN ('not_hired','cancelled')",
             (ap['id'],)
         ).fetchall()}
     return render_template('jobseeker/recommendations.html',
                            ap=ap, results=results, generated=generated,
-                           profile_ok=profile_ok, requested_ids=requested_ids,
+                           profile_ok=profile_ok, applied_ids=applied_ids,
                            pipeline_loaded=pipeline is not None)
 
 @app.route('/jobseeker/referrals')
@@ -1113,68 +1107,52 @@ def jobseeker_recommendations():
 def jobseeker_referrals():
     db = get_db()
     ap = _get_my_applicant()
-    my_requests = []
+    my_referrals = []
     if ap:
-        # Requests, plus any referrals issued before the request flow existed
-        my_requests = db.execute('''
-            SELECT rr.requested_at AS at, rr.status, rr.notes,
-                   jv.job_title, jv.employer_name, jv.occupational_category,
-                   (SELECT r.status FROM referrals r
-                    WHERE r.applicant_id = rr.applicant_id AND r.vacancy_id = rr.vacancy_id
-                    ORDER BY r.id DESC LIMIT 1) AS outcome,
-                   (SELECT r.id FROM referrals r
-                    WHERE r.applicant_id = rr.applicant_id AND r.vacancy_id = rr.vacancy_id
-                    ORDER BY r.id DESC LIMIT 1) AS referral_id
-            FROM referral_requests rr
-            LEFT JOIN job_vacancies jv ON rr.vacancy_id = jv.id
-            WHERE rr.applicant_id = ?
-            UNION ALL
-            SELECT r.referred_at, 'referred', NULL,
-                   jv.job_title, jv.employer_name, jv.occupational_category, r.status, r.id
+        my_referrals = db.execute('''
+            SELECT r.*, jv.job_title, jv.employer_name, jv.occupational_category
             FROM referrals r
             JOIN job_vacancies jv ON r.vacancy_id = jv.id
             WHERE r.applicant_id = ?
-              AND NOT EXISTS (SELECT 1 FROM referral_requests rr
-                              WHERE rr.applicant_id = r.applicant_id AND rr.vacancy_id = r.vacancy_id)
-            ORDER BY at DESC
-        ''', (ap['id'], ap['id'])).fetchall()
-    return render_template('jobseeker/referrals.html', ap=ap, my_requests=my_requests)
+            ORDER BY r.referred_at DESC
+        ''', (ap['id'],)).fetchall()
+    return render_template('jobseeker/referrals.html', ap=ap, my_referrals=my_referrals)
 
-@app.route('/jobseeker/request-referral', methods=['POST'])
+@app.route('/jobseeker/apply', methods=['POST'])
 @jobseeker_required
-def jobseeker_request_referral():
+def jobseeker_apply():
     ap = _get_my_applicant()
     if not ap:
         flash('Profile not found.', 'danger')
         return redirect(url_for('jobseeker_dashboard'))
     if not ap['educ_level'] or not ap['preferred_position'] or not ap['skills']:
-        flash('Please complete your profile (education level, preferred position, and skills) before requesting a referral.', 'warning')
+        flash('Please complete your profile before applying.', 'warning')
         return redirect(url_for('jobseeker_profile'))
     db = get_db()
     vacancy_id = request.form.get('vacancy_id', type=int)
     jv = db.execute(
-        f'SELECT job_title, employer_name FROM job_vacancies WHERE id=? AND {OPEN_VACANCY_SQL}',
+        f'SELECT * FROM job_vacancies WHERE id=? AND {OPEN_VACANCY_SQL}',
         (vacancy_id,)
     ).fetchone() if vacancy_id else None
     back = url_for('jobseeker_recommendations') + '?generate=1'
     if not jv:
-        flash('That job is no longer available or its application deadline has passed.', 'danger')
+        flash('That job is no longer available or its deadline has passed.', 'danger')
         return redirect(back)
     existing = db.execute(
-        "SELECT id FROM referral_requests WHERE applicant_id=? AND vacancy_id=? "
-        "AND status IN ('pending','reviewing','referred')",
+        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status NOT IN ('not_hired','cancelled')",
         (ap['id'], vacancy_id)
     ).fetchone()
     if existing:
-        flash(f'You already have a referral request for "{jv["job_title"]}".', 'info')
-        return redirect(back)
-    db.execute(
-        'INSERT INTO referral_requests (applicant_id, vacancy_id, message) VALUES (?,?,?)',
-        (ap['id'], vacancy_id, request.form.get('message', '').strip())
+        flash(f'You have already applied for "{jv["job_title"]}".', 'info')
+        return redirect(url_for('referral_slip', rid=existing['id']))
+    cur = db.execute(
+        'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, status) VALUES (?,?,?,?)',
+        (ap['id'], vacancy_id, session['user_id'], 'referred')
     )
     db.commit()
-    flash(f'Referral requested for "{jv["job_title"]}" ({jv["employer_name"]}). PESO staff will review it.', 'success')
-    return redirect(back)
+    rid = cur.lastrowid
+    flash(f'Application submitted for "{jv["job_title"]}" at {jv["employer_name"]}!', 'success')
+    return redirect(url_for('referral_slip', rid=rid))
 
 # ── EMPLOYER PORTAL ───────────────────────────────────────────────────────────
 def _get_my_employer():
@@ -1758,7 +1736,7 @@ def referrals_list():
         FROM referrals r
         JOIN applicants a     ON r.applicant_id = a.id
         JOIN job_vacancies jv ON r.vacancy_id   = jv.id
-        JOIN users u          ON r.referred_by  = u.id
+        LEFT JOIN users u     ON r.referred_by  = u.id
         {where}
         ORDER BY r.referred_at DESC
     ''', params).fetchall()
@@ -1777,109 +1755,6 @@ def referral_cancel(rid):
     db.commit()
     flash('Referral cancelled.', 'success')
     return redirect(url_for('referrals_list'))
-
-# ── REFERRAL REQUESTS (staff) ──────────────────────────────────────────────────
-@app.route('/staff/referral-requests')
-@staff_required
-def staff_referral_requests():
-    db     = get_db()
-    status = request.args.get('status', 'pending')
-    conds, params = [], []
-    if status != 'all':
-        conds.append('rr.status=?')
-        params.append(status)
-    where = ('WHERE ' + ' AND '.join(conds)) if conds else ''
-    reqs = db.execute(f'''
-        SELECT rr.*,
-               a.first_name, a.last_name, a.preferred_position, a.educ_level, a.skills,
-               jv.job_title, jv.employer_name,
-               u.full_name as reviewer_name
-        FROM referral_requests rr
-        JOIN applicants a ON rr.applicant_id = a.id
-        LEFT JOIN job_vacancies jv ON rr.vacancy_id = jv.id
-        LEFT JOIN users u ON rr.reviewed_by = u.id
-        {where}
-        ORDER BY rr.requested_at DESC
-    ''', params).fetchall()
-    counts = {
-        'pending':   db.execute("SELECT COUNT(*) FROM referral_requests WHERE status='pending'").fetchone()[0],
-        'reviewing': db.execute("SELECT COUNT(*) FROM referral_requests WHERE status='reviewing'").fetchone()[0],
-        'referred':  db.execute("SELECT COUNT(*) FROM referral_requests WHERE status='referred'").fetchone()[0],
-        'rejected':  db.execute("SELECT COUNT(*) FROM referral_requests WHERE status='rejected'").fetchone()[0],
-    }
-    return render_template('staff/referral_requests.html',
-                           reqs=reqs, status=status, counts=counts)
-
-@app.route('/staff/referral-requests/<int:rid>/review')
-@staff_required
-def staff_review_request(rid):
-    db  = get_db()
-    req = db.execute(
-        'SELECT rr.*, jv.job_title, jv.employer_name, jv.occupational_category, jv.is_active, '
-        'jv.created_at AS posted_at, ' + ', '.join('jv.' + c for c in REQ_COLS) + ' '
-        'FROM referral_requests rr LEFT JOIN job_vacancies jv ON rr.vacancy_id=jv.id '
-        'WHERE rr.id=?', (rid,)
-    ).fetchone()
-    if not req:
-        flash('Request not found.', 'danger')
-        return redirect(url_for('staff_referral_requests'))
-    if req['status'] == 'pending':
-        db.execute(
-            "UPDATE referral_requests SET status='reviewing', reviewed_by=?, reviewed_at=CURRENT_TIMESTAMP WHERE id=?",
-            (session['user_id'], rid)
-        )
-        db.commit()
-    ap = db.execute('SELECT * FROM applicants WHERE id=?', (req['applicant_id'],)).fetchone()
-    slip = db.execute(
-        'SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? ORDER BY id DESC LIMIT 1',
-        (req['applicant_id'], req['vacancy_id'])
-    ).fetchone() if req['status'] == 'referred' and req['vacancy_id'] else None
-    return render_template('staff/review_request.html',
-                           req=dict(req), ap=dict(ap) if ap else None,
-                           warnings=req_warnings(req, ap),
-                           slip_id=slip['id'] if slip else None)
-
-@app.route('/staff/referral-requests/<int:rid>/refer', methods=['POST'])
-@staff_required
-def staff_refer_from_request(rid):
-    db    = get_db()
-    notes = request.form.get('notes', '').strip()
-    req = db.execute('SELECT * FROM referral_requests WHERE id=?', (rid,)).fetchone()
-    if not req:
-        flash('Request not found.', 'danger')
-        return redirect(url_for('staff_referral_requests'))
-    if req['status'] not in ('pending', 'reviewing'):
-        flash('This request has already been decided.', 'warning')
-        return redirect(url_for('staff_referral_requests'))
-    if not req['vacancy_id']:
-        flash('This request has no job selected, so it cannot be accepted.', 'danger')
-        return redirect(url_for('staff_review_request', rid=rid))
-    ap = db.execute('SELECT first_name, last_name FROM applicants WHERE id=?',
-                    (req['applicant_id'],)).fetchone()
-    jv = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE id=?',
-                    (req['vacancy_id'],)).fetchone()
-    if not ap or not jv:
-        flash('Applicant or vacancy not found.', 'danger')
-        return redirect(url_for('staff_review_request', rid=rid))
-    existing = db.execute(
-        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status NOT IN ('not_hired','cancelled')",
-        (req['applicant_id'], req['vacancy_id'])
-    ).fetchone()
-    if existing:
-        flash(f'{ap["first_name"]} {ap["last_name"]} is already actively referred to "{jv["job_title"]}".', 'warning')
-        return redirect(url_for('staff_review_request', rid=rid))
-    cur = db.execute(
-        'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, notes) VALUES (?,?,?,?)',
-        (req['applicant_id'], req['vacancy_id'], session['user_id'], notes)
-    )
-    referral_id = cur.lastrowid
-    db.execute(
-        "UPDATE referral_requests SET status='referred', reviewed_by=?, reviewed_at=CURRENT_TIMESTAMP, notes=? WHERE id=?",
-        (session['user_id'], notes, rid)
-    )
-    db.commit()
-    flash(f'Referral accepted: {ap["first_name"]} {ap["last_name"]} → {jv["job_title"]} ({jv["employer_name"]}).', 'success')
-    return redirect(url_for('referral_slip', rid=referral_id))
 
 @app.route('/referrals/<int:rid>/slip')
 @login_required
@@ -1901,7 +1776,7 @@ def referral_slip(rid):
     ''', (rid,)).fetchone()
     role = session.get('role')
     allowed = bool(r) and (
-        role in (ROLE_ADMIN, ROLE_STAFF)
+        role == ROLE_ADMIN
         or (role == ROLE_JOBSEEKER and r['applicant_user_id'] == session['user_id'])
         or (role == ROLE_EMPLOYER and r['employer_id'] == session['user_id'])
     )
@@ -1911,28 +1786,8 @@ def referral_slip(rid):
     back_url = {
         ROLE_JOBSEEKER: url_for('jobseeker_referrals'),
         ROLE_EMPLOYER:  url_for('employer_referred'),
-    }.get(role, url_for('staff_referral_requests'))
+    }.get(role, url_for('referrals_list'))
     return render_template('referral_slip.html', r=r, back_url=back_url)
-
-@app.route('/staff/referral-requests/<int:rid>/reject', methods=['POST'])
-@staff_required
-def staff_reject_request(rid):
-    db    = get_db()
-    notes = request.form.get('notes', '').strip()
-    req   = db.execute('SELECT * FROM referral_requests WHERE id=?', (rid,)).fetchone()
-    if not req:
-        flash('Request not found.', 'danger')
-        return redirect(url_for('staff_referral_requests'))
-    if req['status'] not in ('pending', 'reviewing'):
-        flash('This request has already been decided.', 'warning')
-        return redirect(url_for('staff_referral_requests'))
-    db.execute(
-        "UPDATE referral_requests SET status='rejected', reviewed_by=?, reviewed_at=CURRENT_TIMESTAMP, notes=? WHERE id=?",
-        (session['user_id'], notes, rid)
-    )
-    db.commit()
-    flash('Referral request rejected.', 'warning')
-    return redirect(url_for('staff_referral_requests'))
 
 # ── VACANCIES ─────────────────────────────────────────────────────────────────
 @app.route('/vacancies')
@@ -2058,11 +1913,11 @@ def users_list():
     view   = request.args.get('view', 'card')
 
     role_cond = {
-        'staff':     "role IN ('admin','staff')",
+        'staff':     "role = 'admin'",
         'employer':  "role = 'employer'",
         'jobseeker': "role = 'jobseeker'",
         'all':       "1=1",
-    }.get(role, "role IN ('admin','staff')")
+    }.get(role, "role = 'admin'")
 
     status_cond = ''
     if status == 'active':
@@ -2075,7 +1930,7 @@ def users_list():
     ).fetchall()
 
     counts = {
-        'staff':     db.execute("SELECT COUNT(*) FROM users WHERE role IN ('admin','staff')").fetchone()[0],
+        'staff':     db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0],
         'employer':  db.execute("SELECT COUNT(*) FROM users WHERE role='employer'").fetchone()[0],
         'jobseeker': db.execute("SELECT COUNT(*) FROM users WHERE role='jobseeker'").fetchone()[0],
     }
@@ -2106,7 +1961,7 @@ def user_add():
             try:
                 get_db().execute(
                     'INSERT INTO users (full_name,username,email,password_hash,role) VALUES (?,?,?,?,?)',
-                    (name, user, mail, generate_password_hash(pw), ROLE_STAFF)
+                    (name, user, mail, generate_password_hash(pw), ROLE_ADMIN)
                 )
                 get_db().commit()
                 flash('User account created.', 'success')

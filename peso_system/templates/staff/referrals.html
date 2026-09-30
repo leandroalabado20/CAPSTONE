@@ -6,11 +6,8 @@
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
   <div>
     <h5 class="fw-bold mb-0">Referral Management</h5>
-    <p class="text-muted small mb-0">Referrals accepted by PESO staff from job seeker requests.</p>
+    <p class="text-muted small mb-0">Log of all job applications submitted by applicants.</p>
   </div>
-  <a href="{{ url_for('staff_referral_requests') }}" class="btn btn-primary btn-sm fw-semibold">
-    <i class="bi bi-bell me-1"></i>Referral Requests
-  </a>
 </div>
 
 <!-- Filters -->
@@ -97,8 +94,8 @@
 <div class="text-center py-5 text-muted">
   <i class="bi bi-send" style="font-size:2rem;opacity:.2;"></i>
   <p class="mt-3">No referrals found.</p>
-  <a href="{{ url_for('staff_referral_requests') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-bell me-1"></i>View Referral Requests
+  <a href="{{ url_for('applicants_list') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-people-fill me-1"></i>View Applicants
   </a>
 </div>
 {% endif %}

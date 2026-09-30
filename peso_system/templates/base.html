@@ -41,6 +41,8 @@
 
   <ul class="sidebar-nav">
 
+    <li class="nav-title">Overview</li>
+
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
          href="{{ url_for('home') }}">
@@ -48,14 +50,18 @@
         Home
       </a>
     </li>
-
-    <li class="nav-title">Analytics</li>
-
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint == 'analytics' %}active{% endif %}"
          href="{{ url_for('analytics') }}">
         <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
         Analytical Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if request.endpoint == 'referrals_list' %}active{% endif %}"
+         href="{{ url_for('referrals_list') }}">
+        <span class="nav-icon"><i class="bi bi-send-fill"></i></span>
+        Referral Log
       </a>
     </li>
 
@@ -76,21 +82,7 @@
         Job Vacancies
       </a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.endpoint in ['referrals_list','referral_cancel'] %}active{% endif %}"
-         href="{{ url_for('referrals_list') }}">
-        <span class="nav-icon"><i class="bi bi-send-fill"></i></span>
-        Referrals
-      </a>
-    </li>
     {% if session_role == 'admin' %}
-    <li class="nav-item">
-      <a class="nav-link {% if request.endpoint in ['users_list','user_add','user_edit'] %}active{% endif %}"
-         href="{{ url_for('users_list') }}">
-        <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
-        User Accounts
-      </a>
-    </li>
     <li class="nav-item">
       <a class="nav-link {% if 'admin_employer' in request.endpoint %}active{% endif %}"
          href="{{ url_for('admin_employers') }}">
@@ -104,8 +96,17 @@
     {% endif %}
 
     <li class="nav-divider"></li>
-    <li class="nav-title">Account</li>
+    <li class="nav-title">System</li>
 
+    {% if session_role == 'admin' %}
+    <li class="nav-item">
+      <a class="nav-link {% if request.endpoint in ['users_list','user_add','user_edit'] %}active{% endif %}"
+         href="{{ url_for('users_list') }}">
+        <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
+        User Accounts
+      </a>
+    </li>
+    {% endif %}
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint == 'login_history' %}active{% endif %}"
          href="{{ url_for('login_history') }}">
@@ -158,7 +159,7 @@
         </button>
         <div class="topbar-user">
           <i class="bi bi-person-circle me-1"></i>
-          {{ session.get('full_name', 'Staff') }}
+          {{ session.get('full_name', 'Admin') }}
         </div>
       </div>
     </div>

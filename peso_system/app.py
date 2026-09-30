@@ -16,13 +16,11 @@ import secrets
 from datetime import datetime, timedelta
 from functools import wraps
 
-import pandas as pd
 from flask import (
     Flask, render_template, request, redirect, url_for,
     session, flash, jsonify, g
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 
 # ── APP CONFIG ────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -36,10 +34,6 @@ app.config['SESSION_COOKIE_SECURE'] = os.environ.get('PESO_HTTPS', '0') == '1'
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 DATABASE       = os.path.join(BASE_DIR, 'peso.db')
 PIPELINE_PATH  = os.path.join(BASE_DIR, 'ml', 'recommendation_pipeline.pkl')
-UPLOAD_FOLDER  = os.path.join(BASE_DIR, 'uploads')
-ALLOWED_EXT    = {'xlsx', 'xls'}
-
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ── ROLE CONSTANTS ────────────────────────────────────────────────────────────
 ROLE_ADMIN     = 'admin'
@@ -116,40 +110,6 @@ WORK_EXPERIENCE_LIST = [
     'Receptionist', 'Bookkeeper', 'Payroll Clerk',
 ]
 
-# ── PEIS IMPORT NORMALIZATION ──────────────────────────────────────────────────
-EDUC_NORMALIZE = {
-    'GRADE I':                                        'Elementary Level',
-    'GRADE II':                                       'Elementary Level',
-    'GRADE III':                                      'Elementary Level',
-    'GRADE IV':                                       'Elementary Level',
-    'GRADE V':                                        'Elementary Level',
-    'GRADE VI':                                       'Elementary Level',
-    'ELEMENTARY GRADUATE':                            'Elementary Graduate',
-    'GRADE VII':                                      'High School Level',
-    'GRADE VIII':                                     'High School Level',
-    '1ST YEAR HIGH SCHOOL/GRADE VII (FOR K TO 12)':  'High School Level',
-    '2ND YEAR HIGH SCHOOL/GRADE VIII (FOR K TO 12)': 'High School Level',
-    '3RD YEAR HIGH SCHOOL/GRADE IX (FOR K TO 12)':   'High School Level',
-    '4TH YEAR HIGH SCHOOL/GRADE X (FOR K TO 12)':    'High School Level',
-    'HIGH SCHOOL GRADUATE':                           'High School Graduate',
-    'SECONDARY (K-12)':                               'High School Graduate',
-    'SECONDARY (NON K-12)':                           'High School Graduate',
-    'GRADE XI (FOR K TO 12)':                         'Senior High School Level',
-    'GRADE XII (FOR K TO 12)':                        'Senior High School Graduate',
-    '1ST YEAR COLLEGE LEVEL':                         'College Level',
-    '2ND YEAR COLLEGE LEVEL':                         'College Level',
-    '3RD YEAR COLLEGE LEVEL':                         'College Level',
-    '4TH YEAR COLLEGE LEVEL':                         'College Level',
-    '5TH YEAR COLLEGE LEVEL':                         'College Level',
-    'COLLEGE GRADUATE':                               'College Graduate',
-    'MASTERAL/POST GRADUATE':                         'College Graduate',
-    'MASTERAL/POST GRADUATE LEVEL':                   'College Graduate',
-    'VOCATIONAL GRADUATE':                            'Vocational',
-    'VOCATIONAL UNDERGRADUATE':                       'Vocational',
-    'ALS':                                            'ALS',
-    'ALS (ALTERNATIVE LEARNING SYSTEM)':              'ALS',
-}
-
 BARANGAY_DISTRICT = {
     'POBLACION': 'District 1', 'POBLACION I': 'District 1',
     'FRANCISCO HOMES-GUIJO': 'District 1', 'FRANCISCO HOMES-MULAWIN': 'District 1',
@@ -191,10 +151,6 @@ BARANGAY_DISTRICT = {
 }
 
 
-def normalize_educ(raw):
-    return EDUC_NORMALIZE.get(re.sub(r'\s+', ' ', str(raw)).strip().upper(), '')
-
-
 def barangay_to_district(raw):
     return BARANGAY_DISTRICT.get(re.sub(r'\s+', ' ', str(raw)).strip().upper(), '')
 
@@ -214,55 +170,6 @@ def find_duplicate_applicant(db, first_name, last_name, birthdate, exclude_id=No
         q += ' AND id != ?'
         params.append(exclude_id)
     return db.execute(q, params).fetchone()
-
-
-def parse_age(raw):
-    m = re.search(r'\d+', str(raw))
-    return int(m.group()) if m else None
-
-
-def yn_to_int(raw):
-    return 1 if str(raw).strip().lower() in ('yes', 'y', '1', 'true') else 0
-
-
-def parse_peis_date(raw):
-    if raw is None:
-        return None
-    try:
-        import pandas as _pd
-        if hasattr(raw, '__float__') and _pd.isna(raw):
-            return None
-        return _pd.to_datetime(raw).strftime('%Y-%m-%d')
-    except Exception:
-        return None
-
-
-def normalize_peis_row(row):
-    get_col = lambda c: '' if pd.isna(row.get(c, '')) else str(row.get(c, '')).strip()
-    first     = get_col('FIRSTNAME') or get_col('FIRST NAME')
-    last      = get_col('LASTNAME')  or get_col('LAST NAME')
-    educ      = normalize_educ(get_col('EDUC LEVEL'))
-    preferred = get_col('PREFERRED POSITION')
-    skills    = get_col('SKILLS')
-    if not any((first, last, educ, preferred, skills)):
-        return None
-    barangay = get_col('BARANGAY')
-    sex_raw  = get_col('SEX').upper()
-    return {
-        'first_name':         first or 'Unknown',
-        'last_name':          last or 'Unknown',
-        'educ_level':         educ,
-        'preferred_position': preferred,
-        'skills':             skills,
-        'work_experience':    get_col('WORK EXPERIENCE'),
-        'sex':                'Male' if sex_raw.startswith('M') else ('Female' if sex_raw.startswith('F') else ''),
-        'employment_status':  get_col('EMP. STATUS') or get_col('EMPLOYMENT STATUS') or 'Unemployed',
-        'barangay':           barangay,
-        'district':           barangay_to_district(barangay),
-        'age':                parse_age(get_col('AGE')),
-        'is_pwd':             yn_to_int(get_col('PWD')),
-        'peis_reg_date':      parse_peis_date(row.get('REG. DATE')),
-    }
 
 # ── DATABASE ──────────────────────────────────────────────────────────────────
 def get_db():
@@ -1632,82 +1539,21 @@ def applicant_restore(aid):
 @admin_required
 def applicant_delete(aid):
     db = get_db()
-    ap = db.execute('SELECT first_name, last_name FROM applicants WHERE id=?', (aid,)).fetchone()
+    ap = db.execute('SELECT first_name, last_name, user_id FROM applicants WHERE id=?', (aid,)).fetchone()
     if not ap:
         flash('Applicant not found.', 'danger')
         return redirect(url_for('applicants_list'))
     db.execute('DELETE FROM recommendations WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM referrals WHERE applicant_id=?', (aid,))
+    db.execute('DELETE FROM referral_requests WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM applicants WHERE id=?', (aid,))
+    # Remove the linked jobseeker login account, if any, so no orphan user remains
+    if ap['user_id']:
+        db.execute('DELETE FROM login_logs WHERE user_id=?', (ap['user_id'],))
+        db.execute("DELETE FROM users WHERE id=? AND role='jobseeker'", (ap['user_id'],))
     db.commit()
     flash(f'Applicant {ap["first_name"]} {ap["last_name"]} has been permanently deleted.', 'success')
     return redirect(url_for('applicants_list'))
-
-@app.route('/applicants/upload', methods=['GET', 'POST'])
-@admin_required
-def applicants_upload():
-    if request.method == 'POST':
-        file = request.files.get('file')
-        if not file or not file.filename:
-            flash('No file selected.', 'danger')
-            return redirect(request.url)
-        ext = file.filename.rsplit('.', 1)[-1].lower()
-        if ext not in ALLOWED_EXT:
-            flash('Only XLSX or XLS files are accepted.', 'danger')
-            return redirect(request.url)
-        fname = secure_filename(file.filename)
-        fpath = os.path.join(UPLOAD_FOLDER, fname)
-        file.save(fpath)
-        try:
-            try:
-                df = pd.read_excel(fpath, header=2)
-                if 'EDUC LEVEL' not in [c.strip().upper() for c in df.columns]:
-                    df = pd.read_excel(fpath, header=0)
-            except Exception:
-                df = pd.read_excel(fpath, header=0)
-            df.columns = [str(c).strip().upper() for c in df.columns]
-            db = get_db()
-            ok, skip, incomplete = 0, 0, 0
-            for idx, row in df.iterrows():
-                try:
-                    rec = normalize_peis_row(row)
-                    if rec is None:
-                        skip += 1
-                        continue
-                    if not rec['skills'] or not rec['educ_level'] or not rec['preferred_position']:
-                        incomplete += 1
-                    db.execute('''
-                        INSERT INTO applicants
-                            (first_name,last_name,educ_level,preferred_position,skills,
-                             work_experience,sex,employment_status,barangay,district,
-                             age,is_pwd,peis_reg_date)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-                    ''', (
-                        rec['first_name'], rec['last_name'], rec['educ_level'],
-                        rec['preferred_position'], rec['skills'], rec['work_experience'],
-                        rec['sex'], rec['employment_status'], rec['barangay'],
-                        rec['district'], rec['age'], rec['is_pwd'], rec['peis_reg_date'],
-                    ))
-                    ok += 1
-                except Exception:
-                    skip += 1
-            db.commit()
-            flash(f'Upload complete: {ok} applicant(s) imported'
-                  + (f', {skip} blank row(s) skipped' if skip else '') + '.',
-                  'success' if ok > 0 else 'warning')
-            if incomplete:
-                flash(f'{incomplete} applicant(s) were imported with an incomplete profile '
-                      '(missing skills, education, or preferred position). Please complete '
-                      'these records before generating recommendations.', 'warning')
-        except Exception as e:
-            flash(f'Error reading file: {e}', 'danger')
-        finally:
-            try:
-                os.remove(fpath)
-            except Exception:
-                pass
-        return redirect(url_for('applicants_list'))
-    return render_template('applicants/upload.html')
 
 # ── REFERRALS (admin) ─────────────────────────────────────────────────────────
 @app.route('/referrals')
@@ -1739,19 +1585,6 @@ def referrals_list():
     ''', params).fetchall()
     return render_template('staff/referrals.html', referrals=referrals,
                            status=status, search=search)
-
-@app.route('/referrals/<int:rid>/cancel', methods=['POST'])
-@admin_required
-def referral_cancel(rid):
-    db = get_db()
-    r  = db.execute('SELECT * FROM referrals WHERE id=?', (rid,)).fetchone()
-    if not r:
-        flash('Referral not found.', 'danger')
-        return redirect(url_for('referrals_list'))
-    db.execute("UPDATE referrals SET status='cancelled' WHERE id=?", (rid,))
-    db.commit()
-    flash('Referral cancelled.', 'success')
-    return redirect(url_for('referrals_list'))
 
 @app.route('/referrals/<int:rid>/slip')
 @login_required

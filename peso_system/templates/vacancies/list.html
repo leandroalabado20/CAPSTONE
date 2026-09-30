@@ -73,7 +73,8 @@
           <th>Occupational Category</th>
           <th>Type</th>
           <th>Status</th>
-          <th>Added</th>
+          <th>Posted</th>
+          <th>Deadline</th>
           <th class="text-center">Actions</th>
         </tr>
       </thead>
@@ -96,7 +97,11 @@
               {% if v.is_active %}Active{% else %}Inactive{% endif %}
             </span>
           </td>
-          <td class="small text-muted">{{ v.created_at[:10] if v.created_at else '—' }}</td>
+          <td class="small text-muted">{{ v.created_at|friendly_date or '—' }}</td>
+          <td class="small text-muted">
+            {% if v.application_deadline %}{{ v.application_deadline|friendly_date }}{% else %}—{% endif %}
+            {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis">Expired</span>{% endif %}
+          </td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
               <a href="{{ url_for('vacancy_edit', vid=v.id) }}"
@@ -147,6 +152,11 @@
         <div class="small mb-2">
           <i class="bi bi-geo-alt text-secondary me-1"></i>
           {% if v.is_local %}Local{% else %}Overseas{% endif %}
+        </div>
+        <div class="small text-muted mb-2">
+          <i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_date }}
+          {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis ms-1">Expired</span>{% endif %}
+          <div class="mt-1">{% include '_vacancy_details.html' %}</div>
         </div>
         <div class="d-flex flex-wrap gap-1">
           <span class="badge {% if v.is_active %}bg-success{% else %}bg-secondary{% endif %}">

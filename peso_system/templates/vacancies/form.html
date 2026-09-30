@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="card shadow-sm" style="max-width:600px;">
+<div class="card shadow-sm" style="max-width:720px;">
   <div class="card-header fw-semibold">
     {% if action == 'add' %}New Job Vacancy{% else %}Edit Vacancy #{{ vacancy.id }}{% endif %}
   </div>
@@ -30,14 +30,19 @@
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Occupational Category <span class="text-danger">*</span></label>
-        <select name="occupational_category" class="form-select" required>
-          <option value="">-- Select Category --</option>
+        <input type="text" name="occupational_category" id="occ-category"
+               list="occ-category-list" autocomplete="off"
+               class="form-control"
+               value="{{ vacancy.occupational_category if vacancy else '' }}"
+               placeholder="Type or select a category" required />
+        <datalist id="occ-category-list">
           {% for cat in categories %}
-          <option {% if vacancy and vacancy.occupational_category == cat %}selected{% endif %}>{{ cat }}</option>
+          <option value="{{ cat }}">{{ cat }}</option>
           {% endfor %}
-        </select>
+        </datalist>
         <div class="form-text">
           The system uses this category to match applicant profiles and compute suitability scores.
+          Must exactly match one of the categories above to be included in recommendations.
         </div>
       </div>
 
@@ -57,6 +62,7 @@
         </div>
       </div>
 
+      {% include '_vacancy_requirements.html' %}
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary fw-semibold">
           <i class="bi bi-save me-1"></i>

@@ -1,0 +1,16 @@
+{# Read-only summary of dates and requirements. Expects: v (row/dict with vacancy columns) #}
+{% set chips = req_summary(v) %}
+<div class="text-muted" style="font-size:.72rem;">
+  {% if v.application_deadline %}
+  <i class="bi bi-hourglass-split me-1"></i>Apply until {{ v.application_deadline|friendly_date }}
+  {% else %}
+  <i class="bi bi-hourglass me-1"></i>Open until filled
+  {% endif %}
+</div>
+{% if chips %}
+<div class="mt-1">
+  {% for c in chips %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1 fw-normal" style="font-size:.66rem;">{{ c }}</span>{% endfor %}
+</div>
+{% endif %}
+{% if v.req_other %}<div class="text-muted mt-1" style="font-size:.72rem;">{{ v.req_other }}</div>{% endif %}
+{% if v.req_documents %}<div class="text-muted" style="font-size:.72rem;"><i class="bi bi-file-earmark-text me-1"></i>Bring: {{ v.req_documents }}</div>{% endif %}

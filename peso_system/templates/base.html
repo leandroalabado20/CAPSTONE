@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}PESO CSJDM{% endblock %} &mdash; Job Recommendation System</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/peso_logo.png') }}" />
+  <script>
+  (function(){try{if(localStorage.getItem('peso-theme')==='dark'){var r=document.documentElement;r.setAttribute('data-theme','dark');r.setAttribute('data-bs-theme','dark');r.setAttribute('data-coreui-theme','dark');}}catch(e){}})();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
@@ -21,7 +25,7 @@
   <div class="sidebar-brand">
     <span class="sidebar-brand-full d-flex align-items-center gap-2">
       <span class="sb-icon-badge">
-        <i class="bi bi-briefcase-fill"></i>
+        <img src="{{ url_for('static', filename='img/peso_logo.png') }}" alt="PESO CSJDM" />
       </span>
       <span>
         <span class="sb-brand-name d-block">PESO CSJDM</span>
@@ -29,8 +33,8 @@
       </span>
     </span>
     <span class="sidebar-brand-narrow">
-      <span class="sb-icon-badge" style="width:32px;height:32px;font-size:.95rem;">
-        <i class="bi bi-briefcase-fill"></i>
+      <span class="sb-icon-badge" style="width:38px;height:38px;">
+        <img src="{{ url_for('static', filename='img/peso_logo.png') }}" alt="PESO CSJDM" />
       </span>
     </span>
   </div>
@@ -47,13 +51,6 @@
 
     <li class="nav-title">Analytics</li>
 
-    <li class="nav-item">
-      <a class="nav-link {% if request.endpoint in ['recommendation','generate_recommendation'] %}active{% endif %}"
-         href="{{ url_for('recommendation') }}">
-        <span class="nav-icon"><i class="bi bi-stars"></i></span>
-        Job Recommendation
-      </a>
-    </li>
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint == 'analytics' %}active{% endif %}"
          href="{{ url_for('analytics') }}">
@@ -80,7 +77,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if request.endpoint in ['referrals_list','referral_issue','referral_cancel'] %}active{% endif %}"
+      <a class="nav-link {% if request.endpoint in ['referrals_list','referral_cancel'] %}active{% endif %}"
          href="{{ url_for('referrals_list') }}">
         <span class="nav-icon"><i class="bi bi-send-fill"></i></span>
         Referrals
@@ -165,9 +162,14 @@
         <span class="header-toggler-icon"></span>
       </button>
       <span class="topbar-page-title">{% block page_title %}{% endblock %}</span>
-      <div class="ms-auto topbar-user">
-        <i class="bi bi-person-circle me-1"></i>
-        {{ session.get('full_name', 'Staff') }}
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <i class="bi bi-moon-stars-fill"></i>
+        </button>
+        <div class="topbar-user">
+          <i class="bi bi-person-circle me-1"></i>
+          {{ session.get('full_name', 'Staff') }}
+        </div>
       </div>
     </div>
   </header>
@@ -218,6 +220,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script>
 (function () {
   var BREAK    = 992;

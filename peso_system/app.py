@@ -26,7 +26,12 @@ from werkzeug.utils import secure_filename
 
 # ── APP CONFIG ────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'peso-csjdm-2026-secret-change-in-prod')
+app.secret_key = os.environ.get('FLASK_SECRET_KEY') or secrets.token_hex(32)
+
+# Set PESO_HTTPS=1 on an HTTPS host (e.g. PythonAnywhere); leave unset for local HTTP.
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('PESO_HTTPS', '0') == '1'
 
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 DATABASE       = os.path.join(BASE_DIR, 'peso.db')
@@ -195,6 +200,23 @@ def barangay_to_district(raw):
     return BARANGAY_DISTRICT.get(re.sub(r'\s+', ' ', str(raw)).strip().upper(), '')
 
 
+def find_duplicate_applicant(db, first_name, last_name, birthdate, exclude_id=None):
+    """Look for an existing (non-archived) applicant with the same name and
+    birthdate — a strong signal it's the same person re-registering."""
+    q = '''
+        SELECT * FROM applicants
+        WHERE LOWER(TRIM(first_name)) = LOWER(TRIM(?))
+          AND LOWER(TRIM(last_name))  = LOWER(TRIM(?))
+          AND birthdate = ?
+          AND is_archived = 0
+    '''
+    params = [first_name, last_name, birthdate]
+    if exclude_id is not None:
+        q += ' AND id != ?'
+        params.append(exclude_id)
+    return db.execute(q, params).fetchone()
+
+
 def parse_age(raw):
     m = re.search(r'\d+', str(raw))
     return int(m.group()) if m else None
@@ -286,6 +308,8 @@ def init_db():
             skills             TEXT     NOT NULL,
             work_experience    TEXT,
             peis_reg_date      DATE,
+            birthdate          DATE,
+            contact_number     TEXT,
             user_id            INTEGER  REFERENCES users(id),
             created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
             is_archived        INTEGER  DEFAULT 0
@@ -399,10 +423,31 @@ def init_db():
         db.execute('ALTER TABLE applicants ADD COLUMN peis_reg_date DATE')
     if 'user_id' not in acols:
         db.execute('ALTER TABLE applicants ADD COLUMN user_id INTEGER REFERENCES users(id)')
+    if 'birthdate' not in acols:
+        db.execute('ALTER TABLE applicants ADD COLUMN birthdate DATE')
+    if 'contact_number' not in acols:
+        db.execute('ALTER TABLE applicants ADD COLUMN contact_number TEXT')
+
+    rrcols = [r[1] for r in db.execute("PRAGMA table_info(referral_requests)").fetchall()]
+    if 'vacancy_id' not in rrcols:
+        db.execute('ALTER TABLE referral_requests ADD COLUMN vacancy_id INTEGER REFERENCES job_vacancies(id)')
 
     vcols = [r[1] for r in db.execute("PRAGMA table_info(job_vacancies)").fetchall()]
     if 'employer_id' not in vcols:
         db.execute('ALTER TABLE job_vacancies ADD COLUMN employer_id INTEGER REFERENCES users(id)')
+    for col, ddl in [
+        ('application_deadline', 'DATE'),
+        ('req_gender',           "TEXT DEFAULT 'Any'"),
+        ('req_age_min',          'INTEGER'),
+        ('req_age_max',          'INTEGER'),
+        ('req_education',        'TEXT'),
+        ('req_physical',         'TEXT'),
+        ('req_experience',       'TEXT'),
+        ('req_other',            'TEXT'),
+        ('req_documents',        'TEXT'),
+    ]:
+        if col not in vcols:
+            db.execute(f'ALTER TABLE job_vacancies ADD COLUMN {col} {ddl}')
 
     ucols = [r[1] for r in db.execute("PRAGMA table_info(users)").fetchall()]
     if 'role' not in ucols:
@@ -466,6 +511,102 @@ def _clean_profile(educ_level, preferred_position, skills, work_experience):
     return re.sub(r'\s+', ' ',
                   f'{fields["educ"]} {fields["pos"]} {fields["skills"]} {fields["exp"]}').strip()
 
+# A vacancy is open when active and its optional deadline (PH date) has not passed
+OPEN_VACANCY_SQL = ("is_active=1 AND (application_deadline IS NULL OR application_deadline='' "
+                    "OR application_deadline >= date('now','+8 hours'))")
+EXPIRED_SQL = ("(application_deadline IS NOT NULL AND application_deadline<>'' "
+               "AND application_deadline < date('now','+8 hours'))")
+
+# Levels that can be ranked; Vocational / ALS are not comparable so they are skipped
+EDUC_RANK = {
+    'Elementary Level': 1, 'Elementary Graduate': 2,
+    'High School Level': 3, 'High School Graduate': 4,
+    'Senior High School Level': 5, 'Senior High School Graduate': 6,
+    'College Level': 7, 'College Graduate': 8,
+}
+REQ_EDUC_CHOICES = list(EDUC_RANK.keys())
+
+def _g(v, key):
+    try:
+        return v[key]
+    except (KeyError, IndexError, TypeError):
+        return None
+
+def parse_vacancy_requirements(f):
+    """Read requirement/deadline fields from a form. Returns (values dict, error or None)."""
+    def num(name):
+        raw = (f.get(name) or '').strip()
+        return int(raw) if raw.isdigit() else None
+    gender = f.get('req_gender', 'Any')
+    if gender not in ('Any', 'Male', 'Female'):
+        gender = 'Any'
+    edu = f.get('req_education', '').strip()
+    vals = {
+        'application_deadline': (f.get('application_deadline') or '').strip() or None,
+        'req_gender':     gender,
+        'req_age_min':    num('req_age_min'),
+        'req_age_max':    num('req_age_max'),
+        'req_education':  edu if edu in EDUC_RANK else None,
+        'req_physical':   f.get('req_physical', '').strip() or None,
+        'req_experience': f.get('req_experience', '').strip() or None,
+        'req_other':      f.get('req_other', '').strip() or None,
+        'req_documents':  f.get('req_documents', '').strip() or None,
+    }
+    if vals['req_age_min'] and vals['req_age_max'] and vals['req_age_min'] > vals['req_age_max']:
+        return vals, 'Minimum age cannot be greater than maximum age.'
+    if vals['application_deadline']:
+        try:
+            datetime.strptime(vals['application_deadline'], '%Y-%m-%d')
+        except ValueError:
+            return vals, 'Application deadline is not a valid date.'
+    return vals, None
+
+REQ_COLS = ['application_deadline', 'req_gender', 'req_age_min', 'req_age_max',
+            'req_education', 'req_physical', 'req_experience', 'req_other', 'req_documents']
+
+def req_summary(v):
+    """Short human-readable requirement chips for a vacancy row/dict."""
+    out = []
+    g = _g(v, 'req_gender')
+    if g in ('Male', 'Female'):
+        out.append(g)
+    lo, hi = _g(v, 'req_age_min'), _g(v, 'req_age_max')
+    if lo and hi:
+        out.append(f'{lo}\u2013{hi} yrs old')
+    elif lo:
+        out.append(f'{lo}+ yrs old')
+    elif hi:
+        out.append(f'Up to {hi} yrs old')
+    if _g(v, 'req_education'):
+        out.append(f"{_g(v, 'req_education')} or higher")
+    for k in ('req_physical', 'req_experience'):
+        if _g(v, k):
+            out.append(_g(v, k))
+    return out
+
+def req_warnings(v, ap):
+    """Ways the applicant profile does not meet the vacancy's checkable requirements."""
+    if not ap:
+        return []
+    w = []
+    g, sex = _g(v, 'req_gender'), (ap['sex'] or '')
+    if g in ('Male', 'Female') and sex and sex != g:
+        w.append(f'Requires {g.lower()} applicants')
+    age = ap['age']
+    lo, hi = _g(v, 'req_age_min'), _g(v, 'req_age_max')
+    if age is not None:
+        if lo and age < lo:
+            w.append(f'Minimum age is {lo}')
+        if hi and age > hi:
+            w.append(f'Maximum age is {hi}')
+    need, have = _g(v, 'req_education'), (ap['educ_level'] or '')
+    if need in EDUC_RANK and have in EDUC_RANK and EDUC_RANK[have] < EDUC_RANK[need]:
+        w.append(f'Requires {need} or higher')
+    return w
+
+app.jinja_env.globals['req_summary'] = req_summary
+app.jinja_env.globals['req_warnings'] = req_warnings
+
 def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies):
     if pipeline is None:
         return []
@@ -483,6 +624,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
             'id':       v['id'],
             'title':    v['job_title'],
             'employer': v['employer_name'],
+            'info':     v,
         })
     results = []
     for rank, (cat_name, score) in enumerate(cat_scores, 1):
@@ -569,6 +711,9 @@ def inject_globals():
 # ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────
 _PHT = timedelta(hours=8)
 
+def _today_ph():
+    return (datetime.utcnow() + _PHT).strftime('%Y-%m-%d')
+
 @app.template_filter('friendly_dt')
 def friendly_dt(value):
     if not value:
@@ -577,6 +722,20 @@ def friendly_dt(value):
         try:
             dt = datetime.strptime(str(value), fmt) + _PHT
             return dt.strftime('%b %d, %Y · %I:%M %p').replace(' 0', ' ')
+        except ValueError:
+            continue
+    return str(value)
+
+@app.template_filter('friendly_date')
+def friendly_date(value):
+    if not value:
+        return ''
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d'):
+        try:
+            dt = datetime.strptime(str(value), fmt)
+            if fmt != '%Y-%m-%d':
+                dt += _PHT
+            return dt.strftime('%b %d, %Y').replace(' 0', ' ')
         except ValueError:
             continue
     return str(value)
@@ -593,7 +752,7 @@ def public_jobs():
     db = get_db()
     search   = request.args.get('search', '').strip()
     category = request.args.get('category', '')
-    conds, params = ['is_active=1'], []
+    conds, params = [OPEN_VACANCY_SQL], []
     if search:
         conds.append('(job_title LIKE ? OR employer_name LIKE ?)')
         like = f'%{search}%'
@@ -659,18 +818,29 @@ def logout():
 def register_jobseeker():
     if 'user_id' in session:
         return redirect(_role_home())
+    form_kwargs = dict(
+        educ_levels=EDUC_LEVELS,
+        barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
+        barangay_district_map=BARANGAY_DISTRICT,
+        positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
+        work_exp_list=WORK_EXPERIENCE_LIST,
+    )
     if request.method == 'POST':
-        f        = request.form
-        username = f.get('username', '').strip()
-        email    = f.get('email', '').strip()
-        pw       = f.get('password', '')
-        conf     = f.get('confirm_password', '')
-        first    = f.get('first_name', '').strip()
-        last     = f.get('last_name', '').strip()
+        f         = request.form
+        username  = f.get('username', '').strip()
+        email     = f.get('email', '').strip()
+        pw        = f.get('password', '')
+        conf      = f.get('confirm_password', '')
+        first     = f.get('first_name', '').strip()
+        last      = f.get('last_name', '').strip()
+        birthdate = f.get('birthdate', '').strip()
+        contact   = f.get('contact_number', '').strip()
 
         errs = []
-        if not all([username, email, pw, first, last]):
+        if not all([username, email, pw, first, last, birthdate]):
             errs.append('All required fields must be filled.')
+        if f.get('is_pwd') not in ('0', '1'):
+            errs.append('Please indicate whether you are a Person with Disability (PWD).')
         if pw != conf:
             errs.append('Passwords do not match.')
         if len(pw) < 8:
@@ -678,13 +848,20 @@ def register_jobseeker():
         if errs:
             for e in errs:
                 flash(e, 'danger')
-            return render_template('auth/register_jobseeker.html',
-                                   educ_levels=EDUC_LEVELS, form=f,
-                                   barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-                                   barangay_district_map=BARANGAY_DISTRICT,
-                                   positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-                                   work_exp_list=WORK_EXPERIENCE_LIST)
+            return render_template('auth/register_jobseeker.html', form=f, **form_kwargs)
+
         db = get_db()
+        if f.get('confirm_duplicate') != '1':
+            dup = find_duplicate_applicant(db, first, last, birthdate)
+            if dup:
+                msg = (f"A record for {dup['first_name']} {dup['last_name']} "
+                       f"(born {dup['birthdate']}) already exists")
+                if contact and dup['contact_number'] and contact == dup['contact_number']:
+                    msg += ', with the same contact number'
+                msg += '. If this is a different person, check the box below and submit again.'
+                flash(msg, 'warning')
+                return render_template('auth/register_jobseeker.html', form=f,
+                                       duplicate_warning=True, **form_kwargs)
         try:
             db.execute(
                 'INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?,?,?,?,?)',
@@ -693,64 +870,36 @@ def register_jobseeker():
             )
             db.commit()
             uid = db.execute('SELECT last_insert_rowid()').fetchone()[0]
-            age      = f.get('age', '').strip()
-            educ     = f.get('educ_level', '')
-            preferred= f.get('preferred_position', '').strip()
-            skills   = f.get('skills', '').strip()
-            work_exp = f.get('work_experience', '').strip()
-            barangay = f.get('barangay', '').strip()
-            sex      = f.get('sex', '')
-
-            # Match to an existing unlinked PEIS record (batch-uploaded walk-in)
-            existing = db.execute(
-                '''SELECT id FROM applicants
-                   WHERE LOWER(first_name)=LOWER(?)
-                     AND LOWER(last_name)=LOWER(?)
-                     AND LOWER(barangay)=LOWER(?)
-                     AND user_id IS NULL''',
-                (first, last, barangay)
-            ).fetchone()
-
-            if existing:
-                # Link the account and update profile fields from the registration form
-                db.execute('''
-                    UPDATE applicants
-                    SET user_id=?, sex=?, age=?, educ_level=?,
-                        preferred_position=?, skills=?, work_experience=?
-                    WHERE id=?
-                ''', (
-                    uid, sex,
-                    int(age) if age.isdigit() else None,
-                    educ, preferred, skills, work_exp,
-                    existing['id'],
-                ))
-            else:
-                db.execute('''
-                    INSERT INTO applicants
-                        (first_name, last_name, sex, age, barangay, district,
-                         employment_status, is_pwd, educ_level, preferred_position,
-                         skills, work_experience, user_id)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-                ''', (
-                    first, last, sex,
-                    int(age) if age.isdigit() else None,
-                    barangay,
-                    barangay_to_district(barangay),
-                    'Unemployed', 0,
-                    educ, preferred, skills, work_exp,
-                    uid,
-                ))
+            age = f.get('age', '').strip()
+            educ       = f.get('educ_level', '')
+            preferred  = f.get('preferred_position', '').strip()
+            skills     = f.get('skills', '').strip()
+            work_exp   = f.get('work_experience', '').strip()
+            barangay   = f.get('barangay', '').strip()
+            db.execute('''
+                INSERT INTO applicants
+                    (first_name, last_name, sex, age, barangay, district,
+                     employment_status, is_pwd, educ_level, preferred_position,
+                     skills, work_experience, birthdate, contact_number, user_id)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ''', (
+                first, last,
+                f.get('sex', ''),
+                int(age) if age.isdigit() else None,
+                barangay,
+                barangay_to_district(barangay),
+                'Unemployed',
+                1 if f.get('is_pwd') == '1' else 0,
+                educ, preferred, skills, work_exp,
+                birthdate, contact,
+                uid,
+            ))
             db.commit()
             flash('Account created! Please log in.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists.', 'danger')
-    return render_template('auth/register_jobseeker.html',
-                           educ_levels=EDUC_LEVELS, form={},
-                           barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-                           barangay_district_map=BARANGAY_DISTRICT,
-                           positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-                           work_exp_list=WORK_EXPERIENCE_LIST)
+    return render_template('auth/register_jobseeker.html', form={}, **form_kwargs)
 
 @app.route('/register/employer', methods=['GET', 'POST'])
 def register_employer():
@@ -858,7 +1007,7 @@ def jobseeker_dashboard():
         if pipeline and ap['educ_level'] and ap['preferred_position'] and ap['skills']:
             vacancies = db.execute(
                 'SELECT id, employer_name, job_title, occupational_category '
-                'FROM job_vacancies WHERE is_active=1'
+                f'FROM job_vacancies WHERE {OPEN_VACANCY_SQL}'
             ).fetchall()
             recs = get_recommendations(
                 ap['educ_level'], ap['preferred_position'],
@@ -891,7 +1040,8 @@ def jobseeker_profile():
         db.execute('''
             UPDATE applicants SET sex=?, age=?, barangay=?, district=?,
                 employment_status=?, is_pwd=?, educ_level=?,
-                preferred_position=?, skills=?, work_experience=?
+                preferred_position=?, skills=?, work_experience=?,
+                birthdate=?, contact_number=?
             WHERE id=?
         ''', (
             f.get('sex', ''),
@@ -903,6 +1053,8 @@ def jobseeker_profile():
             f.get('preferred_position', '').strip(),
             f.get('skills', '').strip(),
             f.get('work_experience', '').strip(),
+            f.get('birthdate', '').strip(),
+            f.get('contact_number', '').strip(),
             ap['id'],
         ))
         db.commit()
@@ -922,19 +1074,38 @@ def jobseeker_recommendations():
     db  = get_db()
     ap  = _get_my_applicant()
     results = []
-    if ap and ap['educ_level'] and ap['preferred_position'] and ap['skills']:
-        if pipeline:
-            vacancies = db.execute(
-                'SELECT id, employer_name, job_title, occupational_category '
-                'FROM job_vacancies WHERE is_active=1'
-            ).fetchall()
-            results = get_recommendations(
-                ap['educ_level'], ap['preferred_position'],
-                ap['skills'], ap['work_experience'] or '',
-                [dict(v) for v in vacancies]
-            )
+    generated = False
+    requested_ids = set()
+    profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
+    if profile_ok and request.args.get('generate') and pipeline:
+        vacancies = db.execute(
+            f'SELECT * FROM job_vacancies WHERE {OPEN_VACANCY_SQL}'
+        ).fetchall()
+        results = get_recommendations(
+            ap['educ_level'], ap['preferred_position'],
+            ap['skills'], ap['work_experience'] or '',
+            [dict(v) for v in vacancies]
+        )
+        generated = True
+        # Keep only the latest generated set for this applicant
+        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['id'],))
+        for cat in results:
+            for vac in cat['vacancies']:
+                db.execute(
+                    'INSERT INTO recommendations '
+                    '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
+                    (ap['id'], vac['id'], cat['suitability_score'], cat['rank'], session['user_id'])
+                )
+        db.commit()
+    if ap:
+        requested_ids = {r['vacancy_id'] for r in db.execute(
+            "SELECT vacancy_id FROM referral_requests "
+            "WHERE applicant_id=? AND vacancy_id IS NOT NULL AND status IN ('pending','reviewing','referred')",
+            (ap['id'],)
+        ).fetchall()}
     return render_template('jobseeker/recommendations.html',
-                           ap=ap, results=results,
+                           ap=ap, results=results, generated=generated,
+                           profile_ok=profile_ok, requested_ids=requested_ids,
                            pipeline_loaded=pipeline is not None)
 
 @app.route('/jobseeker/referrals')
@@ -942,24 +1113,32 @@ def jobseeker_recommendations():
 def jobseeker_referrals():
     db = get_db()
     ap = _get_my_applicant()
-    referrals = []
-    my_request = None
+    my_requests = []
     if ap:
-        referrals = db.execute('''
-            SELECT r.*, jv.job_title, jv.employer_name, jv.occupational_category,
-                   u.full_name as referred_by_name
+        # Requests, plus any referrals issued before the request flow existed
+        my_requests = db.execute('''
+            SELECT rr.requested_at AS at, rr.status, rr.notes,
+                   jv.job_title, jv.employer_name, jv.occupational_category,
+                   (SELECT r.status FROM referrals r
+                    WHERE r.applicant_id = rr.applicant_id AND r.vacancy_id = rr.vacancy_id
+                    ORDER BY r.id DESC LIMIT 1) AS outcome,
+                   (SELECT r.id FROM referrals r
+                    WHERE r.applicant_id = rr.applicant_id AND r.vacancy_id = rr.vacancy_id
+                    ORDER BY r.id DESC LIMIT 1) AS referral_id
+            FROM referral_requests rr
+            LEFT JOIN job_vacancies jv ON rr.vacancy_id = jv.id
+            WHERE rr.applicant_id = ?
+            UNION ALL
+            SELECT r.referred_at, 'referred', NULL,
+                   jv.job_title, jv.employer_name, jv.occupational_category, r.status, r.id
             FROM referrals r
             JOIN job_vacancies jv ON r.vacancy_id = jv.id
-            JOIN users u ON r.referred_by = u.id
             WHERE r.applicant_id = ?
-            ORDER BY r.referred_at DESC
-        ''', (ap['id'],)).fetchall()
-        my_request = db.execute(
-            "SELECT * FROM referral_requests WHERE applicant_id=? ORDER BY requested_at DESC LIMIT 1",
-            (ap['id'],)
-        ).fetchone()
-    return render_template('jobseeker/referrals.html', ap=ap,
-                           referrals=referrals, my_request=my_request)
+              AND NOT EXISTS (SELECT 1 FROM referral_requests rr
+                              WHERE rr.applicant_id = r.applicant_id AND rr.vacancy_id = r.vacancy_id)
+            ORDER BY at DESC
+        ''', (ap['id'], ap['id'])).fetchall()
+    return render_template('jobseeker/referrals.html', ap=ap, my_requests=my_requests)
 
 @app.route('/jobseeker/request-referral', methods=['POST'])
 @jobseeker_required
@@ -972,21 +1151,30 @@ def jobseeker_request_referral():
         flash('Please complete your profile (education level, preferred position, and skills) before requesting a referral.', 'warning')
         return redirect(url_for('jobseeker_profile'))
     db = get_db()
+    vacancy_id = request.form.get('vacancy_id', type=int)
+    jv = db.execute(
+        f'SELECT job_title, employer_name FROM job_vacancies WHERE id=? AND {OPEN_VACANCY_SQL}',
+        (vacancy_id,)
+    ).fetchone() if vacancy_id else None
+    back = url_for('jobseeker_recommendations') + '?generate=1'
+    if not jv:
+        flash('That job is no longer available or its application deadline has passed.', 'danger')
+        return redirect(back)
     existing = db.execute(
-        "SELECT id FROM referral_requests WHERE applicant_id=? AND status IN ('pending','reviewing')",
-        (ap['id'],)
+        "SELECT id FROM referral_requests WHERE applicant_id=? AND vacancy_id=? "
+        "AND status IN ('pending','reviewing','referred')",
+        (ap['id'], vacancy_id)
     ).fetchone()
     if existing:
-        flash('You already have a pending referral request. Please wait for PESO staff to review it.', 'info')
-        return redirect(url_for('jobseeker_referrals'))
-    message = request.form.get('message', '').strip()
+        flash(f'You already have a referral request for "{jv["job_title"]}".', 'info')
+        return redirect(back)
     db.execute(
-        'INSERT INTO referral_requests (applicant_id, message) VALUES (?,?)',
-        (ap['id'], message)
+        'INSERT INTO referral_requests (applicant_id, vacancy_id, message) VALUES (?,?,?)',
+        (ap['id'], vacancy_id, request.form.get('message', '').strip())
     )
     db.commit()
-    flash('Referral request submitted! PESO staff will review your profile and get back to you.', 'success')
-    return redirect(url_for('jobseeker_referrals'))
+    flash(f'Referral requested for "{jv["job_title"]}" ({jv["employer_name"]}). PESO staff will review it.', 'success')
+    return redirect(back)
 
 # ── EMPLOYER PORTAL ───────────────────────────────────────────────────────────
 def _get_my_employer():
@@ -1054,7 +1242,7 @@ def employer_vacancies():
     elif status == 'inactive':
         conds.append('is_active=0')
     vacancies = db.execute(
-        f'SELECT * FROM job_vacancies WHERE {" AND ".join(conds)} ORDER BY created_at DESC',
+        f'SELECT *, {EXPIRED_SQL} AS expired FROM job_vacancies WHERE {" AND ".join(conds)} ORDER BY created_at DESC',
         params
     ).fetchall()
     return render_template('employer/vacancies.html', emp=emp,
@@ -1069,23 +1257,31 @@ def employer_vacancy_add():
         return redirect(url_for('employer_pending'))
     if request.method == 'POST':
         f = request.form
+        req, err = parse_vacancy_requirements(f)
         if not f.get('job_title') or not f.get('occupational_category'):
-            flash('Job title and occupational category are required.', 'danger')
+            err = 'Job title and occupational category are required.'
+        elif not err and req['application_deadline'] and req['application_deadline'] < _today_ph():
+            err = 'Application deadline cannot be in the past.'
+        if err:
+            flash(err, 'danger')
             return render_template('employer/vacancy_form.html', emp=emp,
-                                   vacancy=f, categories=CATEGORY_LIST, action='add')
+                                   vacancy=f, categories=CATEGORY_LIST, action='add',
+                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
         get_db().execute(
             'INSERT INTO job_vacancies (employer_name, job_title, occupational_category, '
-            'is_local, employer_id) VALUES (?,?,?,?,?)',
+            'is_local, employer_id, ' + ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,?,' +
+            ','.join('?' * len(REQ_COLS)) + ')',
             (emp['company_name'], f.get('job_title', '').strip(),
              f.get('occupational_category', ''),
              1 if f.get('is_local', '1') == '1' else 0,
-             session['user_id'])
+             session['user_id'], *[req[c] for c in REQ_COLS])
         )
         get_db().commit()
         flash('Job vacancy posted.', 'success')
         return redirect(url_for('employer_vacancies'))
     return render_template('employer/vacancy_form.html', emp=emp,
-                           vacancy=None, categories=CATEGORY_LIST, action='add')
+                           vacancy=None, categories=CATEGORY_LIST, action='add',
+                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
 
 @app.route('/employer/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @employer_required
@@ -1103,16 +1299,27 @@ def employer_vacancy_edit(vid):
         return redirect(url_for('employer_vacancies'))
     if request.method == 'POST':
         f = request.form
+        req, err = parse_vacancy_requirements(f)
+        if (not err and req['application_deadline'] and req['application_deadline'] < _today_ph()
+                and req['application_deadline'] != v['application_deadline']):
+            err = 'Application deadline cannot be in the past.'
+        if err:
+            flash(err, 'danger')
+            return render_template('employer/vacancy_form.html', emp=emp,
+                                   vacancy={**dict(v), **f.to_dict()}, categories=CATEGORY_LIST,
+                                   action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
         db.execute(
-            'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=? WHERE id=?',
+            'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, ' +
+            ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE id=?',
             (f.get('job_title', '').strip(), f.get('occupational_category', ''),
-             1 if f.get('is_local', '1') == '1' else 0, vid)
+             1 if f.get('is_local', '1') == '1' else 0, *[req[c] for c in REQ_COLS], vid)
         )
         db.commit()
         flash('Vacancy updated.', 'success')
         return redirect(url_for('employer_vacancies'))
     return render_template('employer/vacancy_form.html', emp=emp,
-                           vacancy=dict(v), categories=CATEGORY_LIST, action='edit')
+                           vacancy=dict(v), categories=CATEGORY_LIST, action='edit',
+                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
 
 @app.route('/employer/vacancies/<int:vid>/toggle', methods=['POST'])
 @employer_required
@@ -1231,100 +1438,6 @@ def home():
                            recent_applicants=recent_applicants,
                            recent_referrals_rows=recent_referrals_rows)
 
-# ── RECOMMENDATION ────────────────────────────────────────────────────────────
-@app.route('/recommendation')
-@staff_required
-def recommendation():
-    db = get_db()
-    applicants = db.execute(
-        'SELECT id, first_name, last_name, educ_level, preferred_position, skills, work_experience '
-        'FROM applicants WHERE is_archived = 0 ORDER BY last_name, first_name'
-    ).fetchall()
-    results       = session.pop('rec_results', None)
-    input_profile = session.pop('rec_input', None)
-    sel_applicant = session.pop('rec_applicant', None)
-    preselect_id  = request.args.get('applicant_id')
-    return render_template('recommendation.html',
-                           applicants=applicants,
-                           results=results,
-                           input_profile=input_profile,
-                           sel_applicant=sel_applicant,
-                           preselect_id=preselect_id,
-                           pipeline_loaded=pipeline is not None)
-
-@app.route('/recommendation/generate', methods=['POST'])
-@staff_required
-def generate_recommendation():
-    db           = get_db()
-    mode         = request.form.get('mode', 'select')
-    applicant_id = request.form.get('applicant_id')
-    sel_applicant = None
-
-    if mode == 'select' and applicant_id:
-        ap = db.execute('SELECT * FROM applicants WHERE id = ? AND is_archived = 0',
-                        (applicant_id,)).fetchone()
-        if not ap:
-            flash('Applicant not found.', 'danger')
-            return redirect(url_for('recommendation'))
-        educ_level         = ap['educ_level']
-        preferred_position = ap['preferred_position']
-        skills             = ap['skills']
-        work_experience    = ap['work_experience'] or ''
-        sel_applicant = {
-            'id':         ap['id'],
-            'full_name':  f"{ap['first_name']} {ap['last_name']}",
-            'educ_level': ap['educ_level'],
-            'preferred_position': ap['preferred_position'],
-            'skills':     ap['skills'],
-            'work_experience': ap['work_experience'] or '',
-        }
-    else:
-        educ_level         = request.form.get('educ_level', '').strip()
-        preferred_position = request.form.get('preferred_position', '').strip()
-        skills             = request.form.get('skills', '').strip()
-        work_experience    = request.form.get('work_experience', '').strip()
-        applicant_id       = None
-
-    if not educ_level or not preferred_position or not skills:
-        flash('Education level, preferred position, and skills are required.', 'warning')
-        return redirect(url_for('recommendation'))
-
-    vacancies = db.execute(
-        'SELECT id, employer_name, job_title, occupational_category '
-        'FROM job_vacancies WHERE is_active = 1'
-    ).fetchall()
-
-    if not vacancies:
-        flash('No active job vacancies found. Please add vacancies first.', 'warning')
-        return redirect(url_for('recommendation'))
-
-    if pipeline is None:
-        flash('Recommendation engine is not available. The ML pipeline file was not found.', 'danger')
-        return redirect(url_for('recommendation'))
-
-    results = get_recommendations(educ_level, preferred_position, skills, work_experience,
-                                  [dict(v) for v in vacancies])
-
-    if applicant_id:
-        for cat in results:
-            for vac in cat['vacancies']:
-                db.execute(
-                    'INSERT INTO recommendations '
-                    '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
-                    (applicant_id, vac['id'], cat['suitability_score'], cat['rank'], session['user_id'])
-                )
-        db.commit()
-
-    session['rec_results']   = results
-    session['rec_input']     = {
-        'educ_level': educ_level,
-        'preferred_position': preferred_position,
-        'skills': skills,
-        'work_experience': work_experience,
-    }
-    session['rec_applicant'] = sel_applicant
-    return redirect(url_for('recommendation'))
-
 # ── ANALYTICS ─────────────────────────────────────────────────────────────────
 @app.route('/analytics')
 @staff_required
@@ -1434,43 +1547,59 @@ def applicants_list():
 @app.route('/applicants/register', methods=['GET', 'POST'])
 @staff_required
 def applicant_register():
+    form_kwargs = dict(
+        educ_levels=EDUC_LEVELS, action='register',
+        barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
+        barangay_district_map=BARANGAY_DISTRICT,
+        positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
+        work_exp_list=WORK_EXPERIENCE_LIST,
+    )
     if request.method == 'POST':
         f = request.form
-        if not f.get('first_name') or not f.get('last_name') or \
+        if not f.get('first_name') or not f.get('last_name') or not f.get('birthdate') or \
            not f.get('educ_level') or not f.get('preferred_position') or not f.get('skills'):
-            flash('First name, last name, education level, preferred position, and skills are required.', 'danger')
-            return render_template('applicants/form.html', applicant=f,
-                                   educ_levels=EDUC_LEVELS, action='register')
+            flash('First name, last name, date of birth, education level, preferred position, and skills are required.', 'danger')
+            return render_template('applicants/form.html', applicant=f, **form_kwargs)
+
         db = get_db()
+        first     = f.get('first_name', '').strip()
+        last      = f.get('last_name', '').strip()
+        birthdate = f.get('birthdate', '').strip()
+        contact   = f.get('contact_number', '').strip()
+
+        if f.get('confirm_duplicate') != '1':
+            dup = find_duplicate_applicant(db, first, last, birthdate)
+            if dup:
+                msg = (f"A record for {dup['first_name']} {dup['last_name']} "
+                       f"(born {dup['birthdate']}) already exists")
+                if contact and dup['contact_number'] and contact == dup['contact_number']:
+                    msg += ', with the same contact number'
+                msg += '. If this is a different person, check the box below and submit again.'
+                flash(msg, 'warning')
+                return render_template('applicants/form.html', applicant=f,
+                                       duplicate_warning=True, **form_kwargs)
+
         age = f.get('age', '').strip()
         peis_reg_date = f.get('peis_reg_date', '').strip() or None
         db.execute('''
             INSERT INTO applicants (first_name,last_name,sex,age,barangay,district,
                 employment_status,is_pwd,educ_level,preferred_position,skills,work_experience,
-                peis_reg_date)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                peis_reg_date,birthdate,contact_number)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ''', (
-            f.get('first_name','').strip(), f.get('last_name','').strip(),
+            first, last,
             f.get('sex',''), int(age) if age.isdigit() else None,
             f.get('barangay','').strip(), f.get('district',''),
             f.get('employment_status','Unemployed'),
             1 if f.get('is_pwd') else 0,
             f.get('educ_level',''), f.get('preferred_position','').strip(),
             f.get('skills','').strip(), f.get('work_experience','').strip(),
-            peis_reg_date,
+            peis_reg_date, birthdate, contact,
         ))
         db.commit()
-        new_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
         flash('Applicant registered successfully.', 'success')
-        if f.get('recommend_now'):
-            return redirect(url_for('recommendation') + f'?applicant_id={new_id}')
         return redirect(url_for('applicants_list'))
-    return render_template('applicants/form.html', applicant=None,
-                           educ_levels=EDUC_LEVELS, action='register',
-                           barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-                           barangay_district_map=BARANGAY_DISTRICT,
-                           positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-                           work_exp_list=WORK_EXPERIENCE_LIST)
+    return render_template('applicants/form.html', applicant=None, **form_kwargs)
 
 @app.route('/applicants/<int:aid>/edit', methods=['GET', 'POST'])
 @staff_required
@@ -1487,7 +1616,7 @@ def applicant_edit(aid):
         db.execute('''
             UPDATE applicants SET first_name=?,last_name=?,sex=?,age=?,barangay=?,district=?,
                 employment_status=?,is_pwd=?,educ_level=?,preferred_position=?,skills=?,
-                work_experience=?,peis_reg_date=? WHERE id=?
+                work_experience=?,peis_reg_date=?,birthdate=?,contact_number=? WHERE id=?
         ''', (
             f.get('first_name','').strip(), f.get('last_name','').strip(),
             f.get('sex',''), int(age) if age.isdigit() else None,
@@ -1496,7 +1625,7 @@ def applicant_edit(aid):
             1 if f.get('is_pwd') else 0,
             f.get('educ_level',''), f.get('preferred_position','').strip(),
             f.get('skills','').strip(), f.get('work_experience','').strip(),
-            peis_reg_date, aid,
+            peis_reg_date, f.get('birthdate','').strip(), f.get('contact_number','').strip(), aid,
         ))
         db.commit()
         flash('Applicant updated.', 'success')
@@ -1563,22 +1692,12 @@ def applicants_upload():
                 df = pd.read_excel(fpath, header=0)
             df.columns = [str(c).strip().upper() for c in df.columns]
             db = get_db()
-            ok, skip, duplicate, incomplete = 0, 0, 0, 0
+            ok, skip, incomplete = 0, 0, 0
             for idx, row in df.iterrows():
                 try:
                     rec = normalize_peis_row(row)
                     if rec is None:
                         skip += 1
-                        continue
-                    existing = db.execute(
-                        '''SELECT id FROM applicants
-                           WHERE LOWER(first_name)=LOWER(?)
-                             AND LOWER(last_name)=LOWER(?)
-                             AND LOWER(barangay)=LOWER(?)''',
-                        (rec['first_name'], rec['last_name'], rec['barangay'])
-                    ).fetchone()
-                    if existing:
-                        duplicate += 1
                         continue
                     if not rec['skills'] or not rec['educ_level'] or not rec['preferred_position']:
                         incomplete += 1
@@ -1598,12 +1717,8 @@ def applicants_upload():
                 except Exception:
                     skip += 1
             db.commit()
-            parts = [f'{ok} applicant(s) imported']
-            if duplicate:
-                parts.append(f'{duplicate} duplicate(s) skipped')
-            if skip:
-                parts.append(f'{skip} blank/invalid row(s) skipped')
-            flash('Upload complete: ' + ', '.join(parts) + '.',
+            flash(f'Upload complete: {ok} applicant(s) imported'
+                  + (f', {skip} blank row(s) skipped' if skip else '') + '.',
                   'success' if ok > 0 else 'warning')
             if incomplete:
                 flash(f'{incomplete} applicant(s) were imported with an incomplete profile '
@@ -1650,42 +1765,6 @@ def referrals_list():
     return render_template('staff/referrals.html', referrals=referrals,
                            status=status, search=search)
 
-@app.route('/referrals/issue', methods=['POST'])
-@staff_required
-def referral_issue():
-    applicant_id = request.form.get('applicant_id')
-    vacancy_id   = request.form.get('vacancy_id')
-    notes        = request.form.get('notes', '').strip()
-
-    if not applicant_id or not vacancy_id:
-        flash('Applicant and vacancy are required to issue a referral.', 'danger')
-        return redirect(url_for('recommendation'))
-
-    db = get_db()
-    # Verify applicant and vacancy exist
-    ap = db.execute('SELECT first_name, last_name FROM applicants WHERE id=?', (applicant_id,)).fetchone()
-    jv = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE id=?', (vacancy_id,)).fetchone()
-    if not ap or not jv:
-        flash('Applicant or vacancy not found.', 'danger')
-        return redirect(url_for('recommendation'))
-
-    # Prevent duplicate active referrals
-    existing = db.execute(
-        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status NOT IN ('not_hired')",
-        (applicant_id, vacancy_id)
-    ).fetchone()
-    if existing:
-        flash(f'{ap["first_name"]} {ap["last_name"]} has already been referred to "{jv["job_title"]}" at {jv["employer_name"]}.', 'warning')
-        return redirect(url_for('recommendation'))
-
-    db.execute(
-        'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, notes) VALUES (?,?,?,?)',
-        (applicant_id, vacancy_id, session['user_id'], notes)
-    )
-    db.commit()
-    flash(f'Referral issued: {ap["first_name"]} {ap["last_name"]} → {jv["job_title"]} ({jv["employer_name"]}).', 'success')
-    return redirect(url_for('recommendation'))
-
 @app.route('/referrals/<int:rid>/cancel', methods=['POST'])
 @staff_required
 def referral_cancel(rid):
@@ -1713,9 +1792,11 @@ def staff_referral_requests():
     reqs = db.execute(f'''
         SELECT rr.*,
                a.first_name, a.last_name, a.preferred_position, a.educ_level, a.skills,
+               jv.job_title, jv.employer_name,
                u.full_name as reviewer_name
         FROM referral_requests rr
         JOIN applicants a ON rr.applicant_id = a.id
+        LEFT JOIN job_vacancies jv ON rr.vacancy_id = jv.id
         LEFT JOIN users u ON rr.reviewed_by = u.id
         {where}
         ORDER BY rr.requested_at DESC
@@ -1734,8 +1815,9 @@ def staff_referral_requests():
 def staff_review_request(rid):
     db  = get_db()
     req = db.execute(
-        'SELECT rr.*, a.first_name, a.last_name '
-        'FROM referral_requests rr JOIN applicants a ON rr.applicant_id=a.id '
+        'SELECT rr.*, jv.job_title, jv.employer_name, jv.occupational_category, jv.is_active, '
+        'jv.created_at AS posted_at, ' + ', '.join('jv.' + c for c in REQ_COLS) + ' '
+        'FROM referral_requests rr LEFT JOIN job_vacancies jv ON rr.vacancy_id=jv.id '
         'WHERE rr.id=?', (rid,)
     ).fetchone()
     if not req:
@@ -1748,60 +1830,89 @@ def staff_review_request(rid):
         )
         db.commit()
     ap = db.execute('SELECT * FROM applicants WHERE id=?', (req['applicant_id'],)).fetchone()
-    results = []
-    if ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'] and pipeline:
-        vacancies = db.execute(
-            'SELECT id, employer_name, job_title, occupational_category '
-            'FROM job_vacancies WHERE is_active=1'
-        ).fetchall()
-        if vacancies:
-            results = get_recommendations(
-                ap['educ_level'], ap['preferred_position'],
-                ap['skills'], ap['work_experience'] or '',
-                [dict(v) for v in vacancies]
-            )
+    slip = db.execute(
+        'SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? ORDER BY id DESC LIMIT 1',
+        (req['applicant_id'], req['vacancy_id'])
+    ).fetchone() if req['status'] == 'referred' and req['vacancy_id'] else None
     return render_template('staff/review_request.html',
                            req=dict(req), ap=dict(ap) if ap else None,
-                           results=results, pipeline_loaded=pipeline is not None)
+                           warnings=req_warnings(req, ap),
+                           slip_id=slip['id'] if slip else None)
 
 @app.route('/staff/referral-requests/<int:rid>/refer', methods=['POST'])
 @staff_required
 def staff_refer_from_request(rid):
-    db         = get_db()
-    vacancy_id = request.form.get('vacancy_id')
-    notes      = request.form.get('notes', '').strip()
+    db    = get_db()
+    notes = request.form.get('notes', '').strip()
     req = db.execute('SELECT * FROM referral_requests WHERE id=?', (rid,)).fetchone()
     if not req:
         flash('Request not found.', 'danger')
         return redirect(url_for('staff_referral_requests'))
-    if not vacancy_id:
-        flash('No vacancy selected.', 'danger')
+    if req['status'] not in ('pending', 'reviewing'):
+        flash('This request has already been decided.', 'warning')
+        return redirect(url_for('staff_referral_requests'))
+    if not req['vacancy_id']:
+        flash('This request has no job selected, so it cannot be accepted.', 'danger')
         return redirect(url_for('staff_review_request', rid=rid))
     ap = db.execute('SELECT first_name, last_name FROM applicants WHERE id=?',
                     (req['applicant_id'],)).fetchone()
     jv = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE id=?',
-                    (vacancy_id,)).fetchone()
+                    (req['vacancy_id'],)).fetchone()
     if not ap or not jv:
         flash('Applicant or vacancy not found.', 'danger')
         return redirect(url_for('staff_review_request', rid=rid))
     existing = db.execute(
         "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status NOT IN ('not_hired','cancelled')",
-        (req['applicant_id'], vacancy_id)
+        (req['applicant_id'], req['vacancy_id'])
     ).fetchone()
     if existing:
         flash(f'{ap["first_name"]} {ap["last_name"]} is already actively referred to "{jv["job_title"]}".', 'warning')
         return redirect(url_for('staff_review_request', rid=rid))
-    db.execute(
+    cur = db.execute(
         'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, notes) VALUES (?,?,?,?)',
-        (req['applicant_id'], vacancy_id, session['user_id'], notes)
+        (req['applicant_id'], req['vacancy_id'], session['user_id'], notes)
     )
+    referral_id = cur.lastrowid
     db.execute(
-        "UPDATE referral_requests SET status='referred', reviewed_by=?, reviewed_at=CURRENT_TIMESTAMP WHERE id=?",
-        (session['user_id'], rid)
+        "UPDATE referral_requests SET status='referred', reviewed_by=?, reviewed_at=CURRENT_TIMESTAMP, notes=? WHERE id=?",
+        (session['user_id'], notes, rid)
     )
     db.commit()
-    flash(f'Referral issued: {ap["first_name"]} {ap["last_name"]} → {jv["job_title"]} ({jv["employer_name"]}).', 'success')
-    return redirect(url_for('staff_referral_requests'))
+    flash(f'Referral accepted: {ap["first_name"]} {ap["last_name"]} → {jv["job_title"]} ({jv["employer_name"]}).', 'success')
+    return redirect(url_for('referral_slip', rid=referral_id))
+
+@app.route('/referrals/<int:rid>/slip')
+@login_required
+def referral_slip(rid):
+    db = get_db()
+    r = db.execute('''
+        SELECT r.*, a.first_name, a.last_name, a.sex, a.age, a.barangay,
+               a.contact_number, a.educ_level, a.preferred_position, a.user_id AS applicant_user_id,
+               jv.job_title, jv.employer_name, jv.occupational_category, jv.employer_id,
+               jv.created_at AS posted_at, jv.application_deadline, jv.req_gender, jv.req_age_min,
+               jv.req_age_max, jv.req_education, jv.req_physical, jv.req_experience,
+               jv.req_other, jv.req_documents,
+               u.full_name AS accepted_by_name
+        FROM referrals r
+        JOIN applicants a     ON r.applicant_id = a.id
+        JOIN job_vacancies jv ON r.vacancy_id   = jv.id
+        JOIN users u          ON r.referred_by  = u.id
+        WHERE r.id=?
+    ''', (rid,)).fetchone()
+    role = session.get('role')
+    allowed = bool(r) and (
+        role in (ROLE_ADMIN, ROLE_STAFF)
+        or (role == ROLE_JOBSEEKER and r['applicant_user_id'] == session['user_id'])
+        or (role == ROLE_EMPLOYER and r['employer_id'] == session['user_id'])
+    )
+    if not allowed:
+        flash('Referral slip not found.', 'danger')
+        return redirect(_role_home())
+    back_url = {
+        ROLE_JOBSEEKER: url_for('jobseeker_referrals'),
+        ROLE_EMPLOYER:  url_for('employer_referred'),
+    }.get(role, url_for('staff_referral_requests'))
+    return render_template('referral_slip.html', r=r, back_url=back_url)
 
 @app.route('/staff/referral-requests/<int:rid>/reject', methods=['POST'])
 @staff_required
@@ -1811,6 +1922,9 @@ def staff_reject_request(rid):
     req   = db.execute('SELECT * FROM referral_requests WHERE id=?', (rid,)).fetchone()
     if not req:
         flash('Request not found.', 'danger')
+        return redirect(url_for('staff_referral_requests'))
+    if req['status'] not in ('pending', 'reviewing'):
+        flash('This request has already been decided.', 'warning')
         return redirect(url_for('staff_referral_requests'))
     db.execute(
         "UPDATE referral_requests SET status='rejected', reviewed_by=?, reviewed_at=CURRENT_TIMESTAMP, notes=? WHERE id=?",
@@ -1836,7 +1950,7 @@ def vacancies_list():
         conds.append('(employer_name LIKE ? OR job_title LIKE ?)')
         like = f'%{search}%'
         params += [like, like]
-    q = 'SELECT * FROM job_vacancies'
+    q = f'SELECT *, {EXPIRED_SQL} AS expired FROM job_vacancies'
     if conds:
         q += ' WHERE ' + ' AND '.join(conds)
     q += ' ORDER BY created_at DESC'
@@ -1850,20 +1964,29 @@ def vacancies_list():
 def vacancy_add():
     if request.method == 'POST':
         f = request.form
+        req, err = parse_vacancy_requirements(f)
         if not f.get('employer_name') or not f.get('job_title') or not f.get('occupational_category'):
-            flash('Employer name, job title, and occupational category are required.', 'danger')
+            err = 'Employer name, job title, and occupational category are required.'
+        elif not err and req['application_deadline'] and req['application_deadline'] < _today_ph():
+            err = 'Application deadline cannot be in the past.'
+        if err:
+            flash(err, 'danger')
             return render_template('vacancies/form.html', vacancy=f,
-                                   categories=CATEGORY_LIST, action='add')
+                                   categories=CATEGORY_LIST, action='add',
+                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
         get_db().execute(
-            'INSERT INTO job_vacancies (employer_name,job_title,occupational_category,is_local) VALUES (?,?,?,?)',
+            'INSERT INTO job_vacancies (employer_name,job_title,occupational_category,is_local,' +
+            ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,' + ','.join('?' * len(REQ_COLS)) + ')',
             (f.get('employer_name','').strip(), f.get('job_title','').strip(),
-             f.get('occupational_category',''), 1 if f.get('is_local','1')=='1' else 0)
+             f.get('occupational_category',''), 1 if f.get('is_local','1')=='1' else 0,
+             *[req[c] for c in REQ_COLS])
         )
         get_db().commit()
         flash('Job vacancy added.', 'success')
         return redirect(url_for('vacancies_list'))
     return render_template('vacancies/form.html', vacancy=None,
-                           categories=CATEGORY_LIST, action='add')
+                           categories=CATEGORY_LIST, action='add',
+                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
 
 @app.route('/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @staff_required
@@ -1875,16 +1998,28 @@ def vacancy_edit(vid):
         return redirect(url_for('vacancies_list'))
     if request.method == 'POST':
         f = request.form
+        req, err = parse_vacancy_requirements(f)
+        if (not err and req['application_deadline'] and req['application_deadline'] < _today_ph()
+                and req['application_deadline'] != v['application_deadline']):
+            err = 'Application deadline cannot be in the past.'
+        if err:
+            flash(err, 'danger')
+            return render_template('vacancies/form.html', vacancy={**dict(v), **f.to_dict()},
+                                   categories=CATEGORY_LIST, action='edit',
+                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
         db.execute(
-            'UPDATE job_vacancies SET employer_name=?,job_title=?,occupational_category=?,is_local=? WHERE id=?',
+            'UPDATE job_vacancies SET employer_name=?,job_title=?,occupational_category=?,is_local=?,' +
+            ','.join(f'{c}=?' for c in REQ_COLS) + ' WHERE id=?',
             (f.get('employer_name','').strip(), f.get('job_title','').strip(),
-             f.get('occupational_category',''), 1 if f.get('is_local','1')=='1' else 0, vid)
+             f.get('occupational_category',''), 1 if f.get('is_local','1')=='1' else 0,
+             *[req[c] for c in REQ_COLS], vid)
         )
         db.commit()
         flash('Vacancy updated.', 'success')
         return redirect(url_for('vacancies_list'))
     return render_template('vacancies/form.html', vacancy=dict(v),
-                           categories=CATEGORY_LIST, action='edit')
+                           categories=CATEGORY_LIST, action='edit',
+                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
 
 @app.route('/vacancies/<int:vid>/toggle', methods=['POST'])
 @staff_required
@@ -1988,26 +2123,6 @@ def user_edit(uid):
     if not u:
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
-
-    ep = None  # employer profile
-    ap = None  # applicant/jobseeker profile
-    if u['role'] == ROLE_EMPLOYER:
-        row = db.execute('SELECT * FROM employers WHERE user_id=?', (uid,)).fetchone()
-        ep = dict(row) if row else {}
-    elif u['role'] == ROLE_JOBSEEKER:
-        row = db.execute('SELECT * FROM applicants WHERE user_id=?', (uid,)).fetchone()
-        ap = dict(row) if row else {}
-
-    def _render(user_override=None):
-        return render_template('users/form.html',
-            user=user_override or dict(u), action='edit',
-            employer_profile=ep, applicant_profile=ap,
-            educ_levels=EDUC_LEVELS,
-            barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-            barangay_district_map=BARANGAY_DISTRICT,
-            positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-            work_exp_list=WORK_EXPERIENCE_LIST)
-
     if request.method == 'POST':
         f        = request.form
         name     = f.get('full_name','').strip()
@@ -2015,90 +2130,30 @@ def user_edit(uid):
         username = f.get('username','').strip()
         pw       = f.get('new_password','')
         new_role = f.get('role', u['role'])
+        # Prevent removing the last admin
         if u['role'] == ROLE_ADMIN and new_role != ROLE_ADMIN:
-            admin_count = db.execute(
+            admin_count = get_db().execute(
                 "SELECT COUNT(*) FROM users WHERE role='admin'"
             ).fetchone()[0]
             if admin_count <= 1:
                 flash('Cannot remove admin role — at least one admin must exist.', 'danger')
-                return _render()
-        if pw and len(pw) < 8:
-            flash('Password must be at least 8 characters.', 'danger')
-            return _render()
+                return render_template('users/form.html', user=dict(u), action='edit')
         try:
             if pw:
+                if len(pw) < 8:
+                    flash('Password must be at least 8 characters.', 'danger')
+                    return render_template('users/form.html', user=dict(u), action='edit')
                 db.execute('UPDATE users SET full_name=?,username=?,email=?,password_hash=?,role=? WHERE id=?',
                            (name, username, mail, generate_password_hash(pw), new_role, uid))
             else:
                 db.execute('UPDATE users SET full_name=?,username=?,email=?,role=? WHERE id=?',
                            (name, username, mail, new_role, uid))
-
-            if u['role'] == ROLE_EMPLOYER:
-                company  = f.get('company_name', '').strip()
-                contact  = f.get('contact_person', '').strip()
-                phone    = f.get('phone', '').strip()
-                address  = f.get('address', '').strip()
-                if db.execute('SELECT id FROM employers WHERE user_id=?', (uid,)).fetchone():
-                    db.execute(
-                        'UPDATE employers SET company_name=?,contact_person=?,phone=?,address=? WHERE user_id=?',
-                        (company, contact, phone, address, uid))
-                else:
-                    db.execute(
-                        'INSERT INTO employers (user_id,company_name,contact_person,phone,address) VALUES (?,?,?,?,?)',
-                        (uid, company, contact, phone, address))
-
-            elif u['role'] == ROLE_JOBSEEKER:
-                ap_row = db.execute('SELECT id FROM applicants WHERE user_id=?', (uid,)).fetchone()
-                if ap_row:
-                    db.execute('''
-                        UPDATE applicants SET sex=?,age=?,barangay=?,district=?,
-                            employment_status=?,is_pwd=?,educ_level=?,
-                            preferred_position=?,skills=?,work_experience=?
-                        WHERE user_id=?
-                    ''', (
-                        f.get('sex', ''),
-                        f.get('age', '') or None,
-                        f.get('barangay', '').strip(),
-                        f.get('district', '').strip(),
-                        f.get('employment_status', 'Unemployed'),
-                        1 if f.get('is_pwd') else 0,
-                        f.get('educ_level', ''),
-                        f.get('preferred_position', '').strip(),
-                        f.get('skills', '').strip(),
-                        f.get('work_experience', '').strip(),
-                        uid,
-                    ))
-
             db.commit()
             flash('User updated.', 'success')
-            return redirect(url_for('users_list', role=u['role']))
+            return redirect(url_for('users_list'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists.', 'danger')
-    return _render()
-
-TEMP_PASSWORDS = {
-    ROLE_STAFF:     'Staff@1234',
-    ROLE_EMPLOYER:  'Employer@1234',
-    ROLE_JOBSEEKER: 'Seeker@1234',
-}
-
-@app.route('/users/<int:uid>/reset-password', methods=['POST'])
-@admin_required
-def user_reset_password(uid):
-    db = get_db()
-    u  = db.execute('SELECT full_name, role FROM users WHERE id=?', (uid,)).fetchone()
-    if not u:
-        flash('User not found.', 'danger')
-        return redirect(url_for('users_list'))
-    temp_pw = TEMP_PASSWORDS.get(u['role'])
-    if not temp_pw:
-        flash('Password reset is not available for this role.', 'danger')
-        return redirect(url_for('user_edit', uid=uid))
-    db.execute('UPDATE users SET password_hash=? WHERE id=?',
-               (generate_password_hash(temp_pw), uid))
-    db.commit()
-    flash(f'Password for {u["full_name"]} has been reset to: {temp_pw}', 'success')
-    return redirect(url_for('user_edit', uid=uid))
+    return render_template('users/form.html', user=dict(u), action='edit')
 
 @app.route('/users/<int:uid>/delete', methods=['POST'])
 @admin_required
@@ -2205,6 +2260,45 @@ def admin_employer_reject(eid):
     flash(f'Employer "{emp["company_name"]}" rejected/deactivated.', 'warning')
     return redirect(url_for('admin_employers'))
 
+# ── AUTO-DEPLOY WEBHOOK (GitHub push -> git pull -> reload) ───────────────────
+# Disabled unless DEPLOY_WEBHOOK_SECRET is set (only done on the hosted server).
+# Optional: PESO_WSGI_FILE = path of the PythonAnywhere WSGI file to touch (reload).
+@app.route('/_deploy', methods=['POST'])
+def deploy_webhook():
+    import hmac, hashlib, subprocess
+
+    secret = os.environ.get('DEPLOY_WEBHOOK_SECRET', '')
+    if not secret:
+        return ('Not found', 404)
+
+    body = request.get_data()
+    expected = 'sha256=' + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, request.headers.get('X-Hub-Signature-256', '')):
+        return ('Forbidden', 403)
+
+    event = request.headers.get('X-GitHub-Event', '')
+    if event == 'ping':
+        return jsonify(ok=True, msg='pong')
+    if event != 'push':
+        return jsonify(ok=True, msg='ignored event')
+    payload = request.get_json(silent=True) or {}
+    if payload.get('ref') != 'refs/heads/main':
+        return jsonify(ok=True, msg='ignored branch')
+
+    repo_dir = os.path.dirname(BASE_DIR)
+    try:
+        result = subprocess.run(['git', 'pull', '--ff-only'], cwd=repo_dir,
+                                capture_output=True, text=True, timeout=60)
+    except Exception as exc:
+        return jsonify(ok=False, error=str(exc)), 500
+    if result.returncode != 0:
+        return jsonify(ok=False, output=(result.stdout + result.stderr)[-500:]), 500
+
+    wsgi_file = os.environ.get('PESO_WSGI_FILE')
+    if wsgi_file and os.path.exists(wsgi_file):
+        os.utime(wsgi_file, None)   # touching the WSGI file reloads the app
+    return jsonify(ok=True, output=result.stdout[-500:])
+
 # ── STARTUP ───────────────────────────────────────────────────────────────────
 init_db()
 load_pipeline()
@@ -2213,5 +2307,6 @@ if __name__ == '__main__':
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
     print("PESO CSJDM running at: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)

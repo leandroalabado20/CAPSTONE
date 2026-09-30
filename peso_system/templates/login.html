@@ -4,16 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login &mdash; PESO CSJDM Job Recommendation System</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/peso_logo.png') }}" />
+  <script>
+  (function(){try{if(localStorage.getItem('peso-theme')==='dark'){var r=document.documentElement;r.setAttribute('data-theme','dark');r.setAttribute('data-bs-theme','dark');r.setAttribute('data-coreui-theme','dark');}}catch(e){}})();
+  </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/css/coreui.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
 </head>
 <body class="login-body d-flex align-items-center justify-content-center">
 
+<button type="button" class="theme-toggle-btn theme-toggle-btn-inverse"
+        style="position:fixed;top:1.25rem;right:1.25rem;"
+        aria-label="Toggle dark mode" title="Toggle dark mode">
+  <i class="bi bi-moon-stars-fill"></i>
+</button>
+
 <div class="login-card card shadow-lg p-4" style="width:100%;max-width:420px;">
   <div class="text-center mb-4">
     <div class="login-icon mb-3">
-      <i class="bi bi-briefcase-fill"></i>
+      <img src="{{ url_for('static', filename='img/peso_logo.png') }}" alt="PESO CSJDM" />
     </div>
     <h4 class="fw-bold">PESO CSJDM</h4>
     <p class="text-muted small mb-0">Job Recommendation System</p>
@@ -69,6 +79,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script>
   function togglePw() {
     const pw  = document.getElementById('pw');

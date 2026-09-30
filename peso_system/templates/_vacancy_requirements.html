@@ -1,0 +1,71 @@
+{# Shared by the employer and staff vacancy forms. Expects: vacancy, educ_choices, today, action #}
+<hr class="my-4" />
+<h6 class="fw-bold mb-3"><i class="bi bi-calendar-event me-1"></i>Posting Dates</h6>
+<div class="row g-3 mb-4">
+  <div class="col-sm-6">
+    <label class="form-label fw-semibold">Date Posted</label>
+    <input type="text" class="form-control" disabled
+           value="{% if action == 'edit' and vacancy and vacancy.created_at %}{{ vacancy.created_at|friendly_date }}{% else %}{{ today|friendly_date }} (automatic){% endif %}" />
+  </div>
+  <div class="col-sm-6">
+    <label class="form-label fw-semibold">Application Deadline <span class="text-muted fw-normal">(optional)</span></label>
+    <input type="date" name="application_deadline" class="form-control" min="{{ today }}"
+           value="{{ vacancy.application_deadline if vacancy and vacancy.application_deadline else '' }}" />
+    <div class="form-text">Leave blank to keep the posting open until you deactivate it.</div>
+  </div>
+</div>
+
+<h6 class="fw-bold mb-3"><i class="bi bi-person-check me-1"></i>Applicant Requirements <span class="text-muted fw-normal small">(all optional)</span></h6>
+<div class="row g-3 mb-3">
+  <div class="col-sm-4">
+    <label class="form-label fw-semibold">Gender</label>
+    <select name="req_gender" class="form-select">
+      {% for g in ['Any', 'Male', 'Female'] %}
+      <option value="{{ g }}" {% if (vacancy.req_gender if vacancy else 'Any') == g %}selected{% endif %}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-sm-4">
+    <label class="form-label fw-semibold">Minimum Age</label>
+    <input type="number" name="req_age_min" class="form-control" min="15" max="99" placeholder="e.g. 18"
+           value="{{ vacancy.req_age_min if vacancy and vacancy.req_age_min else '' }}" />
+  </div>
+  <div class="col-sm-4">
+    <label class="form-label fw-semibold">Maximum Age</label>
+    <input type="number" name="req_age_max" class="form-control" min="15" max="99" placeholder="e.g. 25"
+           value="{{ vacancy.req_age_max if vacancy and vacancy.req_age_max else '' }}" />
+  </div>
+</div>
+<div class="mb-3">
+  <label class="form-label fw-semibold">Minimum Education</label>
+  <select name="req_education" class="form-select">
+    <option value="">No requirement</option>
+    {% for e in educ_choices %}
+    <option value="{{ e }}" {% if vacancy and vacancy.req_education == e %}selected{% endif %}>{{ e }}</option>
+    {% endfor %}
+  </select>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-sm-6">
+    <label class="form-label fw-semibold">Physical Requirements</label>
+    <input type="text" name="req_physical" class="form-control" maxlength="150" placeholder="e.g. Physically fit"
+           value="{{ vacancy.req_physical if vacancy and vacancy.req_physical else '' }}" />
+  </div>
+  <div class="col-sm-6">
+    <label class="form-label fw-semibold">Work Experience</label>
+    <input type="text" name="req_experience" class="form-control" maxlength="150" placeholder="e.g. At least 6 months in retail"
+           value="{{ vacancy.req_experience if vacancy and vacancy.req_experience else '' }}" />
+  </div>
+</div>
+
+<h6 class="fw-bold mb-3 mt-4"><i class="bi bi-list-check me-1"></i>Requirements</h6>
+<div class="mb-3">
+  <label class="form-label fw-semibold">Other Qualifications / Requirements</label>
+  <textarea name="req_other" rows="3" class="form-control" maxlength="1000"
+            placeholder="e.g. Willing to work night shifts; can read and write in English">{{ vacancy.req_other if vacancy and vacancy.req_other else '' }}</textarea>
+</div>
+<div class="mb-4">
+  <label class="form-label fw-semibold">Documents Needed</label>
+  <textarea name="req_documents" rows="2" class="form-control" maxlength="500"
+            placeholder="e.g. Resume, Barangay Clearance, NBI Clearance">{{ vacancy.req_documents if vacancy and vacancy.req_documents else '' }}</textarea>
+</div>

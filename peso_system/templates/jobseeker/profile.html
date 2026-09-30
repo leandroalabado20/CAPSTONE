@@ -41,7 +41,7 @@
     <div class="col-12">
       <div class="card shadow-sm border-0" style="border-radius:12px;">
         <div class="card-header bg-transparent fw-semibold py-2 px-3 border-bottom"
-             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:#64748b;">
+             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--peso-muted);">
           Account
         </div>
         <div class="card-body p-3">
@@ -72,7 +72,7 @@
     <div class="col-12">
       <div class="card shadow-sm border-0" style="border-radius:12px;">
         <div class="card-header bg-transparent fw-semibold py-2 px-3 border-bottom"
-             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:#64748b;">
+             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--peso-muted);">
           Personal Information
         </div>
         <div class="card-body p-3">
@@ -98,6 +98,16 @@
                 <label class="form-check-label small" for="is_pwd">Person with Disability</label>
               </div>
             </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Date of Birth</label>
+              <input type="date" name="birthdate" class="form-control"
+                     value="{{ ap.birthdate or '' }}" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Contact Number</label>
+              <input type="text" name="contact_number" class="form-control"
+                     value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX" />
+            </div>
 
             <!-- Barangay with datalist + auto-fill district -->
             <div class="col-sm-6">
@@ -117,8 +127,7 @@
               <label class="form-label fw-semibold small">District</label>
               <input type="text" name="district" id="district-input" class="form-control"
                      value="{{ ap.district or '' }}"
-                     placeholder="Auto-filled from barangay" readonly
-                     style="background:#f8fafc;" />
+                     placeholder="Auto-filled from barangay" readonly />
             </div>
 
             <div class="col-sm-6">
@@ -137,7 +146,7 @@
     <div class="col-12">
       <div class="card shadow-sm border-0" style="border-radius:12px;">
         <div class="card-header bg-transparent fw-semibold py-2 px-3 border-bottom"
-             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:#64748b;">
+             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--peso-muted);">
           Job Profile <span class="ms-1 text-primary fw-normal">(used for ML recommendations)</span>
         </div>
         <div class="card-body p-3">

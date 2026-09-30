@@ -42,6 +42,22 @@
       </div>
       {% endif %}
 
+      {% if duplicate_warning %}
+      <div class="alert alert-warning d-flex align-items-start gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <div>
+          <div>A possible duplicate was found — see the message above.</div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="confirm_duplicate" value="1"
+                   id="confirm_duplicate" required>
+            <label class="form-check-label fw-semibold" for="confirm_duplicate">
+              Yes, this is a different person — register anyway
+            </label>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- ── Personal Information ──────────────────────────────────────────── -->
       <h6 class="text-primary fw-bold mb-3 border-bottom pb-1">
         <i class="bi bi-person me-2"></i>Personal Information
@@ -62,6 +78,18 @@
           <label class="form-label fw-semibold">Age</label>
           <input type="number" name="age" class="form-control" min="0" max="120"
                  value="{{ applicant.age if applicant and applicant.age is not none else '' }}" />
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+          <input type="date" name="birthdate" class="form-control"
+                 value="{{ applicant.birthdate if applicant and applicant.birthdate else '' }}" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Contact Number</label>
+          <input type="text" name="contact_number" class="form-control"
+                 value="{{ applicant.contact_number if applicant and applicant.contact_number else '' }}"
+                 placeholder="09XXXXXXXXX" />
         </div>
 
         <div class="col-md-3">
@@ -92,8 +120,7 @@
           <label class="form-label fw-semibold">District</label>
           <input type="text" name="district" id="district-input" class="form-control"
                  value="{{ applicant.district if applicant else '' }}"
-                 placeholder="Auto-filled from barangay" readonly
-                 style="background:#f8fafc;" />
+                 placeholder="Auto-filled from barangay" readonly />
         </div>
 
         <div class="col-md-4">
@@ -199,11 +226,6 @@
           <i class="bi bi-save me-1"></i>
           {% if action == 'register' %}Register Applicant{% else %}Save Changes{% endif %}
         </button>
-        {% if action == 'register' %}
-        <button type="submit" name="recommend_now" value="1" class="btn btn-success fw-semibold">
-          <i class="bi bi-stars me-1"></i>Register &amp; Generate Recommendation
-        </button>
-        {% endif %}
         <a href="{{ url_for('applicants_list') }}" class="btn btn-outline-secondary">Cancel</a>
       </div>
 

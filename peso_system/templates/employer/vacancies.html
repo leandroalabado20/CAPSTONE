@@ -43,8 +43,10 @@
           </span>
         </div>
         <div class="text-muted small mt-2">
-          <i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_dt }}
+          <i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_date }}
+          {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis ms-1">Expired</span>{% endif %}
         </div>
+        <div class="mt-1">{% include '_vacancy_details.html' %}</div>
       </div>
       <div class="card-footer bg-transparent border-top px-3 pb-2 pt-2 d-flex gap-2">
         <a href="{{ url_for('employer_vacancy_edit', vid=v.id) }}"

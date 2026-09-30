@@ -38,6 +38,7 @@
               <label class="form-check-label" for="is_local">Local vacancy (within CSJDM)</label>
             </div>
           </div>
+          {% include '_vacancy_requirements.html' %}
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary fw-semibold">
               <i class="bi bi-check2 me-1"></i>{{ 'Save Changes' if action == 'edit' else 'Post Vacancy' }}

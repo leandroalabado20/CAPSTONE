@@ -39,6 +39,22 @@
         <div class="card-body p-4">
           <form method="POST" action="{{ url_for('register_jobseeker') }}">
 
+            {% if duplicate_warning %}
+            <div class="alert alert-warning d-flex align-items-start gap-2">
+              <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+              <div>
+                <div>A possible duplicate was found — see the message above.</div>
+                <div class="form-check mt-2">
+                  <input class="form-check-input" type="checkbox" name="confirm_duplicate" value="1"
+                         id="confirm_duplicate" required>
+                  <label class="form-check-label fw-semibold" for="confirm_duplicate">
+                    Yes, this is a different person — register anyway
+                  </label>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
             <p class="fw-semibold text-muted mb-3"
                style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
               Account Details
@@ -55,14 +71,24 @@
                        value="{{ form.get('last_name','') }}" required />
               </div>
               <div class="col-sm-6">
-                <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-                <input type="text" name="username" class="form-control"
-                       value="{{ form.get('username','') }}" required autocomplete="username" />
+                <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                <input type="date" name="birthdate" class="form-control"
+                       value="{{ form.get('birthdate','') }}" required />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Contact Number</label>
+                <input type="text" name="contact_number" class="form-control"
+                       value="{{ form.get('contact_number','') }}" placeholder="09XXXXXXXXX" />
               </div>
               <div class="col-sm-6">
                 <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                 <input type="email" name="email" class="form-control"
                        value="{{ form.get('email','') }}" required />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                <input type="text" name="username" class="form-control"
+                       value="{{ form.get('username','') }}" required autocomplete="username" />
               </div>
               <div class="col-sm-6">
                 <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
@@ -78,10 +104,6 @@
             </div>
 
             <hr class="my-3" />
-            <p class="fw-semibold text-muted mb-3"
-               style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">
-              Your Profile <span class="fw-normal">(fill now or complete later)</span>
-            </p>
 
             <div class="row g-3">
               <div class="col-sm-6">
@@ -116,8 +138,7 @@
                 <label class="form-label fw-semibold">District</label>
                 <input type="text" name="district" id="district-input" class="form-control"
                        value="{{ form.get('district','') }}"
-                       placeholder="Auto-filled from barangay" readonly
-                       style="background:#f8fafc;" />
+                       placeholder="Auto-filled from barangay" readonly />
               </div>
 
               <div class="col-sm-6">
@@ -143,6 +164,22 @@
                   <option value="{{ p }}">{{ p }}</option>
                   {% endfor %}
                 </datalist>
+              </div>
+
+              <div class="col-sm-6">
+                <label class="form-label fw-semibold">Person with Disability (PWD)? <span class="text-danger">*</span></label>
+                <div class="d-flex gap-3 mt-2">
+                  <div class="form-check">
+                    <input type="radio" name="is_pwd" value="1" class="form-check-input" id="pwd_yes" required
+                           {% if form.get('is_pwd')=='1' %}checked{% endif %} />
+                    <label class="form-check-label" for="pwd_yes">Yes</label>
+                  </div>
+                  <div class="form-check">
+                    <input type="radio" name="is_pwd" value="0" class="form-check-input" id="pwd_no" required
+                           {% if form.get('is_pwd')=='0' %}checked{% endif %} />
+                    <label class="form-check-label" for="pwd_no">No</label>
+                  </div>
+                </div>
               </div>
 
               <!-- Skills with chip selector -->

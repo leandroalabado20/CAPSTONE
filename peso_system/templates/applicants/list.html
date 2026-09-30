@@ -105,7 +105,6 @@
           <td class="small">{{ ap.barangay or '—' }}</td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
-              <a href="{{ url_for('recommendation') }}?applicant_id={{ ap.id }}" class="btn btn-sm btn-success" title="Generate recommendation"><i class="bi bi-stars"></i></a>
               <a href="{{ url_for('applicant_edit', aid=ap.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
               {% if archived %}
               <form method="POST" action="{{ url_for('applicant_restore', aid=ap.id) }}" style="display:inline;">
@@ -156,9 +155,6 @@
         </div>
       </div>
       <div class="card-footer bg-transparent d-flex gap-1 pt-2">
-        <a href="{{ url_for('recommendation') }}?applicant_id={{ ap.id }}" class="btn btn-sm btn-success flex-fill" title="Generate recommendation">
-          <i class="bi bi-stars me-1"></i>Recommend
-        </a>
         <a href="{{ url_for('applicant_edit', aid=ap.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
         {% if archived %}
         <form method="POST" action="{{ url_for('applicant_restore', aid=ap.id) }}" style="display:inline;">

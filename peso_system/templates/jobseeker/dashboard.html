@@ -138,36 +138,36 @@
   <div class="col-sm-3">
     <a href="{{ url_for('jobseeker_profile') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
       <i class="bi bi-person-circle text-primary fs-4"></i>
-      <span class="fw-semibold small text-dark">Edit Profile</span>
+      <span class="fw-semibold small">Edit Profile</span>
     </a>
   </div>
   <div class="col-sm-3">
     <a href="{{ url_for('jobseeker_recommendations') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
       <i class="bi bi-stars text-success fs-4"></i>
-      <span class="fw-semibold small text-dark">Recommendations</span>
+      <span class="fw-semibold small">Recommendations</span>
     </a>
   </div>
   <div class="col-sm-3">
     <a href="{{ url_for('jobseeker_referrals') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
       <i class="bi bi-send-fill text-warning fs-4"></i>
-      <span class="fw-semibold small text-dark">My Referrals</span>
+      <span class="fw-semibold small">My Referrals</span>
     </a>
   </div>
   <div class="col-sm-3">
     <a href="{{ url_for('public_jobs') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
       <i class="bi bi-list-task text-info fs-4"></i>
-      <span class="fw-semibold small text-dark">Browse Jobs</span>
+      <span class="fw-semibold small">Browse Jobs</span>
     </a>
   </div>
 </div>
 
 <!-- Request Referral CTA -->
 {% if ap and ap.educ_level and ap.preferred_position and ap.skills %}
-<div class="card border-0 shadow-sm mt-3" style="border-radius:12px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);">
+<div class="card border-0 shadow-sm mt-3" style="border-radius:12px;background:linear-gradient(135deg,var(--peso-cta-a),var(--peso-cta-b));color:var(--peso-text);">
   <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
     <div>
       <div class="fw-bold mb-1"><i class="bi bi-bell-fill text-primary me-2"></i>Ready for a referral?</div>
-      <p class="text-muted small mb-0">
+      <p class="small mb-0" style="color:var(--peso-muted);">
         Submit a request and PESO staff will review your profile and match you to a job vacancy.
       </p>
     </div>

@@ -11,7 +11,7 @@
   {% set tabs = [
     ('pending',   'Pending',   'warning',   counts.pending),
     ('reviewing', 'Reviewing', 'primary',   counts.reviewing),
-    ('referred',  'Referred',  'success',   counts.referred),
+    ('referred',  'Accepted',  'success',   counts.referred),
     ('rejected',  'Rejected',  'secondary', counts.rejected),
     ('all',       'All',       'dark',      counts.pending + counts.reviewing + counts.referred + counts.rejected),
   ] %}
@@ -30,7 +30,7 @@
     <thead style="background:#f8fafc;font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">
       <tr>
         <th class="px-3 py-2">Jobseeker</th>
-        <th class="py-2">Preferred Position</th>
+        <th class="py-2">Requested Job</th>
         <th class="py-2">Education</th>
         <th class="py-2">Requested</th>
         <th class="py-2">Status</th>
@@ -46,7 +46,12 @@
           <div class="text-muted" style="font-size:.72rem;"><i class="bi bi-chat-left-text me-1"></i>{{ r.message|truncate(60) }}</div>
           {% endif %}
         </td>
-        <td class="py-2 small">{{ r.preferred_position or '—' }}</td>
+        <td class="py-2 small">
+          {% if r.job_title %}
+          <div class="fw-semibold">{{ r.job_title }}</div>
+          <div class="text-muted" style="font-size:.72rem;">{{ r.employer_name }}</div>
+          {% else %}<span class="text-muted">—</span>{% endif %}
+        </td>
         <td class="py-2 small text-muted">{{ r.educ_level or '—' }}</td>
         <td class="py-2 small text-muted">{{ r.requested_at|friendly_dt }}</td>
         <td class="py-2">
@@ -60,7 +65,7 @@
           </span>
           {% elif r.status == 'referred' %}
           <span class="badge bg-success-subtle text-success-emphasis">
-            <i class="bi bi-check-circle me-1"></i>Referred
+            <i class="bi bi-check-circle me-1"></i>Accepted
           </span>
           {% elif r.status == 'rejected' %}
           <span class="badge bg-secondary-subtle text-secondary-emphasis">

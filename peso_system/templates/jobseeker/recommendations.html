@@ -4,12 +4,12 @@
 {% block content %}
 <div class="mb-4">
   <h4 class="fw-bold mb-0">My Job Recommendations</h4>
-  <p class="text-muted small">Based on your profile, here's how you match against job categories.</p>
+  <p class="text-muted small">Generate job recommendations from your profile, pick a job you're interested in, and click Refer.</p>
 </div>
 
 {% if not ap %}
 <div class="alert alert-warning">Profile not found. Contact PESO staff.</div>
-{% elif not ap.educ_level or not ap.preferred_position or not ap.skills %}
+{% elif not profile_ok %}
 <div class="alert alert-warning d-flex gap-2">
   <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
   <div>
@@ -19,11 +19,36 @@
 </div>
 {% elif not pipeline_loaded %}
 <div class="alert alert-danger">The ML recommendation engine is currently unavailable.</div>
+{% elif not generated %}
+
+<div class="card shadow-sm border-0 mb-4" style="border-radius:12px;">
+  <div class="card-body p-4">
+    <div class="fw-semibold mb-3">How it works</div>
+    <ol class="small text-muted ps-3 mb-4">
+      <li class="mb-1"><strong>Generate</strong> — the system scores your profile against all five occupational categories.</li>
+      <li class="mb-1"><strong>Choose</strong> a job you're interested in from the ranked categories.</li>
+      <li><strong>Refer</strong> — click Refer to send a request. PESO staff will accept or reject it.</li>
+    </ol>
+    <div class="small mb-3">
+      <div><i class="bi bi-mortarboard text-secondary me-1"></i>{{ ap.educ_level }}</div>
+      <div><i class="bi bi-bullseye text-secondary me-1"></i>{{ ap.preferred_position }}</div>
+      <div><i class="bi bi-tools text-secondary me-1"></i>{{ ap.skills }}</div>
+      <div><i class="bi bi-briefcase text-secondary me-1"></i>{{ ap.work_experience or 'No experience' }}</div>
+    </div>
+    <form method="GET" action="{{ url_for('jobseeker_recommendations') }}">
+      <input type="hidden" name="generate" value="1" />
+      <button type="submit" class="btn btn-primary fw-semibold">
+        <i class="bi bi-stars me-1"></i>Generate Recommendations
+      </button>
+    </form>
+  </div>
+</div>
+
 {% elif results %}
 
 <div class="alert alert-info d-flex gap-2 mb-4">
   <i class="bi bi-info-circle-fill flex-shrink-0"></i>
-  <span class="small">These are <strong>suggested matches</strong> based on your skills and experience. Actual referral to a vacancy is decided by PESO staff.</span>
+  <span class="small">Click <strong>Refer</strong> on a job you're interested in. PESO staff will review your request and accept or reject it.</span>
 </div>
 
 <!-- Profile summary -->
@@ -41,7 +66,7 @@
 
 <!-- Top result -->
 {% set top = results[0] %}
-<div class="card shadow mb-3" style="border:1.5px solid #86efac;background:#f0fdf4;border-radius:12px;">
+<div class="card shadow mb-3" style="border:1.5px solid var(--peso-success-border);background:var(--peso-success-surface);color:var(--peso-text);border-radius:12px;">
   <div class="card-body p-3">
     <div class="d-flex align-items-start gap-3 mb-2">
       <div class="d-flex align-items-center justify-content-center flex-shrink-0"
@@ -67,7 +92,14 @@
     {% for vac in top.vacancies %}
     <div class="d-flex align-items-center gap-2 py-1 {% if not loop.last %}border-bottom{% endif %}">
       <i class="bi bi-briefcase-fill text-success flex-shrink-0" style="font-size:.75rem;"></i>
-      <span class="small"><strong>{{ vac.title }}</strong> <span class="text-muted">— {{ vac.employer }}</span></span>
+      <div class="small flex-grow-1">
+        <strong>{{ vac.title }}</strong> <span class="text-muted">— {{ vac.employer }}</span>
+        {% set v = vac.info %}{% include '_vacancy_details.html' %}
+        {% for w in req_warnings(vac.info, ap) %}
+        <div class="text-warning-emphasis" style="font-size:.72rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ w }} — you may not meet this</div>
+        {% endfor %}
+      </div>
+      {% include 'jobseeker/_refer_button.html' %}
     </div>
     {% endfor %}
     {% else %}
@@ -100,8 +132,15 @@
     {% if item.vacancies %}
     <div class="ps-4">
       {% for vac in item.vacancies %}
-      <div class="small text-muted py-1 {% if not loop.last %}border-bottom{% endif %}">
-        <i class="bi bi-briefcase me-1"></i><strong class="text-dark">{{ vac.title }}</strong> — {{ vac.employer }}
+      <div class="small text-muted py-1 d-flex align-items-center gap-2 {% if not loop.last %}border-bottom{% endif %}">
+        <div class="flex-grow-1">
+          <i class="bi bi-briefcase me-1"></i><strong>{{ vac.title }}</strong> — {{ vac.employer }}
+          {% set v = vac.info %}{% include '_vacancy_details.html' %}
+          {% for w in req_warnings(vac.info, ap) %}
+          <div class="text-warning-emphasis" style="font-size:.72rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ w }} — you may not meet this</div>
+          {% endfor %}
+        </div>
+        {% include 'jobseeker/_refer_button.html' %}
       </div>
       {% endfor %}
     </div>
@@ -112,7 +151,7 @@
   {% endif %}
   {% endfor %}
   <div class="card-footer text-muted small">
-    <i class="bi bi-info-circle me-1"></i>Referral decision rests with PESO staff. <a href="{{ url_for('jobseeker_referrals') }}">View my referrals →</a>
+    <i class="bi bi-info-circle me-1"></i>PESO staff make the final accept/reject decision. <a href="{{ url_for('jobseeker_referrals') }}">View my referral requests →</a>
   </div>
 </div>
 

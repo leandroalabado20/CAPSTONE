@@ -1,0 +1,13 @@
+{% if vac.id in requested_ids %}
+<span class="badge bg-success-subtle text-success-emphasis flex-shrink-0">
+  <i class="bi bi-check-circle me-1"></i>Requested
+</span>
+{% else %}
+<form method="POST" action="{{ url_for('jobseeker_request_referral') }}" class="flex-shrink-0">
+  <input type="hidden" name="vacancy_id" value="{{ vac.id }}" />
+  <button type="submit" class="btn btn-success btn-sm py-0 px-2" style="font-size:.72rem;"
+          onclick="return confirm('Request a referral for this job? PESO staff will review your request.')">
+    <i class="bi bi-send-fill me-1"></i>Refer
+  </button>
+</form>
+{% endif %}

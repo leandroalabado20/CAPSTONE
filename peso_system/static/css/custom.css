@@ -33,6 +33,23 @@
   --cui-primary-rgb: 37, 99, 235;
   --bs-primary:      #2563eb;
   --bs-primary-rgb:  37, 99, 235;
+
+  /* Theme-sensitive surfaces (redefined under [data-theme="dark"] below) */
+  --peso-header-bg:     rgba(255, 255, 255, .85);
+  --peso-card-footer:   #fbfcfe;
+  --peso-thead-bg:      #f8fafc;
+  --peso-progress-bg:   #eef1f6;
+  --peso-form-border:   #d8dee9;
+  --peso-form-label:    #334155;
+  --peso-success-tint:  #eafaf1;
+  --peso-success-surface: #f0fdf4;
+  --peso-success-border: #86efac;
+  /* Data-viz accents — validated colorblind-safe as a set (see dataviz skill) */
+  --peso-chart-amber: #eda100;
+  --peso-chart-teal:  #1baf7a;
+  --peso-status-good: #0ca30c;
+  --peso-cta-a: #eff6ff;
+  --peso-cta-b: #f0fdf4;
 }
 
 /* ── BASE TYPOGRAPHY ─────────────────────────────────────────────────────── */
@@ -79,17 +96,22 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 
 /* Icon badge */
 .sb-icon-badge {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fff;
   box-shadow: 0 0 0 2px rgba(96, 165, 250, .25), 0 4px 14px rgba(37, 99, 235, .5);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  color: #fff;
+  overflow: hidden;
   flex-shrink: 0;
+}
+.sb-icon-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .sb-brand-name {
@@ -222,7 +244,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 
 /* ── HEADER / TOPBAR ─────────────────────────────────────────────────────── */
 .header {
-  background: rgba(255, 255, 255, .85);
+  background: var(--peso-header-bg);
   backdrop-filter: saturate(180%) blur(8px);
   border-bottom: 1px solid var(--peso-border);
   box-shadow: var(--shadow-xs);
@@ -231,7 +253,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 .topbar-page-title {
   font-weight: 700;
   font-size: .95rem;
-  color: var(--peso-dark);
+  color: var(--peso-text);
 }
 
 .topbar-user {
@@ -276,7 +298,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 }
 
 .card-footer {
-  background: #fbfcfe;
+  background: var(--peso-card-footer);
   border-top: 1px solid var(--peso-border);
 }
 
@@ -357,17 +379,32 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 }
 
 /* ── FORMS ───────────────────────────────────────────────────────────────── */
-.form-label { font-weight: 600; font-size: .84rem; color: #334155; }
+.form-label { font-weight: 600; font-size: .84rem; color: var(--peso-form-label); }
 
 .form-control, .form-select {
   border-radius: var(--radius-sm);
-  border-color: #d8dee9;
+  border-color: var(--peso-form-border);
   padding: .5rem .75rem;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .form-control:focus, .form-select:focus {
   border-color: var(--peso-blue);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+}
+
+/* Native date/time picker icon — browser-drawn, dark by default so it
+   disappears on a dark input in dark mode. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px;
+}
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.5);
 }
 
 /* ── TABLES ──────────────────────────────────────────────────────────────── */
@@ -379,7 +416,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
   text-transform: uppercase;
   letter-spacing: .05em;
   color: var(--peso-muted);
-  background: #f8fafc;
+  background: var(--peso-thead-bg);
   border-bottom: 1px solid var(--peso-border);
   padding: .7rem 1rem;
 }
@@ -388,7 +425,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 
 /* Celebrated #1 recommendation row */
 .table tbody tr.table-success {
-  --bs-table-bg: #eafaf1;
+  --bs-table-bg: var(--peso-success-tint);
   box-shadow: inset 4px 0 0 #198754;
 }
 .table tbody tr.table-success td { font-weight: 500; }
@@ -403,7 +440,7 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 
 /* ── PROGRESS (suitability bars) ─────────────────────────────────────────── */
 .progress {
-  background: #eef1f6;
+  background: var(--peso-progress-bg);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -427,16 +464,21 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
   box-shadow: var(--shadow-lg);
 }
 .login-icon {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--peso-dark), var(--peso-blue));
-  border-radius: 16px;
+  width: 76px;
+  height: 76px;
+  background: #fff;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  color: #fff;
+  overflow: hidden;
   box-shadow: 0 8px 20px rgba(37, 99, 235, .35);
+}
+.login-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 /* ── MODAL ───────────────────────────────────────────────────────────────── */
@@ -460,3 +502,95 @@ h1, h2, h3, h4, h5, h6, .fw-bold, .fw-semibold {
 .applicant-card { transition: transform .15s ease, box-shadow .15s ease; }
 .applicant-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .filter-chip { border-radius: 999px; font-weight: 600; }
+
+/* ── THEME TOGGLE BUTTON ─────────────────────────────────────────────────── */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--peso-border);
+  background: var(--peso-surface);
+  color: var(--peso-muted);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+  flex-shrink: 0;
+}
+.theme-toggle-btn:hover { background: var(--peso-bg); color: var(--peso-text); }
+
+/* Variant for use on colored/dark nav bars (employer & jobseeker portal nav) */
+.theme-toggle-btn-inverse {
+  border-color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .85);
+}
+.theme-toggle-btn-inverse:hover {
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+}
+
+/* ── PUBLIC NAV (theme-aware) ────────────────────────────────────────────── */
+.public-nav {
+  background: var(--peso-surface);
+  border-bottom: 1px solid var(--peso-border);
+}
+.public-nav .brand { color: var(--peso-text); }
+
+/* ── LANDING PAGE (theme-aware) ──────────────────────────────────────────── */
+.feature-card, .step-row {
+  background: var(--peso-surface);
+  border: 1px solid var(--peso-border);
+}
+
+/* ── DARK THEME TOKENS ────────────────────────────────────────────────────
+   Applied when <html data-theme="dark">. Paired with data-bs-theme="dark"
+   and data-coreui-theme="dark" so Bootstrap/CoreUI's own components
+   (modals, alerts, dropdowns, tables, form controls) switch automatically.
+   ────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --peso-dark:  #0b1930;
+  --peso-blue:  #3b82f6;
+  --peso-blue-600: #60a5fa;
+
+  --peso-bg:      #0f1a2e;
+  --peso-surface: #16233d;
+  --peso-border:  #283a5c;
+  --peso-text:    #e2e8f0;
+  --peso-muted:   #93a3bd;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, .4);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, .5);
+
+  --cui-primary:     #3b82f6;
+  --cui-primary-rgb: 59, 130, 235;
+  --bs-primary:      #3b82f6;
+  --bs-primary-rgb:  59, 130, 235;
+
+  --peso-header-bg:    rgba(15, 26, 46, .85);
+  --peso-card-footer:  #131f38;
+  --peso-thead-bg:     #131f38;
+  --peso-progress-bg:  #1c2b48;
+  --peso-form-border:  #33476b;
+  --peso-form-label:   #cbd5e1;
+  --peso-success-tint: rgba(25, 135, 84, .18);
+  --peso-success-surface: var(--peso-surface);
+  --peso-success-border: var(--peso-border);
+  --peso-chart-amber: #c98500;
+  --peso-chart-teal:  #199e70;
+  --peso-status-good: #0ca30c;
+  --peso-cta-a: #16233d;
+  --peso-cta-b: #12271c;
+}
+
+[data-theme="dark"] .table tbody tr.table-success td { color: #d1fae5; }
+
+/* Pastel icon washes on the landing page read oddly on dark backgrounds */
+[data-theme="dark"] .feature-icon { background: rgba(255, 255, 255, .08) !important; }
+
+[data-theme="dark"] .hero { filter: brightness(.92); }

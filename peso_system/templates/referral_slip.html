@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Referral Slip RS-{{ r.referred_at[:4] }}-{{ '%05d'|format(r.id) }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    body { background:#f1f5f9; color:#1e293b; }
+    .slip { max-width:780px; margin:24px auto; background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:36px 40px; position:relative; }
+    .slip h1 { font-size:1.5rem; letter-spacing:.2em; font-weight:800; margin:0; }
+    .stamp { display:inline-block; border:3px solid #16a34a; color:#16a34a; font-weight:800; letter-spacing:.15em; padding:2px 16px; border-radius:6px; transform:rotate(-4deg); font-size:1.1rem; }
+    .stamp.cancelled { border-color:#dc2626; color:#dc2626; }
+    .sec { font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:#64748b; font-weight:700; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin:22px 0 10px; }
+    dl { margin:0; font-size:.9rem; }
+    dt { color:#64748b; font-weight:500; }
+    dd { font-weight:600; margin-bottom:.4rem; }
+    .sigline { border-top:1px solid #1e293b; padding-top:4px; margin-top:48px; font-size:.8rem; text-align:center; }
+    @media print {
+      body { background:#fff; }
+      .no-print { display:none !important; }
+      .slip { border:none; margin:0; padding:0; max-width:none; }
+    }
+  </style>
+</head>
+<body>
+<div class="no-print text-center mt-3">
+  <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print / Save as PDF</button>
+  <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="slip">
+  <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-3">
+    <img src="{{ url_for('static', filename='img/peso_logo.png') }}" alt="PESO" width="64" height="64" />
+    <div class="text-center flex-grow-1">
+      <div class="small text-muted">Republic of the Philippines</div>
+      <div class="fw-bold">Public Employment Service Office</div>
+      <div class="small">City of San Jose del Monte, Bulacan</div>
+    </div>
+    <div style="width:64px;"></div>
+  </div>
+
+  <div class="text-center mb-3">
+    <h1>REFERRAL SLIP</h1>
+    <div class="mt-3">
+      {% if r.status == 'cancelled' %}
+      <span class="stamp cancelled">CANCELLED</span>
+      {% else %}
+      <span class="stamp">ACCEPTED</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row small">
+    <div class="col-6"><span class="text-muted">Slip No.:</span> <strong>RS-{{ r.referred_at[:4] }}-{{ '%05d'|format(r.id) }}</strong></div>
+    <div class="col-6 text-end"><span class="text-muted">Date Accepted:</span> <strong>{{ r.referred_at|friendly_dt }}</strong></div>
+  </div>
+
+  <div class="sec">Applicant</div>
+  <dl class="row">
+    <dt class="col-4">Name</dt><dd class="col-8">{{ r.first_name }} {{ r.last_name }}</dd>
+    <dt class="col-4">Sex / Age</dt><dd class="col-8">{{ r.sex or '—' }}{% if r.age %} / {{ r.age }}{% endif %}</dd>
+    <dt class="col-4">Barangay</dt><dd class="col-8">{{ r.barangay or '—' }}</dd>
+    <dt class="col-4">Contact No.</dt><dd class="col-8">{{ r.contact_number or '—' }}</dd>
+    <dt class="col-4">Education</dt><dd class="col-8">{{ r.educ_level or '—' }}</dd>
+    <dt class="col-4">Preferred Position</dt><dd class="col-8">{{ r.preferred_position or '—' }}</dd>
+  </dl>
+
+  <div class="sec">Referred Job</div>
+  <dl class="row">
+    <dt class="col-4">Position</dt><dd class="col-8">{{ r.job_title }}</dd>
+    <dt class="col-4">Employer</dt><dd class="col-8">{{ r.employer_name }}</dd>
+    <dt class="col-4">Category</dt><dd class="col-8">{{ r.occupational_category }}</dd>
+  </dl>
+
+  {% set v = r %}
+  {% if req_summary(r) or r.req_other or r.req_documents or r.application_deadline %}
+  <div class="sec">Job Requirements</div>
+  <div class="small">
+    <div><span class="text-muted">Date Posted:</span> <strong>{{ r.posted_at|friendly_date }}</strong>
+      {% if r.application_deadline %} &nbsp;·&nbsp; <span class="text-muted">Application Deadline:</span> <strong>{{ r.application_deadline|friendly_date }}</strong>{% endif %}</div>
+    {% if req_summary(r) %}<div><span class="text-muted">Applicant:</span> <strong>{{ req_summary(r)|join(' · ') }}</strong></div>{% endif %}
+    {% if r.req_other %}<div><span class="text-muted">Other:</span> {{ r.req_other }}</div>{% endif %}
+    {% if r.req_documents %}<div><span class="text-muted">Documents needed:</span> {{ r.req_documents }}</div>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if r.notes %}
+  <div class="sec">Remarks</div>
+  <p class="small mb-0">{{ r.notes }}</p>
+  {% endif %}
+
+  <p class="small mt-4 mb-0">
+    This certifies that the above-named applicant has been referred by the Public Employment Service Office
+    to the employer and position stated above.
+  </p>
+
+  <div class="row mt-2">
+    <div class="col-6">
+      <div class="sigline"><strong>{{ r.accepted_by_name }}</strong><br />PESO Officer (Accepted by)</div>
+    </div>
+    <div class="col-6">
+      <div class="sigline">Employer's Representative<br />(Received by / Date)</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

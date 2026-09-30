@@ -35,14 +35,10 @@
         </td>
         <td class="py-2 small text-muted">{{ r.referred_at|friendly_dt }}</td>
         <td class="py-2">
-          {% if r.status == 'referred' %}
-          <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle-fill me-1"></i>Applied</span>
-          {% elif r.status == 'hired' %}
-          <span class="badge bg-success text-white"><i class="bi bi-trophy-fill me-1"></i>Hired</span>
-          {% elif r.status == 'not_hired' %}
-          <span class="badge bg-secondary-subtle text-secondary-emphasis">Not Hired</span>
-          {% elif r.status == 'cancelled' %}
+          {% if r.status == 'cancelled' %}
           <span class="badge bg-danger-subtle text-danger-emphasis">Cancelled</span>
+          {% elif r.status == 'referred' %}
+          <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle-fill me-1"></i>Applied</span>
           {% else %}
           <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ r.status }}</span>
           {% endif %}

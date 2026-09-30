@@ -998,7 +998,7 @@ def jobseeker_recommendations():
     applied_ids = set()
     if ap:
         applied_ids = {r['vacancy_id'] for r in db.execute(
-            "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status NOT IN ('not_hired','cancelled')",
+            "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
             (ap['id'],)
         ).fetchall()}
     return render_template('jobseeker/recommendations.html',
@@ -1043,7 +1043,7 @@ def jobseeker_apply():
         flash('That job is no longer available or its deadline has passed.', 'danger')
         return redirect(back)
     existing = db.execute(
-        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status NOT IN ('not_hired','cancelled')",
+        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status != 'cancelled'",
         (ap['id'], vacancy_id)
     ).fetchone()
     if existing:
@@ -1091,12 +1091,6 @@ def employer_dashboard():
         'WHERE jv.employer_id=?',
         (session['user_id'],)
     ).fetchone()[0]
-    hired = db.execute(
-        "SELECT COUNT(*) FROM referrals r "
-        "JOIN job_vacancies jv ON r.vacancy_id=jv.id "
-        "WHERE jv.employer_id=? AND r.status='hired'",
-        (session['user_id'],)
-    ).fetchone()[0]
     recent_referrals = db.execute('''
         SELECT r.*, a.first_name, a.last_name, jv.job_title
         FROM referrals r
@@ -1107,7 +1101,7 @@ def employer_dashboard():
     ''', (session['user_id'],)).fetchall()
     return render_template('employer/dashboard.html', emp=emp,
                            active_vac=active_vac, total_referred=total_referred,
-                           hired=hired, recent_referrals=recent_referrals)
+                           recent_referrals=recent_referrals)
 
 @app.route('/employer/vacancies')
 @employer_required
@@ -1241,29 +1235,6 @@ def employer_referred():
     ''', params).fetchall()
     return render_template('employer/referred.html', emp=emp,
                            referrals=referrals, status=status)
-
-@app.route('/employer/referrals/<int:rid>/outcome', methods=['POST'])
-@employer_required
-def employer_referral_outcome(rid):
-    outcome = request.form.get('outcome', '')
-    if outcome not in ('hired', 'not_hired'):
-        flash('Invalid outcome.', 'danger')
-        return redirect(url_for('employer_referred'))
-    db = get_db()
-    # Verify this referral belongs to a vacancy owned by this employer
-    r = db.execute(
-        'SELECT r.id FROM referrals r '
-        'JOIN job_vacancies jv ON r.vacancy_id=jv.id '
-        'WHERE r.id=? AND jv.employer_id=?',
-        (rid, session['user_id'])
-    ).fetchone()
-    if r:
-        db.execute('UPDATE referrals SET status=? WHERE id=?', (outcome, rid))
-        db.commit()
-        flash('Hiring outcome recorded.', 'success')
-    else:
-        flash('Referral not found.', 'danger')
-    return redirect(url_for('employer_referred'))
 
 # ── HOME / OVERVIEW (admin) ──────────────────────────────────────────────────
 @app.route('/home')

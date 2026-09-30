@@ -25,23 +25,16 @@
 
 <!-- KPI row -->
 <div class="row g-3 mb-4">
-  <div class="col-sm-4">
+  <div class="col-sm-6">
     <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
       <div class="fw-bold fs-3 text-primary">{{ active_vacancies }}</div>
       <div class="text-muted small">Active Vacancies</div>
     </div>
   </div>
-  <div class="col-sm-4">
+  <div class="col-sm-6">
     <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
       <div class="fw-bold fs-3 text-success">{{ referrals|length }}</div>
       <div class="text-muted small">My Referrals</div>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
-      {% set hired_count = referrals | selectattr('status', 'equalto', 'hired') | list | length %}
-      <div class="fw-bold fs-3 text-warning">{{ hired_count }}</div>
-      <div class="text-muted small">Hired</div>
     </div>
   </div>
 </div>
@@ -110,14 +103,10 @@
             <div class="fw-semibold small text-truncate">{{ r.job_title }}</div>
             <div class="text-muted" style="font-size:.73rem;">{{ r.employer_name }}</div>
           </div>
-          {% if r.status == 'referred' %}
-          <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0">Referred</span>
-          {% elif r.status == 'hired' %}
-          <span class="badge bg-success-subtle text-success-emphasis flex-shrink-0">Hired</span>
-          {% elif r.status == 'not_hired' %}
-          <span class="badge bg-secondary-subtle text-secondary-emphasis flex-shrink-0">Not Hired</span>
-          {% elif r.status == 'cancelled' %}
+          {% if r.status == 'cancelled' %}
           <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0">Cancelled</span>
+          {% else %}
+          <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0">Referred</span>
           {% endif %}
         </div>
         {% endfor %}

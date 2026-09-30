@@ -4,17 +4,7 @@
 {% block content %}
 <div class="mb-4">
   <h4 class="fw-bold mb-0">Referred Applicants</h4>
-  <p class="text-muted small">Applicants referred to your vacancies by PESO admin. Record the hiring outcome after interviews.</p>
-</div>
-
-<!-- Filter -->
-<div class="d-flex gap-2 mb-4 flex-wrap">
-  {% for s, label in [('all','All'),('referred','Referred'),('hired','Hired'),('not_hired','Not Hired')] %}
-  <a href="{{ url_for('employer_referred', status=s) }}"
-     class="btn btn-sm {% if status == s %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-    {{ label }}
-  </a>
-  {% endfor %}
+  <p class="text-muted small">Applicants referred to your vacancies by PESO admin.</p>
 </div>
 
 {% if referrals %}
@@ -25,8 +15,7 @@
         <th class="px-3 py-2">Applicant</th>
         <th class="py-2">Vacancy</th>
         <th class="py-2">Referred</th>
-        <th class="py-2">Status</th>
-        <th class="py-2">Action</th>
+        <th class="py-2">Slip</th>
       </tr>
     </thead>
     <tbody>
@@ -38,41 +27,10 @@
         <td class="py-2 small text-muted">{{ r.job_title }}</td>
         <td class="py-2 small text-muted">{{ r.referred_at|friendly_dt }}</td>
         <td class="py-2">
-          {% if r.status == 'referred' %}
-          <span class="badge bg-primary-subtle text-primary-emphasis">Referred</span>
-          {% elif r.status == 'hired' %}
-          <span class="badge bg-success-subtle text-success-emphasis">
-            <i class="bi bi-check-circle me-1"></i>Hired
-          </span>
-          {% elif r.status == 'not_hired' %}
-          <span class="badge bg-secondary-subtle text-secondary-emphasis">Not Hired</span>
-          {% elif r.status == 'cancelled' %}
-          <span class="badge bg-danger-subtle text-danger-emphasis">Cancelled</span>
-          {% endif %}
-        </td>
-        <td class="py-2">
           <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
-             class="btn btn-sm btn-outline-primary py-0 px-2 mb-1" style="font-size:.72rem;">
-            <i class="bi bi-file-earmark-text me-1"></i>Slip
+             class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.72rem;">
+            <i class="bi bi-file-earmark-text me-1"></i>View
           </a>
-          {% if r.status == 'referred' %}
-          <div class="d-flex gap-1">
-            <form method="POST" action="{{ url_for('employer_referral_outcome', rid=r.id) }}">
-              <input type="hidden" name="outcome" value="hired" />
-              <button type="submit" class="btn btn-sm btn-success py-0 px-2" style="font-size:.72rem;">
-                <i class="bi bi-check2 me-1"></i>Hired
-              </button>
-            </form>
-            <form method="POST" action="{{ url_for('employer_referral_outcome', rid=r.id) }}">
-              <input type="hidden" name="outcome" value="not_hired" />
-              <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.72rem;">
-                Not Hired
-              </button>
-            </form>
-          </div>
-          {% else %}
-          <span class="text-muted small">—</span>
-          {% endif %}
         </td>
       </tr>
       {% endfor %}

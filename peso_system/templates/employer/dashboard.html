@@ -9,24 +9,18 @@
 
 <!-- KPI row -->
 <div class="row g-3 mb-4">
-  <div class="col-sm-4">
+  <div class="col-sm-6">
     <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
       <div class="fw-bold fs-3 text-primary">{{ active_vac }}</div>
       <div class="text-muted small">Active Vacancies</div>
       <a href="{{ url_for('employer_vacancies') }}" class="small text-primary mt-1 d-block">Manage →</a>
     </div>
   </div>
-  <div class="col-sm-4">
+  <div class="col-sm-6">
     <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
       <div class="fw-bold fs-3 text-info">{{ total_referred }}</div>
       <div class="text-muted small">Total Referred</div>
       <a href="{{ url_for('employer_referred') }}" class="small text-primary mt-1 d-block">View →</a>
-    </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
-      <div class="fw-bold fs-3 text-success">{{ hired }}</div>
-      <div class="text-muted small">Hired</div>
     </div>
   </div>
 </div>
@@ -54,10 +48,8 @@
           </div>
           {% if r.status == 'referred' %}
           <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0" style="font-size:.65rem;">Referred</span>
-          {% elif r.status == 'hired' %}
-          <span class="badge bg-success-subtle text-success-emphasis flex-shrink-0" style="font-size:.65rem;">Hired</span>
-          {% elif r.status == 'not_hired' %}
-          <span class="badge bg-secondary-subtle text-secondary-emphasis flex-shrink-0" style="font-size:.65rem;">Not Hired</span>
+          {% elif r.status == 'cancelled' %}
+          <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0" style="font-size:.65rem;">Cancelled</span>
           {% endif %}
         </div>
         {% endfor %}
@@ -90,7 +82,7 @@
         <hr class="my-1" />
         <div class="card border p-2 small text-muted" style="border-radius:8px;background:var(--peso-bg);">
           <i class="bi bi-info-circle me-1"></i>
-          Applicants are referred to your vacancies by PESO admin — you cannot select applicants directly. Record the hiring outcome once you've interviewed referred applicants.
+          Applicants are referred to your vacancies by PESO admin — you cannot select applicants directly.
         </div>
       </div>
     </div>

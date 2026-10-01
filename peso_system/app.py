@@ -265,18 +265,6 @@ def init_db():
             FOREIGN KEY (vacancy_id)   REFERENCES job_vacancies(id),
             FOREIGN KEY (referred_by)  REFERENCES users(id)
         );
-        CREATE TABLE IF NOT EXISTS referral_requests (
-            id           INTEGER  PRIMARY KEY AUTOINCREMENT,
-            applicant_id INTEGER  NOT NULL,
-            message      TEXT,
-            status       TEXT     DEFAULT 'pending',
-            requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            reviewed_by  INTEGER,
-            reviewed_at  DATETIME,
-            notes        TEXT,
-            FOREIGN KEY (applicant_id) REFERENCES applicants(id),
-            FOREIGN KEY (reviewed_by)  REFERENCES users(id)
-        );
         CREATE TABLE IF NOT EXISTS login_logs (
             id         INTEGER  PRIMARY KEY AUTOINCREMENT,
             user_id    INTEGER,
@@ -329,10 +317,6 @@ def init_db():
         db.execute('ALTER TABLE applicants ADD COLUMN birthdate DATE')
     if 'contact_number' not in acols:
         db.execute('ALTER TABLE applicants ADD COLUMN contact_number TEXT')
-
-    rrcols = [r[1] for r in db.execute("PRAGMA table_info(referral_requests)").fetchall()]
-    if 'vacancy_id' not in rrcols:
-        db.execute('ALTER TABLE referral_requests ADD COLUMN vacancy_id INTEGER REFERENCES job_vacancies(id)')
 
     vcols = [r[1] for r in db.execute("PRAGMA table_info(job_vacancies)").fetchall()]
     if 'employer_id' not in vcols:
@@ -1415,7 +1399,6 @@ def applicant_delete(aid):
         return redirect(url_for('applicants_list'))
     db.execute('DELETE FROM recommendations WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM referrals WHERE applicant_id=?', (aid,))
-    db.execute('DELETE FROM referral_requests WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM applicants WHERE id=?', (aid,))
     # Remove the linked jobseeker login account, if any, so no orphan user remains
     if ap['user_id']:

@@ -11,41 +11,35 @@
     <input type="hidden" name="status" value="{{ status }}" />
     <input type="hidden" name="district" value="{{ district }}" />
     <input type="hidden" name="view" value="{{ view }}" />
-    {% if archived %}<input type="hidden" name="archived" value="1" />{% endif %}
     <input type="text" name="search" class="form-control" placeholder="Search name, position, skills…"
            value="{{ search }}" style="min-width:220px;" />
     <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
   </form>
 
   <div class="btn-group" role="group" aria-label="View toggle">
-    <a href="{{ url_for('applicants_list', view='card', search=search or none, status=status, district=district or none, archived=1 if archived else none) }}"
+    <a href="{{ url_for('applicants_list', view='card', search=search or none, status=status, district=district or none) }}"
        class="btn {% if view != 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Card view">
       <i class="bi bi-grid-3x3-gap-fill"></i>
     </a>
-    <a href="{{ url_for('applicants_list', view='table', search=search or none, status=status, district=district or none, archived=1 if archived else none) }}"
+    <a href="{{ url_for('applicants_list', view='table', search=search or none, status=status, district=district or none) }}"
        class="btn {% if view == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Table view">
       <i class="bi bi-list-ul"></i>
     </a>
   </div>
-
-  <a href="{{ url_for('applicants_list', archived=none if archived else 1, view=view) }}"
-     class="btn btn-outline-{% if archived %}primary{% else %}secondary{% endif %}">
-    {% if archived %}<i class="bi bi-person-check me-1"></i>Active{% else %}<i class="bi bi-archive me-1"></i>Archived{% endif %}
-  </a>
 </div>
 
 <!-- ── Filter chips ───────────────────────────────────────────────────────── -->
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
   <span class="text-muted small fw-semibold me-1"><i class="bi bi-funnel me-1"></i>Filter</span>
   {% for key, label in [('all','All'),('incomplete','Incomplete'),('unemployed','Unemployed'),('employed','Employed')] %}
-  <a href="{{ url_for('applicants_list', status=key, search=search or none, district=district or none, view=view, archived=1 if archived else none) }}"
+  <a href="{{ url_for('applicants_list', status=key, search=search or none, district=district or none, view=view) }}"
      class="btn btn-sm filter-chip {% if status == key %}btn-primary{% else %}btn-outline-secondary{% endif %}">
     {% if key == 'incomplete' %}<i class="bi bi-exclamation-triangle-fill me-1"></i>{% endif %}{{ label }}
   </a>
   {% endfor %}
   <span class="vr mx-1 d-none d-sm-inline"></span>
   {% for key, label in [('','All Districts'),('District 1','District 1'),('District 2','District 2')] %}
-  <a href="{{ url_for('applicants_list', district=key or none, search=search or none, status=status, view=view, archived=1 if archived else none) }}"
+  <a href="{{ url_for('applicants_list', district=key or none, search=search or none, status=status, view=view) }}"
      class="btn btn-sm filter-chip {% if district == key %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ label }}</a>
   {% endfor %}
 </div>
@@ -55,7 +49,7 @@
 <div class="card shadow-sm">
   <div class="card-body text-center text-muted py-5">
     <i class="bi bi-inbox" style="font-size:2rem;"></i>
-    <p class="mt-2 mb-0">No {% if archived %}archived {% endif %}applicants match your filters.</p>
+    <p class="mt-2 mb-0">No applicants match your filters.</p>
   </div>
 </div>
 
@@ -95,16 +89,7 @@
           <td class="small">{{ ap.barangay or '—' }}</td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
-              <a href="{{ url_for('applicant_edit', aid=ap.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
-              {% if archived %}
-              <form method="POST" action="{{ url_for('applicant_restore', aid=ap.id) }}" style="display:inline;">
-                <button class="btn btn-sm btn-outline-success" title="Restore" onclick="return confirm('Restore this applicant?')"><i class="bi bi-arrow-counterclockwise"></i></button>
-              </form>
-              {% else %}
-              <form method="POST" action="{{ url_for('applicant_archive', aid=ap.id) }}" style="display:inline;">
-                <button class="btn btn-sm btn-outline-danger" title="Archive" onclick="return confirm('Archive this applicant?')"><i class="bi bi-archive"></i></button>
-              </form>
-              {% endif %}
+              <a href="{{ url_for('applicant_view', aid=ap.id) }}" class="btn btn-sm btn-outline-primary" title="View details"><i class="bi bi-eye"></i></a>
               <button class="btn btn-sm btn-danger" title="Delete permanently"
                 data-coreui-toggle="modal" data-coreui-target="#deleteModal"
                 data-aid="{{ ap.id }}"
@@ -145,16 +130,9 @@
         </div>
       </div>
       <div class="card-footer bg-transparent d-flex gap-1 pt-2">
-        <a href="{{ url_for('applicant_edit', aid=ap.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
-        {% if archived %}
-        <form method="POST" action="{{ url_for('applicant_restore', aid=ap.id) }}" style="display:inline;">
-          <button class="btn btn-sm btn-outline-success" title="Restore" onclick="return confirm('Restore this applicant?')"><i class="bi bi-arrow-counterclockwise"></i></button>
-        </form>
-        {% else %}
-        <form method="POST" action="{{ url_for('applicant_archive', aid=ap.id) }}" style="display:inline;">
-          <button class="btn btn-sm btn-outline-danger" title="Archive" onclick="return confirm('Archive this applicant?')"><i class="bi bi-archive"></i></button>
-        </form>
-        {% endif %}
+        <a href="{{ url_for('applicant_view', aid=ap.id) }}" class="btn btn-sm btn-outline-primary flex-fill" title="View details">
+          <i class="bi bi-eye me-1"></i>View
+        </a>
         <button class="btn btn-sm btn-danger" title="Delete permanently"
           data-coreui-toggle="modal" data-coreui-target="#deleteModal"
           data-aid="{{ ap.id }}"
@@ -175,23 +153,23 @@
 <nav class="mt-4 d-flex justify-content-center">
   <ul class="pagination mb-0">
     <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-      <a class="page-link" href="{{ url_for('applicants_list', page=page-1, search=search or none, status=status, district=district or none, view=view, archived=1 if archived else none) }}">&lsaquo;</a>
+      <a class="page-link" href="{{ url_for('applicants_list', page=page-1, search=search or none, status=status, district=district or none, view=view) }}">&lsaquo;</a>
     </li>
     {% if win_start > 1 %}
-    <li class="page-item"><a class="page-link" href="{{ url_for('applicants_list', page=1, search=search or none, status=status, district=district or none, view=view, archived=1 if archived else none) }}">1</a></li>
+    <li class="page-item"><a class="page-link" href="{{ url_for('applicants_list', page=1, search=search or none, status=status, district=district or none, view=view) }}">1</a></li>
     {% if win_start > 2 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
     {% endif %}
     {% for p in range(win_start, win_end + 1) %}
     <li class="page-item {% if p == page %}active{% endif %}">
-      <a class="page-link" href="{{ url_for('applicants_list', page=p, search=search or none, status=status, district=district or none, view=view, archived=1 if archived else none) }}">{{ p }}</a>
+      <a class="page-link" href="{{ url_for('applicants_list', page=p, search=search or none, status=status, district=district or none, view=view) }}">{{ p }}</a>
     </li>
     {% endfor %}
     {% if win_end < pages %}
     {% if win_end < pages - 1 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
-    <li class="page-item"><a class="page-link" href="{{ url_for('applicants_list', page=pages, search=search or none, status=status, district=district or none, view=view, archived=1 if archived else none) }}">{{ pages }}</a></li>
+    <li class="page-item"><a class="page-link" href="{{ url_for('applicants_list', page=pages, search=search or none, status=status, district=district or none, view=view) }}">{{ pages }}</a></li>
     {% endif %}
     <li class="page-item {% if page >= pages %}disabled{% endif %}">
-      <a class="page-link" href="{{ url_for('applicants_list', page=page+1, search=search or none, status=status, district=district or none, view=view, archived=1 if archived else none) }}">&rsaquo;</a>
+      <a class="page-link" href="{{ url_for('applicants_list', page=page+1, search=search or none, status=status, district=district or none, view=view) }}">&rsaquo;</a>
     </li>
   </ul>
 </nav>

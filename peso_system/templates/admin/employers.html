@@ -74,6 +74,12 @@
             </button>
           </form>
           {% endif %}
+          <form method="POST" action="{{ url_for('admin_employer_delete', eid=e.id) }}" class="ms-auto"
+                onsubmit="return confirm('Permanently delete {{ e.company_name }}? This removes their account and ALL their job postings. This cannot be undone.')">
+            <button type="submit" class="btn btn-sm btn-danger" title="Delete account permanently">
+              <i class="bi bi-trash3-fill me-1"></i>Delete
+            </button>
+          </form>
         </div>
       </div>
     </div>

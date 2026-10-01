@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Applicant Details{% endblock %}
+{% block page_title %}<i class="bi bi-person-vcard me-2"></i>Applicant Details{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+  <a href="{{ url_for('applicants_list') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back to list
+  </a>
+  <form method="POST" action="{{ url_for('applicant_delete', aid=ap.id) }}" class="ms-auto"
+        onsubmit="return confirm('Permanently delete {{ ap.first_name }} {{ ap.last_name }}? This removes the profile and the linked account. This cannot be undone.')">
+    <button type="submit" class="btn btn-sm btn-danger">
+      <i class="bi bi-trash3-fill me-1"></i>Delete
+    </button>
+  </form>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-person-badge me-2 text-primary"></i>{{ ap.last_name }}, {{ ap.first_name }}</span>
+    <span class="d-flex gap-1 flex-wrap">
+      {% if not ap.skills or not ap.educ_level or not ap.preferred_position %}
+      <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Incomplete</span>
+      {% endif %}
+      {% if ap.age is not none and ap.age >= 15 and ap.age <= 30 %}<span class="badge bg-info-subtle text-info-emphasis">Youth</span>{% endif %}
+      {% if ap.age is not none and ap.age >= 60 %}<span class="badge bg-warning-subtle text-warning-emphasis">Senior</span>{% endif %}
+      {% if ap.is_pwd %}<span class="badge bg-danger-subtle text-danger-emphasis">PWD</span>{% endif %}
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="row">
+
+      <!-- Personal -->
+      <div class="col-md-6">
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Personal</h6>
+        <dl class="row small mb-3">
+          <dt class="col-5">Sex</dt><dd class="col-7">{{ ap.sex or '—' }}</dd>
+          <dt class="col-5">Age</dt><dd class="col-7">{{ ap.age if ap.age is not none else '—' }}</dd>
+          <dt class="col-5">Date of Birth</dt><dd class="col-7">{{ ap.birthdate|friendly_date if ap.birthdate else '—' }}</dd>
+          <dt class="col-5">PWD</dt><dd class="col-7">{{ 'Yes' if ap.is_pwd else 'No' }}</dd>
+          <dt class="col-5">Contact No.</dt><dd class="col-7">{{ ap.contact_number or '—' }}</dd>
+          <dt class="col-5">Barangay</dt><dd class="col-7">{{ ap.barangay or '—' }}</dd>
+          <dt class="col-5">District</dt><dd class="col-7">{{ ap.district or '—' }}</dd>
+        </dl>
+      </div>
+
+      <!-- Account -->
+      <div class="col-md-6">
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Account</h6>
+        <dl class="row small mb-3">
+          <dt class="col-5">Username</dt><dd class="col-7">{% if ap.username %}<code>{{ ap.username }}</code>{% else %}—{% endif %}</dd>
+          <dt class="col-5">Email</dt><dd class="col-7">{{ ap.email or '—' }}</dd>
+          <dt class="col-5">Registered</dt><dd class="col-7">{{ ap.created_at|friendly_dt if ap.created_at else '—' }}</dd>
+        </dl>
+      </div>
+
+    </div>
+
+    <hr class="my-2">
+
+    <!-- Job profile -->
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Job Profile</h6>
+    <dl class="row small mb-0">
+      <dt class="col-sm-3">Employment Status</dt>
+      <dd class="col-sm-9">
+        <span class="badge {% if ap.employment_status == 'Unemployed' %}bg-danger-subtle text-danger-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %}">{{ ap.employment_status or 'Unemployed' }}</span>
+      </dd>
+      <dt class="col-sm-3">Education Level</dt><dd class="col-sm-9">{{ ap.educ_level or '—' }}</dd>
+      <dt class="col-sm-3">Preferred Position</dt><dd class="col-sm-9">{{ ap.preferred_position or '—' }}</dd>
+      <dt class="col-sm-3">Skills</dt><dd class="col-sm-9">{{ ap.skills or '—' }}</dd>
+      <dt class="col-sm-3">Work Experience</dt><dd class="col-sm-9">{{ ap.work_experience or '—' }}</dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}

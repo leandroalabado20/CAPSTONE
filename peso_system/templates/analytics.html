@@ -6,25 +6,24 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   /* ── DESKTOP: cards size to content, capped so sparse data doesn't stretch ─── */
-  .af-root   { display: flex; flex-direction: column; gap: .4rem; }
-  .af-charts { display: flex; align-items: flex-start; gap: .5rem; }
+  .af-root   { display: flex; flex-direction: column; gap: .85rem; }
+  .af-charts { display: flex; align-items: stretch; gap: .85rem; }
   .af-charts > .af-col { min-width: 0; display: flex; flex-direction: column; }
 
-  .fill-card              { height: 360px; display: flex; flex-direction: column; }
+  .fill-card              { height: 380px; display: flex; flex-direction: column; }
   .fill-card .card-body   { flex: 1; min-height: 0; position: relative; overflow: hidden; }
 
   .cv-wrap { position: relative; height: 100%; }
 
-  /* ── MOBILE (<768px): stacked layout ──────────────────────────────────────── */
-  @media (max-width: 767.98px) {
-    /* Stack the three chart columns vertically */
-    .af-charts              { flex-direction: column; gap: .75rem; }
+  /* ── TABLET (<992px): stack the three figures so none get squeezed ─────────── */
+  @media (max-width: 991.98px) {
+    .af-charts              { flex-direction: column; gap: .85rem; }
     .af-charts > .af-col    { width: 100%; }
 
     /* Give each card a sensible fixed height */
-    .fill-card              { height: auto; min-height: 300px; }
-    .fill-card .card-body   { min-height: 260px; overflow: hidden; }
-    .cv-wrap                { height: 240px; }
+    .fill-card              { height: auto; min-height: 320px; }
+    .fill-card .card-body   { min-height: 280px; overflow: hidden; }
+    .cv-wrap                { height: 260px; }
   }
 </style>
 {% endblock %}
@@ -56,11 +55,11 @@
   </div>
 
   <!-- ── Row 1: Hero + 3 stat cards ────────────────────────────────────────── -->
-  <div class="row g-2" style="flex-shrink:0;">
+  <div class="row g-3" style="flex-shrink:0;">
 
     <!-- Hero: Total + Sex -->
     <div class="col-md-8">
-      <div class="card h-100"
+      <div class="card shadow-sm h-100 border-0"
            style="background:linear-gradient(135deg, var(--peso-dark), var(--peso-blue));color:#fff;">
         <div class="card-body py-2 px-3">
           <div class="d-flex align-items-center justify-content-center gap-3 h-100">
@@ -103,10 +102,10 @@
 
     <!-- Youth · Senior · PWD -->
     <div class="col-md-4">
-      <div class="row g-2 h-100">
+      <div class="row g-3 h-100">
 
         <div class="col-4">
-          <div class="card stat-card h-100">
+          <div class="card stat-card shadow-sm h-100">
             <div class="card-body text-center py-2 px-1">
               <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-blue);">
                 <i class="bi bi-mortarboard-fill"></i>
@@ -118,7 +117,7 @@
         </div>
 
         <div class="col-4">
-          <div class="card stat-card h-100">
+          <div class="card stat-card shadow-sm h-100">
             <div class="card-body text-center py-2 px-1">
               <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-chart-amber);">
                 <i class="bi bi-person-fill"></i>
@@ -130,7 +129,7 @@
         </div>
 
         <div class="col-4">
-          <div class="card stat-card h-100">
+          <div class="card stat-card shadow-sm h-100">
             <div class="card-body text-center py-2 px-1">
               <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-chart-teal);">
                 <i class="bi bi-universal-access"></i>

@@ -213,7 +213,6 @@ def init_db():
             preferred_position TEXT     NOT NULL,
             skills             TEXT     NOT NULL,
             work_experience    TEXT,
-            peis_reg_date      DATE,
             birthdate          DATE,
             contact_number     TEXT,
             user_id            INTEGER  REFERENCES users(id),
@@ -306,7 +305,6 @@ def init_db():
                 preferred_position TEXT     NOT NULL,
                 skills             TEXT     NOT NULL,
                 work_experience    TEXT,
-                peis_reg_date      DATE,
                 user_id            INTEGER  REFERENCES users(id),
                 created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
                 is_archived        INTEGER  DEFAULT 0
@@ -325,8 +323,6 @@ def init_db():
 
     # ── Column-level migrations ────────────────────────────────────────────────
     acols = [r[1] for r in db.execute("PRAGMA table_info(applicants)").fetchall()]
-    if 'peis_reg_date' not in acols:
-        db.execute('ALTER TABLE applicants ADD COLUMN peis_reg_date DATE')
     if 'user_id' not in acols:
         db.execute('ALTER TABLE applicants ADD COLUMN user_id INTEGER REFERENCES users(id)')
     if 'birthdate' not in acols:
@@ -1306,10 +1302,10 @@ def api_analytics():
     dp = []
     df_sql = ''
     if date_from:
-        df_sql += ' AND peis_reg_date >= ?'
+        df_sql += ' AND date(created_at) >= ?'
         dp.append(date_from)
     if date_to:
-        df_sql += ' AND peis_reg_date <= ?'
+        df_sql += ' AND date(created_at) <= ?'
         dp.append(date_to)
 
     total = db.execute(f'SELECT COUNT(*) FROM applicants WHERE is_archived=0{df_sql}', dp).fetchone()[0]
@@ -1359,15 +1355,14 @@ def api_analytics():
 def applicants_list():
     db = get_db()
     search    = request.args.get('search', '').strip()
-    archived  = request.args.get('archived', '0') == '1'
     status    = request.args.get('status', 'all')
     district  = request.args.get('district', '')
     view      = request.args.get('view', 'card')
     page      = max(1, request.args.get('page', 1, type=int) or 1)
     per_page  = APPLICANTS_PER_PAGE
 
-    where  = ['is_archived=?']
-    params = [1 if archived else 0]
+    where  = ['is_archived=0']
+    params = []
     if search:
         where.append('(first_name LIKE ? OR last_name LIKE ? OR preferred_position LIKE ? OR skills LIKE ?)')
         like = f'%{search}%'
@@ -1393,61 +1388,22 @@ def applicants_list():
     ).fetchall()
 
     return render_template('applicants/list.html', applicants=applicants,
-                           search=search, archived=archived, status=status,
+                           search=search, status=status,
                            district=district, view=view, page=page, pages=pages,
                            total=total)
 
-@app.route('/applicants/<int:aid>/edit', methods=['GET', 'POST'])
+@app.route('/applicants/<int:aid>')
 @admin_required
-def applicant_edit(aid):
-    db = get_db()
-    ap = db.execute('SELECT * FROM applicants WHERE id=?', (aid,)).fetchone()
+def applicant_view(aid):
+    ap = get_db().execute('''
+        SELECT a.*, u.username, u.email
+        FROM applicants a LEFT JOIN users u ON a.user_id = u.id
+        WHERE a.id = ?
+    ''', (aid,)).fetchone()
     if not ap:
         flash('Applicant not found.', 'danger')
         return redirect(url_for('applicants_list'))
-    if request.method == 'POST':
-        f = request.form
-        age = f.get('age', '').strip()
-        peis_reg_date = f.get('peis_reg_date', '').strip() or None
-        db.execute('''
-            UPDATE applicants SET first_name=?,last_name=?,sex=?,age=?,barangay=?,district=?,
-                employment_status=?,is_pwd=?,educ_level=?,preferred_position=?,skills=?,
-                work_experience=?,peis_reg_date=?,birthdate=?,contact_number=? WHERE id=?
-        ''', (
-            f.get('first_name','').strip(), f.get('last_name','').strip(),
-            f.get('sex',''), int(age) if age.isdigit() else None,
-            f.get('barangay','').strip(), f.get('district',''),
-            f.get('employment_status','Unemployed'),
-            1 if f.get('is_pwd') else 0,
-            f.get('educ_level',''), f.get('preferred_position','').strip(),
-            f.get('skills','').strip(), f.get('work_experience','').strip(),
-            peis_reg_date, f.get('birthdate','').strip(), f.get('contact_number','').strip(), aid,
-        ))
-        db.commit()
-        flash('Applicant updated.', 'success')
-        return redirect(url_for('applicants_list'))
-    return render_template('applicants/form.html', applicant=dict(ap),
-                           educ_levels=EDUC_LEVELS, action='edit',
-                           barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-                           barangay_district_map=BARANGAY_DISTRICT,
-                           positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-                           work_exp_list=WORK_EXPERIENCE_LIST)
-
-@app.route('/applicants/<int:aid>/archive', methods=['POST'])
-@admin_required
-def applicant_archive(aid):
-    get_db().execute('UPDATE applicants SET is_archived=1 WHERE id=?', (aid,))
-    get_db().commit()
-    flash('Applicant archived.', 'success')
-    return redirect(url_for('applicants_list'))
-
-@app.route('/applicants/<int:aid>/restore', methods=['POST'])
-@admin_required
-def applicant_restore(aid):
-    get_db().execute('UPDATE applicants SET is_archived=0 WHERE id=?', (aid,))
-    get_db().commit()
-    flash('Applicant restored.', 'success')
-    return redirect(url_for('applicants_list') + '?archived=1')
+    return render_template('applicants/view.html', ap=dict(ap))
 
 @app.route('/applicants/<int:aid>/delete', methods=['POST'])
 @admin_required
@@ -1558,39 +1514,6 @@ def vacancies_list():
     return render_template('vacancies/list.html', vacancies=vacancies,
                            search=search, status=status, view=view)
 
-@app.route('/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
-@admin_required
-def vacancy_edit(vid):
-    db = get_db()
-    v  = db.execute('SELECT * FROM job_vacancies WHERE id=?', (vid,)).fetchone()
-    if not v:
-        flash('Vacancy not found.', 'danger')
-        return redirect(url_for('vacancies_list'))
-    if request.method == 'POST':
-        f = request.form
-        req, err = parse_vacancy_requirements(f)
-        if (not err and req['application_deadline'] and req['application_deadline'] < _today_ph()
-                and req['application_deadline'] != v['application_deadline']):
-            err = 'Application deadline cannot be in the past.'
-        if err:
-            flash(err, 'danger')
-            return render_template('vacancies/form.html', vacancy={**dict(v), **f.to_dict()},
-                                   categories=CATEGORY_LIST, action='edit',
-                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
-        db.execute(
-            'UPDATE job_vacancies SET employer_name=?,job_title=?,occupational_category=?,is_local=?,' +
-            ','.join(f'{c}=?' for c in REQ_COLS) + ' WHERE id=?',
-            (f.get('employer_name','').strip(), f.get('job_title','').strip(),
-             f.get('occupational_category',''), 1 if f.get('is_local','1')=='1' else 0,
-             *[req[c] for c in REQ_COLS], vid)
-        )
-        db.commit()
-        flash('Vacancy updated.', 'success')
-        return redirect(url_for('vacancies_list'))
-    return render_template('vacancies/form.html', vacancy=dict(v),
-                           categories=CATEGORY_LIST, action='edit',
-                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
-
 @app.route('/vacancies/<int:vid>/toggle', methods=['POST'])
 @admin_required
 def vacancy_toggle(vid):
@@ -1622,28 +1545,11 @@ def vacancy_delete(vid):
 @app.route('/users')
 @admin_required
 def users_list():
-    db     = get_db()
-    role   = request.args.get('role', 'admin')
-    view   = request.args.get('view', 'card')
-
-    role_cond = {
-        'admin':     "role = 'admin'",
-        'employer':  "role = 'employer'",
-        'jobseeker': "role = 'jobseeker'",
-        'all':       "1=1",
-    }.get(role, "role = 'admin'")
-
+    view = request.args.get('view', 'card')
     users = get_db().execute(
-        f'SELECT * FROM users WHERE {role_cond} ORDER BY role, full_name'
+        "SELECT * FROM users WHERE role='admin' ORDER BY full_name"
     ).fetchall()
-
-    counts = {
-        'admin':     db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0],
-        'employer':  db.execute("SELECT COUNT(*) FROM users WHERE role='employer'").fetchone()[0],
-        'jobseeker': db.execute("SELECT COUNT(*) FROM users WHERE role='jobseeker'").fetchone()[0],
-    }
-    return render_template('users/list.html', users=users,
-                           role=role, view=view, counts=counts)
+    return render_template('users/list.html', users=users, view=view)
 
 @app.route('/users/add', methods=['GET', 'POST'])
 @admin_required
@@ -1807,6 +1713,30 @@ def admin_employer_reject(eid):
     db.execute('UPDATE users SET is_active=0 WHERE id=?', (emp['user_id'],))
     db.commit()
     flash(f'Employer "{emp["company_name"]}" rejected/deactivated.', 'warning')
+    return redirect(url_for('admin_employers'))
+
+@app.route('/admin/employers/<int:eid>/delete', methods=['POST'])
+@admin_required
+def admin_employer_delete(eid):
+    db  = get_db()
+    emp = db.execute('SELECT * FROM employers WHERE id=?', (eid,)).fetchone()
+    if not emp:
+        flash('Employer not found.', 'danger')
+        return redirect(url_for('admin_employers'))
+    uid = emp['user_id']
+    # Remove the employer's vacancies and everything linked to them
+    vac_ids = [r['id'] for r in db.execute(
+        'SELECT id FROM job_vacancies WHERE employer_id=?', (uid,)
+    ).fetchall()]
+    for vid in vac_ids:
+        db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
+        db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
+    db.execute('DELETE FROM job_vacancies WHERE employer_id=?', (uid,))
+    db.execute('DELETE FROM employers WHERE id=?', (eid,))
+    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
+    db.execute("DELETE FROM users WHERE id=? AND role='employer'", (uid,))
+    db.commit()
+    flash(f'Employer "{emp["company_name"]}" and all their postings have been permanently deleted.', 'success')
     return redirect(url_for('admin_employers'))
 
 # ── AUTO-DEPLOY WEBHOOK (GitHub push -> git pull -> reload) ───────────────────

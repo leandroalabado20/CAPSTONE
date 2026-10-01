@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Job Vacancies{% endblock %}
-{% block page_title %}<i class="bi bi-list-task me-2"></i>Job Vacancy Management{% endblock %}
+{% block page_title %}<i class="bi bi-shield-check me-2"></i>Job Vacancy Moderation{% endblock %}
 
 {% block content %}
 {% set cat_colors = {
@@ -99,15 +99,11 @@
           </td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
-              <a href="{{ url_for('vacancy_edit', vid=v.id) }}"
-                 class="btn btn-sm btn-outline-primary" title="Edit">
-                <i class="bi bi-pencil"></i>
-              </a>
               <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.id) }}" style="display:inline;">
-                <button class="btn btn-sm {% if v.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                        title="{% if v.is_active %}Deactivate{% else %}Activate{% endif %}"
-                        onclick="return confirm('{% if v.is_active %}Deactivate{% else %}Activate{% endif %} this vacancy?')">
-                  <i class="bi {% if v.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                <button class="btn btn-sm {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                        title="{% if v.is_active %}Deactivate — hide from job seekers{% else %}Reactivate{% endif %}"
+                        onclick="return confirm('{% if v.is_active %}Deactivate this vacancy? It will be hidden from job seekers.{% else %}Reactivate this vacancy?{% endif %}')">
+                  <i class="bi {% if v.is_active %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
                 </button>
               </form>
               <button class="btn btn-sm btn-danger" title="Delete permanently"
@@ -163,15 +159,11 @@
         </div>
       </div>
       <div class="card-footer bg-transparent d-flex gap-1 pt-2">
-        <a href="{{ url_for('vacancy_edit', vid=v.id) }}"
-           class="btn btn-sm btn-outline-primary flex-fill" title="Edit">
-          <i class="bi bi-pencil me-1"></i>Edit
-        </a>
-        <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.id) }}" style="display:inline;">
-          <button class="btn btn-sm {% if v.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                  title="{% if v.is_active %}Deactivate{% else %}Activate{% endif %}"
-                  onclick="return confirm('{% if v.is_active %}Deactivate{% else %}Activate{% endif %} this vacancy?')">
-            <i class="bi {% if v.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+        <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.id) }}" class="flex-fill">
+          <button class="btn btn-sm w-100 {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                  title="{% if v.is_active %}Deactivate — hide from job seekers{% else %}Reactivate{% endif %}"
+                  onclick="return confirm('{% if v.is_active %}Deactivate this vacancy? It will be hidden from job seekers.{% else %}Reactivate this vacancy?{% endif %}')">
+            <i class="bi {% if v.is_active %}bi-eye-slash{% else %}bi-eye{% endif %} me-1"></i>{% if v.is_active %}Deactivate{% else %}Activate{% endif %}
           </button>
         </form>
         <button class="btn btn-sm btn-danger" title="Delete permanently"

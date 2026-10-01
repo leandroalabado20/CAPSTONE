@@ -1,42 +1,22 @@
 {% extends 'base.html' %}
-{% block title %}User Accounts{% endblock %}
-{% block page_title %}<i class="bi bi-person-gear me-2"></i>User Account Management{% endblock %}
+{% block title %}Admin Accounts{% endblock %}
+{% block page_title %}<i class="bi bi-person-gear me-2"></i>Admin Accounts{% endblock %}
 
 {% block content %}
 {% set avatar_colors = ['#2563eb','#198754','#0dcaf0','#6f42c1','#fd7e14','#d63384','#20c997'] %}
 
-<!-- ── Role tabs ────────────────────────────────────────────────────────────── -->
-<div class="d-flex flex-wrap gap-2 mb-3">
-  {% set role_tabs = [
-    ('admin',     'Admins',         'primary',  counts.admin),
-    ('employer',  'Employers',      'success',  counts.employer),
-    ('jobseeker', 'Jobseekers',     'info',     counts.jobseeker),
-  ] %}
-  {% for val, label, color, count in role_tabs %}
-  <a href="{{ url_for('users_list', role=val, view=view) }}"
-     class="btn btn-sm {% if role == val %}btn-{{ color }}{% else %}btn-outline-{{ color }}{% endif %}">
-    {{ label }}
-    <span class="badge {% if role == val %}bg-white text-{{ color }}{% else %}bg-{{ color }} text-white{% endif %} ms-1">
-      {{ count }}
-    </span>
-  </a>
-  {% endfor %}
-</div>
-
 <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-  {% if role == 'admin' %}
   <a href="{{ url_for('user_add') }}" class="btn btn-primary">
     <i class="bi bi-person-plus-fill me-1"></i>Add Admin Account
   </a>
-  {% endif %}
 
   <div class="btn-group ms-auto" role="group">
-    <a href="{{ url_for('users_list', view='card', role=role) }}"
+    <a href="{{ url_for('users_list', view='card') }}"
        class="btn {% if view != 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Card view">
       <i class="bi bi-grid-3x3-gap-fill"></i>
     </a>
-    <a href="{{ url_for('users_list', view='table', role=role) }}"
+    <a href="{{ url_for('users_list', view='table') }}"
        class="btn {% if view == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Table view">
       <i class="bi bi-list-ul"></i>
     </a>
@@ -48,17 +28,15 @@
 <div class="card shadow-sm">
   <div class="card-body text-center text-muted py-5">
     <i class="bi bi-inbox" style="font-size:2rem;"></i>
-    <p class="mt-2 mb-0">No accounts found.</p>
-    {% if role == 'admin' %}
+    <p class="mt-2 mb-0">No admin accounts found.</p>
     <a href="{{ url_for('user_add') }}" class="btn btn-primary btn-sm mt-3">Add Admin Account</a>
-    {% endif %}
   </div>
 </div>
 
 {% elif view == 'table' %}
 <div class="card shadow-sm">
   <div class="card-header fw-semibold">
-    Accounts <span class="badge bg-secondary ms-2">{{ users|length }}</span>
+    Admin Accounts <span class="badge bg-secondary ms-2">{{ users|length }}</span>
   </div>
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
@@ -68,7 +46,6 @@
           <th>Full Name</th>
           <th>Username</th>
           <th>Email</th>
-          <th>Role</th>
           <th>Created</th>
           <th class="text-center">Actions</th>
         </tr>
@@ -85,24 +62,13 @@
           </td>
           <td><code>{{ u.username }}</code></td>
           <td class="small">{{ u.email }}</td>
-          <td>
-            {% if u.role == 'admin' %}
-            <span class="badge bg-danger-subtle text-danger-emphasis">Admin</span>
-            {% elif u.role == 'employer' %}
-            <span class="badge bg-success-subtle text-success-emphasis">Employer</span>
-            {% elif u.role == 'jobseeker' %}
-            <span class="badge bg-info-subtle text-info-emphasis">Jobseeker</span>
-            {% endif %}
-          </td>
           <td class="small text-muted">{{ u.created_at[:10] if u.created_at else '—' }}</td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
-              {% if u.role == 'admin' %}
               <a href="{{ url_for('user_edit', uid=u.id) }}"
                  class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
               </a>
-              {% endif %}
               {% if u.id != session.user_id %}
               <button class="btn btn-sm btn-danger" title="Delete permanently"
                 data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
@@ -147,23 +113,12 @@
         <div class="small mb-2 text-muted">
           <i class="bi bi-calendar3 text-secondary me-1"></i>Since {{ u.created_at[:10] if u.created_at else '—' }}
         </div>
-        <div class="d-flex gap-1 flex-wrap">
-          {% if u.role == 'admin' %}
-          <span class="badge bg-danger-subtle text-danger-emphasis">Admin</span>
-          {% elif u.role == 'employer' %}
-          <span class="badge bg-success-subtle text-success-emphasis">Employer</span>
-          {% elif u.role == 'jobseeker' %}
-          <span class="badge bg-info-subtle text-info-emphasis">Jobseeker</span>
-          {% endif %}
-        </div>
       </div>
       <div class="card-footer bg-transparent d-flex gap-1 pt-2">
-        {% if u.role == 'admin' %}
         <a href="{{ url_for('user_edit', uid=u.id) }}"
            class="btn btn-sm btn-outline-primary flex-fill" title="Edit">
           <i class="bi bi-pencil me-1"></i>Edit
         </a>
-        {% endif %}
         {% if u.id != session.user_id %}
         <button class="btn btn-sm btn-danger" title="Delete permanently"
           data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
@@ -180,7 +135,7 @@
 </div>
 {% endif %}
 
-<p class="text-center text-muted small mt-3">{{ users|length }} account(s) found</p>
+<p class="text-center text-muted small mt-3">{{ users|length }} admin account(s)</p>
 
 <!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">

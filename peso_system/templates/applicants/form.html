@@ -75,15 +75,16 @@
                  value="{{ applicant.last_name if applicant else '' }}" required />
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-semibold">Age</label>
-          <input type="number" name="age" class="form-control" min="0" max="120"
-                 value="{{ applicant.age if applicant and applicant.age is not none else '' }}" />
-        </div>
-
-        <div class="col-md-4">
           <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
-          <input type="date" name="birthdate" class="form-control"
-                 value="{{ applicant.birthdate if applicant and applicant.birthdate else '' }}" required />
+          <input type="date" name="birthdate" id="birthdate-input" class="form-control"
+                 value="{{ applicant.birthdate if applicant and applicant.birthdate else '' }}"
+                 onchange="computeAge()" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Age</label>
+          <input type="number" name="age" id="age-input" class="form-control" min="0" max="120"
+                 value="{{ applicant.age if applicant and applicant.age is not none else '' }}" />
+          <div class="form-text">Auto-computed from date of birth — you can adjust it if needed.</div>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-semibold">Contact Number</label>
@@ -136,7 +137,7 @@
           <label class="form-label fw-semibold">PEIS Registration Date</label>
           <input type="date" name="peis_reg_date" class="form-control"
                  value="{{ applicant.peis_reg_date if applicant and applicant.peis_reg_date else '' }}" />
-          <div class="form-text">Auto-filled from batch upload.</div>
+          <div class="form-text">Optional — date the applicant registered with PESO.</div>
         </div>
         <div class="col-12">
           <div class="form-check">
@@ -238,6 +239,20 @@
 <script>
 const BRGY_DISTRICT = {{ barangay_district_map | tojson }};
 
+function computeAge() {
+  const bd = document.getElementById('birthdate-input').value;
+  if (!bd) return;
+  const dob = new Date(bd);
+  if (isNaN(dob.getTime())) return;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  if (age >= 0 && age < 130) {
+    document.getElementById('age-input').value = age;
+  }
+}
+
 function autoFillDistrict(val) {
   const key = val.trim().toUpperCase();
   const dist = BRGY_DISTRICT[key] || '';
@@ -257,11 +272,16 @@ function addChip(fieldId, value) {
   }
 }
 
-// Auto-fill district on page load if barangay already has a value
+// On page load: auto-fill district and compute age if missing
 window.addEventListener('DOMContentLoaded', function () {
   const brgyInput = document.getElementById('barangay-input');
   if (brgyInput && brgyInput.value) {
     autoFillDistrict(brgyInput.value);
+  }
+  const bd  = document.getElementById('birthdate-input');
+  const age = document.getElementById('age-input');
+  if (bd && bd.value && age && !age.value) {
+    computeAge();
   }
 });
 </script>

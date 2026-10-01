@@ -72,8 +72,8 @@
               </div>
               <div class="col-sm-6">
                 <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
-                <input type="date" name="birthdate" class="form-control"
-                       value="{{ form.get('birthdate','') }}" required />
+                <input type="date" name="birthdate" id="birthdate-input" class="form-control"
+                       value="{{ form.get('birthdate','') }}" onchange="computeAge()" required />
               </div>
               <div class="col-sm-6">
                 <label class="form-label fw-semibold">Contact Number</label>
@@ -116,8 +116,9 @@
               </div>
               <div class="col-sm-6">
                 <label class="form-label fw-semibold">Age</label>
-                <input type="number" name="age" class="form-control" min="15" max="80"
+                <input type="number" name="age" id="age-input" class="form-control" min="15" max="80"
                        value="{{ form.get('age','') }}" />
+                <div class="form-text">Auto-computed from date of birth — you can adjust it if needed.</div>
               </div>
 
               <!-- Barangay with datalist + auto-fill district -->
@@ -236,6 +237,20 @@
 <script>
 const BRGY_DISTRICT = {{ barangay_district_map | tojson }};
 
+function computeAge() {
+  const bd = document.getElementById('birthdate-input').value;
+  if (!bd) return;
+  const dob = new Date(bd);
+  if (isNaN(dob.getTime())) return;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  if (age >= 0 && age < 130) {
+    document.getElementById('age-input').value = age;
+  }
+}
+
 function autoFillDistrict(val) {
   const key = val.trim().toUpperCase();
   const dist = BRGY_DISTRICT[key] || '';
@@ -259,6 +274,11 @@ window.addEventListener('DOMContentLoaded', function () {
   const brgyInput = document.getElementById('barangay-input');
   if (brgyInput && brgyInput.value) {
     autoFillDistrict(brgyInput.value);
+  }
+  const bd  = document.getElementById('birthdate-input');
+  const age = document.getElementById('age-input');
+  if (bd && bd.value && age && !age.value) {
+    computeAge();
   }
 });
 </script>

@@ -32,7 +32,7 @@
   </div>
   <div class="card-body">
     <form method="POST"
-          action="{% if action == 'register' %}{{ url_for('applicant_register') }}{% else %}{{ url_for('applicant_edit', aid=applicant.id) }}{% endif %}">
+          action="{{ url_for('applicant_edit', aid=applicant.id) }}">
 
       {% if applicant and (not applicant.educ_level or not applicant.preferred_position or not applicant.skills) %}
       <div class="alert alert-warning d-flex align-items-center gap-2">

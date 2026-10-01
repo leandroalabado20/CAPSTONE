@@ -13,10 +13,6 @@
 
 <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-  <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary">
-    <i class="bi bi-plus-lg me-1"></i>Add Vacancy
-  </a>
-
   <form method="GET" class="d-flex gap-2 ms-auto">
     <input type="hidden" name="status" value="{{ status }}" />
     <input type="hidden" name="view"   value="{{ view }}" />
@@ -54,7 +50,6 @@
   <div class="card-body text-center text-muted py-5">
     <i class="bi bi-inbox" style="font-size:2rem;"></i>
     <p class="mt-2 mb-0">No vacancies found.</p>
-    <a href="{{ url_for('vacancy_add') }}" class="btn btn-primary btn-sm mt-3">Add First Vacancy</a>
   </div>
 </div>
 

@@ -1397,63 +1397,6 @@ def applicants_list():
                            district=district, view=view, page=page, pages=pages,
                            total=total)
 
-@app.route('/applicants/register', methods=['GET', 'POST'])
-@admin_required
-def applicant_register():
-    form_kwargs = dict(
-        educ_levels=EDUC_LEVELS, action='register',
-        barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-        barangay_district_map=BARANGAY_DISTRICT,
-        positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-        work_exp_list=WORK_EXPERIENCE_LIST,
-    )
-    if request.method == 'POST':
-        f = request.form
-        if not f.get('first_name') or not f.get('last_name') or not f.get('birthdate') or \
-           not f.get('educ_level') or not f.get('preferred_position') or not f.get('skills'):
-            flash('First name, last name, date of birth, education level, preferred position, and skills are required.', 'danger')
-            return render_template('applicants/form.html', applicant=f, **form_kwargs)
-
-        db = get_db()
-        first     = f.get('first_name', '').strip()
-        last      = f.get('last_name', '').strip()
-        birthdate = f.get('birthdate', '').strip()
-        contact   = f.get('contact_number', '').strip()
-
-        if f.get('confirm_duplicate') != '1':
-            dup = find_duplicate_applicant(db, first, last, birthdate)
-            if dup:
-                msg = (f"A record for {dup['first_name']} {dup['last_name']} "
-                       f"(born {dup['birthdate']}) already exists")
-                if contact and dup['contact_number'] and contact == dup['contact_number']:
-                    msg += ', with the same contact number'
-                msg += '. If this is a different person, check the box below and submit again.'
-                flash(msg, 'warning')
-                return render_template('applicants/form.html', applicant=f,
-                                       duplicate_warning=True, **form_kwargs)
-
-        age = f.get('age', '').strip()
-        peis_reg_date = f.get('peis_reg_date', '').strip() or None
-        db.execute('''
-            INSERT INTO applicants (first_name,last_name,sex,age,barangay,district,
-                employment_status,is_pwd,educ_level,preferred_position,skills,work_experience,
-                peis_reg_date,birthdate,contact_number)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        ''', (
-            first, last,
-            f.get('sex',''), int(age) if age.isdigit() else None,
-            f.get('barangay','').strip(), f.get('district',''),
-            f.get('employment_status','Unemployed'),
-            1 if f.get('is_pwd') else 0,
-            f.get('educ_level',''), f.get('preferred_position','').strip(),
-            f.get('skills','').strip(), f.get('work_experience','').strip(),
-            peis_reg_date, birthdate, contact,
-        ))
-        db.commit()
-        flash('Applicant registered successfully.', 'success')
-        return redirect(url_for('applicants_list'))
-    return render_template('applicants/form.html', applicant=None, **form_kwargs)
-
 @app.route('/applicants/<int:aid>/edit', methods=['GET', 'POST'])
 @admin_required
 def applicant_edit(aid):
@@ -1615,35 +1558,6 @@ def vacancies_list():
     return render_template('vacancies/list.html', vacancies=vacancies,
                            search=search, status=status, view=view)
 
-@app.route('/vacancies/add', methods=['GET', 'POST'])
-@admin_required
-def vacancy_add():
-    if request.method == 'POST':
-        f = request.form
-        req, err = parse_vacancy_requirements(f)
-        if not f.get('employer_name') or not f.get('job_title') or not f.get('occupational_category'):
-            err = 'Employer name, job title, and occupational category are required.'
-        elif not err and req['application_deadline'] and req['application_deadline'] < _today_ph():
-            err = 'Application deadline cannot be in the past.'
-        if err:
-            flash(err, 'danger')
-            return render_template('vacancies/form.html', vacancy=f,
-                                   categories=CATEGORY_LIST, action='add',
-                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
-        get_db().execute(
-            'INSERT INTO job_vacancies (employer_name,job_title,occupational_category,is_local,' +
-            ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,' + ','.join('?' * len(REQ_COLS)) + ')',
-            (f.get('employer_name','').strip(), f.get('job_title','').strip(),
-             f.get('occupational_category',''), 1 if f.get('is_local','1')=='1' else 0,
-             *[req[c] for c in REQ_COLS])
-        )
-        get_db().commit()
-        flash('Job vacancy added.', 'success')
-        return redirect(url_for('vacancies_list'))
-    return render_template('vacancies/form.html', vacancy=None,
-                           categories=CATEGORY_LIST, action='add',
-                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
-
 @app.route('/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @admin_required
 def vacancy_edit(vid):
@@ -1709,7 +1623,6 @@ def vacancy_delete(vid):
 @admin_required
 def users_list():
     db     = get_db()
-    status = request.args.get('status', 'all')
     role   = request.args.get('role', 'admin')
     view   = request.args.get('view', 'card')
 
@@ -1720,14 +1633,8 @@ def users_list():
         'all':       "1=1",
     }.get(role, "role = 'admin'")
 
-    status_cond = ''
-    if status == 'active':
-        status_cond = ' AND is_active=1'
-    elif status == 'inactive':
-        status_cond = ' AND is_active=0'
-
     users = get_db().execute(
-        f'SELECT * FROM users WHERE {role_cond}{status_cond} ORDER BY role, full_name'
+        f'SELECT * FROM users WHERE {role_cond} ORDER BY role, full_name'
     ).fetchall()
 
     counts = {
@@ -1735,7 +1642,7 @@ def users_list():
         'employer':  db.execute("SELECT COUNT(*) FROM users WHERE role='employer'").fetchone()[0],
         'jobseeker': db.execute("SELECT COUNT(*) FROM users WHERE role='jobseeker'").fetchone()[0],
     }
-    return render_template('users/list.html', users=users, status=status,
+    return render_template('users/list.html', users=users,
                            role=role, view=view, counts=counts)
 
 @app.route('/users/add', methods=['GET', 'POST'])
@@ -1828,20 +1735,6 @@ def user_delete(uid):
     flash(f'Account for {u["full_name"]} (@{u["username"]}) has been permanently deleted.', 'success')
     return redirect(url_for('users_list'))
 
-@app.route('/users/<int:uid>/toggle', methods=['POST'])
-@admin_required
-def user_toggle(uid):
-    if uid == session['user_id']:
-        flash('You cannot deactivate your own account.', 'danger')
-        return redirect(url_for('users_list'))
-    db = get_db()
-    u  = db.execute('SELECT is_active FROM users WHERE id=?', (uid,)).fetchone()
-    if u:
-        db.execute('UPDATE users SET is_active=? WHERE id=?',
-                   (0 if u['is_active'] else 1, uid))
-        db.commit()
-        flash('User status updated.', 'success')
-    return redirect(url_for('users_list'))
 
 @app.route('/users/login-history')
 @admin_required

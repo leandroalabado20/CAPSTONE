@@ -13,7 +13,7 @@
     ('jobseeker', 'Jobseekers',     'info',     counts.jobseeker),
   ] %}
   {% for val, label, color, count in role_tabs %}
-  <a href="{{ url_for('users_list', role=val, status=status, view=view) }}"
+  <a href="{{ url_for('users_list', role=val, view=view) }}"
      class="btn btn-sm {% if role == val %}btn-{{ color }}{% else %}btn-outline-{{ color }}{% endif %}">
     {{ label }}
     <span class="badge {% if role == val %}bg-white text-{{ color }}{% else %}bg-{{ color }} text-white{% endif %} ms-1">
@@ -30,31 +30,17 @@
     <i class="bi bi-person-plus-fill me-1"></i>Add Admin Account
   </a>
   {% endif %}
-  <a href="{{ url_for('login_history') }}" class="btn btn-outline-secondary">
-    <i class="bi bi-clock-history me-1"></i>Login History
-  </a>
 
   <div class="btn-group ms-auto" role="group">
-    <a href="{{ url_for('users_list', view='card', status=status, role=role) }}"
+    <a href="{{ url_for('users_list', view='card', role=role) }}"
        class="btn {% if view != 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Card view">
       <i class="bi bi-grid-3x3-gap-fill"></i>
     </a>
-    <a href="{{ url_for('users_list', view='table', status=status, role=role) }}"
+    <a href="{{ url_for('users_list', view='table', role=role) }}"
        class="btn {% if view == 'table' %}btn-primary{% else %}btn-outline-secondary{% endif %}" title="Table view">
       <i class="bi bi-list-ul"></i>
     </a>
   </div>
-</div>
-
-<!-- ── Status filter chips ────────────────────────────────────────────────── -->
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-  <span class="text-muted small fw-semibold me-1"><i class="bi bi-funnel me-1"></i>Status</span>
-  {% for key, label in [('all','All'),('active','Active'),('inactive','Inactive')] %}
-  <a href="{{ url_for('users_list', status=key, view=view, role=role) }}"
-     class="btn btn-sm filter-chip {% if status == key %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-    {{ label }}
-  </a>
-  {% endfor %}
 </div>
 
 <!-- ── Results ────────────────────────────────────────────────────────────── -->
@@ -83,14 +69,13 @@
           <th>Username</th>
           <th>Email</th>
           <th>Role</th>
-          <th>Status</th>
           <th>Created</th>
           <th class="text-center">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for u in users %}
-        <tr {% if not u.is_active %}style="background:var(--peso-bg);opacity:.6;"{% endif %}>
+        <tr>
           <td class="small">{{ u.id }}</td>
           <td>
             <strong>{{ u.full_name }}</strong>
@@ -109,11 +94,6 @@
             <span class="badge bg-info-subtle text-info-emphasis">Jobseeker</span>
             {% endif %}
           </td>
-          <td>
-            <span class="badge {% if u.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-              {% if u.is_active %}Active{% else %}Inactive{% endif %}
-            </span>
-          </td>
           <td class="small text-muted">{{ u.created_at[:10] if u.created_at else '—' }}</td>
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
@@ -124,13 +104,6 @@
               </a>
               {% endif %}
               {% if u.id != session.user_id %}
-              <form method="POST" action="{{ url_for('user_toggle', uid=u.id) }}" style="display:inline;">
-                <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                        title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}"
-                        onclick="return confirm('{% if u.is_active %}Deactivate{% else %}Activate{% endif %} this account?')">
-                  <i class="bi {% if u.is_active %}bi-person-dash{% else %}bi-person-check{% endif %}"></i>
-                </button>
-              </form>
               <button class="btn btn-sm btn-danger" title="Delete permanently"
                 data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
                 data-uid="{{ u.id }}"
@@ -152,7 +125,7 @@
 <div class="row g-3">
   {% for u in users %}
   <div class="col-sm-6 col-lg-4 col-xl-3">
-    <div class="card applicant-card shadow-sm h-100 {% if not u.is_active %}opacity-75{% endif %}">
+    <div class="card applicant-card shadow-sm h-100">
       <div class="card-body pb-2">
         <div class="d-flex align-items-center gap-3 mb-3">
           <span class="avatar" style="background:{{ avatar_colors[u.id % 7] }}">
@@ -182,9 +155,6 @@
           {% elif u.role == 'jobseeker' %}
           <span class="badge bg-info-subtle text-info-emphasis">Jobseeker</span>
           {% endif %}
-          <span class="badge {% if u.is_active %}bg-success{% else %}bg-secondary{% endif %}">
-            {% if u.is_active %}Active{% else %}Inactive{% endif %}
-          </span>
         </div>
       </div>
       <div class="card-footer bg-transparent d-flex gap-1 pt-2">
@@ -195,13 +165,6 @@
         </a>
         {% endif %}
         {% if u.id != session.user_id %}
-        <form method="POST" action="{{ url_for('user_toggle', uid=u.id) }}" style="display:inline;">
-          <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                  title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}"
-                  onclick="return confirm('{% if u.is_active %}Deactivate{% else %}Activate{% endif %} this account?')">
-            <i class="bi {% if u.is_active %}bi-person-dash{% else %}bi-person-check{% endif %}"></i>
-          </button>
-        </form>
         <button class="btn btn-sm btn-danger" title="Delete permanently"
           data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
           data-uid="{{ u.id }}"

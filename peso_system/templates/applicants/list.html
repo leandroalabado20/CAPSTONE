@@ -7,10 +7,6 @@
 
 <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-  <a href="{{ url_for('applicant_register') }}" class="btn btn-primary">
-    <i class="bi bi-person-plus-fill me-1"></i>Register Applicant
-  </a>
-
   <form method="GET" class="d-flex gap-2 ms-auto">
     <input type="hidden" name="status" value="{{ status }}" />
     <input type="hidden" name="district" value="{{ district }}" />
@@ -60,9 +56,6 @@
   <div class="card-body text-center text-muted py-5">
     <i class="bi bi-inbox" style="font-size:2rem;"></i>
     <p class="mt-2 mb-0">No {% if archived %}archived {% endif %}applicants match your filters.</p>
-    {% if not archived %}
-    <a href="{{ url_for('applicant_register') }}" class="btn btn-primary btn-sm mt-3">Register First Applicant</a>
-    {% endif %}
   </div>
 </div>
 

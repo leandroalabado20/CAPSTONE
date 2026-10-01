@@ -12,7 +12,7 @@
   </div>
   <div class="card-body">
     <form method="POST"
-          action="{% if action == 'add' %}{{ url_for('vacancy_add') }}{% else %}{{ url_for('vacancy_edit', vid=vacancy.id) }}{% endif %}">
+          action="{{ url_for('vacancy_edit', vid=vacancy.id) }}">
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Employer / Company Name <span class="text-danger">*</span></label>

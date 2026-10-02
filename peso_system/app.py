@@ -130,6 +130,26 @@ WORK_EXPERIENCE_LIST = [
     'Receptionist', 'Bookkeeper', 'Payroll Clerk',
 ]
 
+# ── APPLICANT PROFILE CHOICES (PhilJobNet / NSRP Form 1) ──────────────────────
+SUFFIX_CHOICES       = ['', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']
+CIVIL_STATUS_CHOICES = ['Single', 'Married', 'Widowed', 'Separated', 'Annulled']
+RELIGION_CHOICES     = ['Roman Catholic', 'Islam', 'Iglesia ni Cristo', 'Protestant',
+                        'Born Again Christian', 'Seventh-day Adventist', 'Buddhist',
+                        'Others']
+DISABILITY_TYPES     = ['Visual', 'Hearing', 'Speech', 'Physical', 'Mental', 'Others']
+LANGUAGE_CHOICES     = ['Mandarin', 'Tagalog', 'English']
+EMPLOYED_TYPES       = ['Wage employed', 'Self-employed', 'Others']
+UNEMPLOYED_REASONS   = ['New entrant/fresh graduate', 'Finished contract', 'Resigned',
+                        'Retired', 'Terminated/Laid off due to calamity',
+                        'Terminated/Laid off (local)', 'Terminated/Laid off (abroad)',
+                        'Displaced POGO Worker', 'Others']
+WORK_STATUS_CHOICES  = ['Permanent', 'Contractual', 'Probationary', 'Casual',
+                        'Part-time', 'Seasonal']
+OTHER_SKILLS_CHOICES = ['Auto Mechanic', 'Beautician', 'Carpentry Work', 'Computer Literate',
+                        'Domestic Chores', 'Driving', 'Electrician', 'Embroidery',
+                        'Gardening', 'Masonry', 'Painter/Artist', 'Painting Jobs',
+                        'Photography', 'Sewing Dresses', 'Stenography', 'Tailoring']
+
 BARANGAY_DISTRICT = {
     'POBLACION': 'District 1', 'POBLACION I': 'District 1',
     'FRANCISCO HOMES-GUIJO': 'District 1', 'FRANCISCO HOMES-MULAWIN': 'District 1',
@@ -297,7 +317,7 @@ def init_db():
 
     # ── Migrate older applicants table ─────────────────────────────────────────
     acols = [r[1] for r in db.execute("PRAGMA table_info(applicants)").fetchall()]
-    if 'civil_status' in acols or 'age' not in acols:
+    if 'age' not in acols:
         db.executescript('''
             CREATE TABLE applicants_new (
                 id                 INTEGER  PRIMARY KEY AUTOINCREMENT,
@@ -337,6 +357,28 @@ def init_db():
         db.execute('ALTER TABLE applicants ADD COLUMN birthdate DATE')
     if 'contact_number' not in acols:
         db.execute('ALTER TABLE applicants ADD COLUMN contact_number TEXT')
+    # PhilJobNet / NSRP applicant profile fields
+    for col, ddl in [
+        ('middle_name', 'TEXT'), ('suffix', 'TEXT'),
+        ('civil_status', 'TEXT'), ('address_line', 'TEXT'), ('city', 'TEXT'),
+        ('province', 'TEXT'), ('height_cm', 'TEXT'), ('religion', 'TEXT'),
+        ('tin', 'TEXT'), ('landline', 'TEXT'), ('disability', 'TEXT'),
+        ('is_4ps', 'INTEGER DEFAULT 0'), ('household_id', 'TEXT'),
+        ('is_wodp', 'INTEGER DEFAULT 0'), ('is_dswd_foodstamp', 'INTEGER DEFAULT 0'),
+        ('is_caregiver', 'INTEGER DEFAULT 0'),
+        ('is_ofw', 'INTEGER DEFAULT 0'), ('ofw_country', 'TEXT'),
+        ('is_former_ofw', 'INTEGER DEFAULT 0'), ('former_ofw_country', 'TEXT'),
+        ('ofw_return_date', 'TEXT'),
+        ('employed_type', 'TEXT'), ('unemployed_reason', 'TEXT'),
+        ('job_search_months', 'INTEGER'),
+        ('pref_work_local', 'TEXT'), ('pref_work_overseas', 'TEXT'),
+        # JSON-encoded repeatable sections
+        ('languages', 'TEXT'), ('education', 'TEXT'), ('trainings', 'TEXT'),
+        ('eligibilities', 'TEXT'), ('work_history', 'TEXT'), ('other_skills', 'TEXT'),
+        ('certified', 'INTEGER DEFAULT 0'), ('certified_at', 'DATETIME'),
+    ]:
+        if col not in acols:
+            db.execute(f'ALTER TABLE applicants ADD COLUMN {col} {ddl}')
 
     vcols = [r[1] for r in db.execute("PRAGMA table_info(job_vacancies)").fetchall()]
     if 'employer_id' not in vcols:
@@ -941,39 +983,124 @@ def jobseeker_profile():
         flash('Profile not found. Contact PESO admin.', 'danger')
         return redirect(url_for('jobseeker_dashboard'))
     if request.method == 'POST':
-        f   = request.form
-        age = f.get('age', '').strip()
+        f    = request.form
         brgy = f.get('barangay', '').strip()
-        db.execute('''
-            UPDATE applicants SET sex=?, age=?, barangay=?, district=?,
-                employment_status=?, is_pwd=?, educ_level=?,
-                preferred_position=?, skills=?, work_experience=?,
-                birthdate=?, contact_number=?
-            WHERE id=?
-        ''', (
-            f.get('sex', ''),
-            int(age) if age.isdigit() else None,
-            brgy, barangay_to_district(brgy),
-            f.get('employment_status', 'Unemployed'),
-            1 if f.get('is_pwd') else 0,
-            f.get('educ_level', ''),
-            f.get('preferred_position', '').strip(),
-            f.get('skills', '').strip(),
-            f.get('work_experience', '').strip(),
-            f.get('birthdate', '').strip(),
+        bd   = f.get('birthdate', '').strip()
+        # Age is derived from date of birth; fall back to a typed age if no DOB
+        age = None
+        if bd:
+            try:
+                b     = datetime.strptime(bd, '%Y-%m-%d')
+                today = datetime.utcnow() + _PHT
+                age   = today.year - b.year - ((today.month, today.day) < (b.month, b.day))
+            except ValueError:
+                age = None
+        if age is None:
+            a = f.get('age', '').strip()
+            age = int(a) if a.isdigit() else None
+
+        def rows(prefix, keys):
+            lists = [f.getlist(f'{prefix}_{k}[]') for k in keys]
+            out = []
+            for tup in zip(*lists):
+                tup = [x.strip() for x in tup]
+                if any(tup):
+                    out.append(dict(zip(keys, tup)))
+            return out
+
+        education   = rows('edu',  ['level', 'school', 'course', 'year', 'awards'])
+        trainings   = rows('trn',  ['course', 'institution', 'hours', 'certificate'])
+        eligibils   = rows('elig', ['title', 'rating', 'date'])
+        work_hist   = rows('we',   ['company', 'address', 'position', 'months', 'status'])
+
+        languages = []
+        for lang in LANGUAGE_CHOICES:
+            key   = lang.lower()
+            flags = {s: bool(f.get(f'lang_{key}_{s}')) for s in ('read', 'write', 'speak', 'understand')}
+            if any(flags.values()):
+                languages.append({'language': lang, **flags})
+
+        disability   = f.getlist('disability')
+        other_skills = f.getlist('other_skills')
+        os_other     = f.get('other_skills_other', '').strip()
+        if os_other:
+            other_skills = other_skills + [os_other]
+
+        # ── derive the ML inputs from the structured data ──
+        ml_educ, best = '', -1
+        for e in education:
+            r = EDUC_RANK.get(e.get('level', ''), 0)
+            if e.get('level') and r >= best:
+                best, ml_educ = r, e['level']
+        if not ml_educ:
+            ml_educ = f.get('educ_level', '').strip()
+        ml_pref   = f.get('preferred_position', '').strip()
+        skills_in = f.get('skills', '').strip()
+        ml_skills = ', '.join([s for s in ([skills_in] + other_skills) if s])
+        positions = [w['position'] for w in work_hist if w.get('position')]
+        ml_workx  = ', '.join(positions)
+
+        db.execute('''UPDATE applicants SET
+            first_name=?, middle_name=?, last_name=?, suffix=?,
+            sex=?, age=?, birthdate=?, civil_status=?,
+            address_line=?, barangay=?, district=?, city=?, province=?,
+            height_cm=?, religion=?, tin=?, landline=?, contact_number=?,
+            is_pwd=?, disability=?,
+            is_4ps=?, household_id=?, is_wodp=?, is_dswd_foodstamp=?, is_caregiver=?,
+            is_ofw=?, ofw_country=?, is_former_ofw=?, former_ofw_country=?, ofw_return_date=?,
+            employment_status=?, employed_type=?, unemployed_reason=?, job_search_months=?,
+            preferred_position=?, pref_work_local=?, pref_work_overseas=?,
+            languages=?, education=?, trainings=?, eligibilities=?, work_history=?, other_skills=?,
+            educ_level=?, skills=?, work_experience=?,
+            certified=?, certified_at=CURRENT_TIMESTAMP
+            WHERE id=?''', (
+            f.get('first_name', '').strip(), f.get('middle_name', '').strip(),
+            f.get('last_name', '').strip(), f.get('suffix', '').strip(),
+            f.get('sex', ''), age, bd, f.get('civil_status', '').strip(),
+            f.get('address_line', '').strip(), brgy, barangay_to_district(brgy),
+            f.get('city', '').strip(), f.get('province', '').strip(),
+            f.get('height_cm', '').strip(), f.get('religion', '').strip(),
+            f.get('tin', '').strip(), f.get('landline', '').strip(),
             f.get('contact_number', '').strip(),
+            1 if disability else 0, json.dumps(disability),
+            1 if f.get('is_4ps') else 0, f.get('household_id', '').strip(),
+            1 if f.get('is_wodp') else 0, 1 if f.get('is_dswd_foodstamp') else 0,
+            1 if f.get('is_caregiver') else 0,
+            1 if f.get('is_ofw') else 0, f.get('ofw_country', '').strip(),
+            1 if f.get('is_former_ofw') else 0, f.get('former_ofw_country', '').strip(),
+            f.get('ofw_return_date', '').strip(),
+            f.get('employment_status', 'Unemployed'), f.get('employed_type', '').strip(),
+            f.get('unemployed_reason', '').strip(),
+            int(f.get('job_search_months')) if f.get('job_search_months', '').strip().isdigit() else None,
+            ml_pref, f.get('pref_work_local', '').strip(), f.get('pref_work_overseas', '').strip(),
+            json.dumps(languages), json.dumps(education), json.dumps(trainings),
+            json.dumps(eligibils), json.dumps(work_hist), json.dumps(other_skills),
+            ml_educ, ml_skills, ml_workx,
+            1 if f.get('certify') else 0,
             ap['id'],
         ))
         db.commit()
-        flash('Profile updated.', 'success')
+        flash('Profile saved.', 'success')
         return redirect(url_for('jobseeker_profile'))
-    user = current_user()
-    return render_template('jobseeker/profile.html', ap=dict(ap),
-                           user=user, educ_levels=EDUC_LEVELS,
+
+    ap_d = dict(ap)
+    for jcol in ('languages', 'education', 'trainings', 'eligibilities',
+                 'work_history', 'other_skills', 'disability'):
+        try:
+            ap_d[jcol] = json.loads(ap_d.get(jcol) or '[]')
+        except (ValueError, TypeError):
+            ap_d[jcol] = []
+    return render_template('jobseeker/profile.html', ap=ap_d, user=current_user(),
+                           educ_levels=EDUC_LEVELS,
                            barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
                            barangay_district_map=BARANGAY_DISTRICT,
                            positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-                           work_exp_list=WORK_EXPERIENCE_LIST)
+                           suffixes=SUFFIX_CHOICES, civil_statuses=CIVIL_STATUS_CHOICES,
+                           religions=RELIGION_CHOICES, disability_types=DISABILITY_TYPES,
+                           languages_list=LANGUAGE_CHOICES, employed_types=EMPLOYED_TYPES,
+                           unemployed_reasons=UNEMPLOYED_REASONS,
+                           work_status_choices=WORK_STATUS_CHOICES,
+                           other_skills_choices=OTHER_SKILLS_CHOICES)
 
 @app.route('/jobseeker/recommendations')
 @jobseeker_required

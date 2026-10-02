@@ -3,250 +3,446 @@
 
 {% block head %}
 <style>
-.skill-chip {
-  cursor: pointer;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: .72rem;
-  font-weight: 500;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  background: #f8fafc;
-  transition: background .1s, color .1s, border-color .1s;
-  user-select: none;
-  white-space: nowrap;
-  display: inline-block;
-}
-.skill-chip:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+.skill-chip { cursor:pointer; padding:3px 10px; border-radius:12px; font-size:.72rem; font-weight:500;
+  border:1px solid #cbd5e1; color:#475569; background:#f8fafc; user-select:none; white-space:nowrap; display:inline-block; }
+.skill-chip:hover { background:#eff6ff; border-color:#93c5fd; color:#2563eb; }
+.sec-head { font-size:.75rem; letter-spacing:.07em; text-transform:uppercase; color:var(--peso-muted); }
+.repeat-row { position:relative; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="mb-4">
   <h4 class="fw-bold mb-0">My Profile</h4>
-  <p class="text-muted small">Keep your profile updated for accurate job recommendations.</p>
+  <p class="text-muted small">Based on the PhilJobNet applicant registration. Keep it updated for accurate job recommendations.</p>
 </div>
 
 {% if not ap.educ_level or not ap.preferred_position or not ap.skills %}
 <div class="alert alert-warning d-flex gap-2 mb-4">
   <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-  <span><strong>Profile incomplete.</strong> Fill in the required fields below (marked with <span class="text-danger">*</span>) to receive job recommendations.</span>
+  <span><strong>Profile incomplete.</strong> Fill in Educational Background, a Preferred Occupation, and your Skills to receive job recommendations.</span>
 </div>
 {% endif %}
 
 <form method="POST" action="{{ url_for('jobseeker_profile') }}">
-  <div class="row g-4">
 
-    <!-- Account info (read-only) -->
-    <div class="col-12">
-      <div class="card shadow-sm border-0" style="border-radius:12px;">
-        <div class="card-header bg-transparent fw-semibold py-2 px-3 border-bottom"
-             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--peso-muted);">
-          Account
+  <!-- Account -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">Account</p>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small">Display Name</label>
+          <input type="text" class="form-control" value="{{ user.full_name }}" disabled />
         </div>
-        <div class="card-body p-3">
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Full Name</label>
-              <input type="text" class="form-control" value="{{ user.full_name }}" disabled />
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Email</label>
-              <input type="text" class="form-control" value="{{ user.email }}" disabled />
-            </div>
-          </div>
-          <div class="mt-2">
-            <a href="{{ url_for('change_password') }}" class="small text-primary">
-              <i class="bi bi-shield-lock me-1"></i>Change Password
-            </a>
-          </div>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small">Email</label>
+          <input type="text" class="form-control" value="{{ user.email }}" disabled />
         </div>
       </div>
-    </div>
-
-    <!-- Personal info -->
-    <div class="col-12">
-      <div class="card shadow-sm border-0" style="border-radius:12px;">
-        <div class="card-header bg-transparent fw-semibold py-2 px-3 border-bottom"
-             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--peso-muted);">
-          Personal Information
-        </div>
-        <div class="card-body p-3">
-          <div class="row g-3">
-            <div class="col-sm-4">
-              <label class="form-label fw-semibold small">Sex</label>
-              <select name="sex" class="form-select">
-                <option value="">-- Select --</option>
-                <option value="Male"   {% if ap.sex == 'Male' %}selected{% endif %}>Male</option>
-                <option value="Female" {% if ap.sex == 'Female' %}selected{% endif %}>Female</option>
-              </select>
-            </div>
-            <div class="col-sm-4">
-              <label class="form-label fw-semibold small">Age</label>
-              <input type="number" name="age" class="form-control" min="15" max="80"
-                     value="{{ ap.age or '' }}" />
-            </div>
-            <div class="col-sm-4">
-              <label class="form-label fw-semibold small">PWD</label>
-              <div class="form-check mt-2">
-                <input type="checkbox" name="is_pwd" class="form-check-input" id="is_pwd"
-                       {% if ap.is_pwd %}checked{% endif %} />
-                <label class="form-check-label small" for="is_pwd">Person with Disability</label>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Date of Birth</label>
-              <input type="date" name="birthdate" class="form-control"
-                     value="{{ ap.birthdate or '' }}" />
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Contact Number</label>
-              <input type="text" name="contact_number" class="form-control"
-                     value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX"
-                     maxlength="11" inputmode="numeric" pattern="09[0-9]{9}"
-                     title="11-digit mobile number (09XXXXXXXXX)" />
-            </div>
-
-            <!-- Barangay with datalist + auto-fill district -->
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Barangay</label>
-              <input type="text" name="barangay" id="barangay-input" class="form-control"
-                     list="barangay-list" autocomplete="off" maxlength="60"
-                     value="{{ ap.barangay or '' }}"
-                     placeholder="Type or select barangay"
-                     oninput="autoFillDistrict(this.value)" />
-              <datalist id="barangay-list">
-                {% for b in barangays %}
-                <option value="{{ b|title }}">{{ b|title }}</option>
-                {% endfor %}
-              </datalist>
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">District</label>
-              <input type="text" name="district" id="district-input" class="form-control"
-                     value="{{ ap.district or '' }}"
-                     placeholder="Auto-filled from barangay" readonly />
-            </div>
-
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Employment Status</label>
-              <select name="employment_status" class="form-select">
-                <option value="Unemployed" {% if ap.employment_status == 'Unemployed' %}selected{% endif %}>Unemployed</option>
-                <option value="Employed"   {% if ap.employment_status == 'Employed' %}selected{% endif %}>Employed</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ML fields -->
-    <div class="col-12">
-      <div class="card shadow-sm border-0" style="border-radius:12px;">
-        <div class="card-header bg-transparent fw-semibold py-2 px-3 border-bottom"
-             style="font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--peso-muted);">
-          Job Profile <span class="ms-1 text-primary fw-normal">(used for ML recommendations)</span>
-        </div>
-        <div class="card-body p-3">
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Education Level <span class="text-danger">*</span></label>
-              <select name="educ_level" class="form-select {% if not ap.educ_level %}border-danger{% endif %}">
-                <option value="">-- Select --</option>
-                {% for lvl in educ_levels %}
-                <option value="{{ lvl }}" {% if ap.educ_level == lvl %}selected{% endif %}>{{ lvl }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <!-- Preferred Position with datalist -->
-            <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Preferred Position <span class="text-danger">*</span></label>
-              <input type="text" name="preferred_position" id="pref-pos"
-                     list="pos-list" autocomplete="off" maxlength="100"
-                     class="form-control {% if not ap.preferred_position %}border-danger{% endif %}"
-                     value="{{ ap.preferred_position or '' }}"
-                     placeholder="Type or select a position" />
-              <datalist id="pos-list">
-                {% for p in positions %}
-                <option value="{{ p }}">{{ p }}</option>
-                {% endfor %}
-              </datalist>
-            </div>
-
-            <!-- Skills with chip selector -->
-            <div class="col-12">
-              <label class="form-label fw-semibold small d-flex align-items-center justify-content-between">
-                <span>Skills <span class="text-danger">*</span></span>
-                <span class="text-muted fw-normal" style="font-size:.7rem;">Click chips to add</span>
-              </label>
-              <textarea name="skills" id="skills-input" rows="2" maxlength="255"
-                        class="form-control mb-2 {% if not ap.skills %}border-danger{% endif %}"
-                        placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ ap.skills or '' }}</textarea>
-              <div class="d-flex flex-wrap gap-1">
-                {% for skill in skills_list %}
-                <span class="skill-chip" onclick="addChip('skills-input', '{{ skill }}')">{{ skill }}</span>
-                {% endfor %}
-              </div>
-            </div>
-
-            <!-- Work Experience with datalist -->
-            <div class="col-12">
-              <label class="form-label fw-semibold small">Work Experience</label>
-              <input type="text" name="work_experience" id="work-exp"
-                     list="exp-list" autocomplete="off" maxlength="150"
-                     class="form-control"
-                     value="{{ ap.work_experience or '' }}"
-                     placeholder="e.g. Cashier, leave blank if none" />
-              <datalist id="exp-list">
-                {% for exp in work_exp_list %}
-                <option value="{{ exp }}">{{ exp }}</option>
-                {% endfor %}
-              </datalist>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12">
-      <button type="submit" class="btn btn-primary fw-semibold px-4">
-        <i class="bi bi-check2 me-1"></i>Save Profile
-      </button>
-      <a href="{{ url_for('jobseeker_dashboard') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+      <a href="{{ url_for('change_password') }}" class="btn btn-sm btn-outline-secondary mt-3">
+        <i class="bi bi-shield-lock me-1"></i>Change Password
+      </a>
     </div>
   </div>
+
+  <!-- 1. Applicant Name -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">1 · Applicant Name</p>
+      <div class="row g-3">
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Last name <span class="text-danger">*</span></label>
+          <input type="text" name="last_name" class="form-control" maxlength="60" required value="{{ ap.last_name or '' }}" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">First name <span class="text-danger">*</span></label>
+          <input type="text" name="first_name" class="form-control" maxlength="60" required value="{{ ap.first_name or '' }}" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Middle name</label>
+          <input type="text" name="middle_name" class="form-control" maxlength="60" value="{{ ap.middle_name or '' }}" placeholder="Hyphen (-) if none" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Suffix</label>
+          <select name="suffix" class="form-select">
+            {% for s in suffixes %}<option value="{{ s }}" {% if ap.suffix == s %}selected{% endif %}>{{ s or 'None' }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Date of birth</label>
+          <input type="date" name="birthdate" class="form-control" value="{{ ap.birthdate or '' }}" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Sex</label>
+          <select name="sex" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="Male" {% if ap.sex == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if ap.sex == 'Female' %}selected{% endif %}>Female</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Personal Information -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">2 · Personal Information</p>
+      <div class="row g-3">
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Civil status</label>
+          <select name="civil_status" class="form-select">
+            <option value="">-- Select --</option>
+            {% for c in civil_statuses %}<option value="{{ c }}" {% if ap.civil_status == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-8">
+          <label class="form-label fw-semibold small">Present address (House no., Street, Village)</label>
+          <input type="text" name="address_line" class="form-control" maxlength="150" value="{{ ap.address_line or '' }}" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Barangay</label>
+          <input type="text" name="barangay" id="barangay-input" class="form-control" list="barangay-list"
+                 autocomplete="off" maxlength="60" value="{{ ap.barangay or '' }}" oninput="autoFillDistrict(this.value)" />
+          <datalist id="barangay-list">{% for b in barangays %}<option value="{{ b|title }}">{% endfor %}</datalist>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">City / Municipality</label>
+          <input type="text" name="city" class="form-control" maxlength="60" value="{{ ap.city or 'City of San Jose del Monte' }}" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Province</label>
+          <input type="text" name="province" class="form-control" maxlength="60" value="{{ ap.province or 'Bulacan' }}" />
+        </div>
+        <input type="hidden" name="district" value="{{ ap.district or '' }}" id="district-input" />
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">Height (cm)</label>
+          <input type="text" name="height_cm" class="form-control" maxlength="5" inputmode="numeric" value="{{ ap.height_cm or '' }}" />
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">Religion</label>
+          <select name="religion" class="form-select">
+            <option value="">-- Select --</option>
+            {% for r in religions %}<option value="{{ r }}" {% if ap.religion == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">TIN</label>
+          <input type="text" name="tin" class="form-control" maxlength="20" inputmode="numeric" value="{{ ap.tin or '' }}" />
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">Cellphone no.</label>
+          <input type="text" name="contact_number" class="form-control" maxlength="11" inputmode="numeric"
+                 pattern="09[0-9]{9}" title="11-digit mobile (09XXXXXXXXX)" value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX" />
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">Landline no.</label>
+          <input type="text" name="landline" class="form-control" maxlength="12" inputmode="numeric" value="{{ ap.landline or '' }}" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold small d-block">Disability</label>
+          {% for d in disability_types %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="disability" value="{{ d }}" id="dis_{{ loop.index }}" {% if d in ap.disability %}checked{% endif %} />
+            <label class="form-check-label small" for="dis_{{ loop.index }}">{{ d }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr class="my-3" />
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_4ps" id="is_4ps" value="1" {% if ap.is_4ps %}checked{% endif %} />
+            <label class="form-check-label small" for="is_4ps">4Ps beneficiary</label>
+          </div>
+          <input type="text" name="household_id" class="form-control form-control-sm mt-1" maxlength="40" value="{{ ap.household_id or '' }}" placeholder="Household ID No." />
+        </div>
+        <div class="col-sm-6 d-flex flex-column gap-2 justify-content-center">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_wodp" value="1" id="is_wodp" {% if ap.is_wodp %}checked{% endif %} /><label class="form-check-label small" for="is_wodp">WODP beneficiary</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_dswd_foodstamp" value="1" id="is_dswd" {% if ap.is_dswd_foodstamp %}checked{% endif %} /><label class="form-check-label small" for="is_dswd">DSWD foodstamp beneficiary</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_caregiver" value="1" id="is_cg" {% if ap.is_caregiver %}checked{% endif %} /><label class="form-check-label small" for="is_cg">Caregiver</label></div>
+        </div>
+        <div class="col-sm-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_ofw" value="1" id="is_ofw" onchange="toggle('ofw-country', this.checked)" {% if ap.is_ofw %}checked{% endif %} /><label class="form-check-label small" for="is_ofw">Are you an OFW?</label></div>
+          <input type="text" name="ofw_country" id="ofw-country" class="form-control form-control-sm mt-1" maxlength="60" value="{{ ap.ofw_country or '' }}" placeholder="Specify country" />
+        </div>
+        <div class="col-sm-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_former_ofw" value="1" id="is_fofw" onchange="toggle('fofw-fields', this.checked)" {% if ap.is_former_ofw %}checked{% endif %} /><label class="form-check-label small" for="is_fofw">Former OFW?</label></div>
+          <div id="fofw-fields" class="mt-1 d-flex gap-2">
+            <input type="text" name="former_ofw_country" class="form-control form-control-sm" maxlength="60" value="{{ ap.former_ofw_country or '' }}" placeholder="Latest country of deployment" />
+            <input type="month" name="ofw_return_date" class="form-control form-control-sm" value="{{ ap.ofw_return_date or '' }}" title="Month/year of return" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Employment Status -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">3 · Employment Status</p>
+      <div class="d-flex gap-4 mb-2">
+        <div class="form-check"><input class="form-check-input" type="radio" name="employment_status" value="Employed" id="es_emp" onchange="empToggle()" {% if ap.employment_status == 'Employed' %}checked{% endif %} /><label class="form-check-label small" for="es_emp">Employed</label></div>
+        <div class="form-check"><input class="form-check-input" type="radio" name="employment_status" value="Unemployed" id="es_unemp" onchange="empToggle()" {% if ap.employment_status != 'Employed' %}checked{% endif %} /><label class="form-check-label small" for="es_unemp">Unemployed</label></div>
+      </div>
+      <div id="employed-fields" class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small">Type</label>
+          <select name="employed_type" class="form-select">
+            <option value="">-- Select --</option>
+            {% for t in employed_types %}<option value="{{ t }}" {% if ap.employed_type == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div id="unemployed-fields" class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small">Reason</label>
+          <select name="unemployed_reason" class="form-select">
+            <option value="">-- Select --</option>
+            {% for r in unemployed_reasons %}<option value="{{ r }}" {% if ap.unemployed_reason == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small">How long looking for work? (months)</label>
+          <input type="number" name="job_search_months" class="form-control" min="0" max="600" value="{{ ap.job_search_months if ap.job_search_months is not none else '' }}" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Job Preferences -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">4 · Job Preferences</p>
+      <div class="row g-3">
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Preferred Occupation <span class="text-danger">*</span></label>
+          <input type="text" name="preferred_position" list="pos-list" autocomplete="off" maxlength="100"
+                 class="form-control {% if not ap.preferred_position %}border-danger{% endif %}" value="{{ ap.preferred_position or '' }}" placeholder="Type or select" />
+          <datalist id="pos-list">{% for p in positions %}<option value="{{ p }}">{% endfor %}</datalist>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Preferred Work Location (Local)</label>
+          <input type="text" name="pref_work_local" class="form-control" maxlength="80" value="{{ ap.pref_work_local or '' }}" placeholder="City / Province" />
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold small">Preferred Work Location (Overseas)</label>
+          <input type="text" name="pref_work_overseas" class="form-control" maxlength="60" value="{{ ap.pref_work_overseas or '' }}" placeholder="Country" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Language/Dialects -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">5 · Language / Dialect Proficiency</p>
+      {% set lang_map = {} %}{% for l in ap.languages %}{% set _ = lang_map.update({l.language: l}) %}{% endfor %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr class="small text-muted"><th>Language</th><th class="text-center">Read</th><th class="text-center">Write</th><th class="text-center">Speak</th><th class="text-center">Understand</th></tr></thead>
+          <tbody>
+          {% for lang in languages_list %}
+          {% set cur = lang_map.get(lang, {}) %}
+          <tr>
+            <td class="small fw-semibold">{{ lang }}</td>
+            {% for s in ['read','write','speak','understand'] %}
+            <td class="text-center"><input type="checkbox" class="form-check-input" name="lang_{{ lang|lower }}_{{ s }}" {% if cur.get(s) %}checked{% endif %} /></td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Educational Background -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="fw-semibold sec-head mb-0">6 · Educational Background</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('edu')"><i class="bi bi-plus-lg me-1"></i>Add education</button>
+      </div>
+      <div id="edu-rows" class="d-flex flex-column gap-2">
+        {% for e in ap.education %}
+        <div class="repeat-row row g-2 border rounded p-2">
+          <div class="col-md-3"><select name="edu_level[]" class="form-select form-select-sm"><option value="">Level</option>{% for lvl in educ_levels %}<option value="{{ lvl }}" {% if e.level == lvl %}selected{% endif %}>{{ lvl }}</option>{% endfor %}</select></div>
+          <div class="col-md-3"><input name="edu_school[]" class="form-control form-control-sm" maxlength="120" placeholder="School" value="{{ e.school }}" /></div>
+          <div class="col-md-3"><input name="edu_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course" value="{{ e.course }}" /></div>
+          <div class="col-md-1"><input name="edu_year[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Year" value="{{ e.year }}" /></div>
+          <div class="col-md-2 d-flex gap-1"><input name="edu_awards[]" class="form-control form-control-sm" maxlength="120" placeholder="Awards" value="{{ e.awards }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Certification / Technical-Vocational Training -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="fw-semibold sec-head mb-0">7 · Certification &amp; Technical/Vocational Training</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('trn')"><i class="bi bi-plus-lg me-1"></i>Add training</button>
+      </div>
+      <div id="trn-rows" class="d-flex flex-column gap-2">
+        {% for t in ap.trainings %}
+        <div class="repeat-row row g-2 border rounded p-2">
+          <div class="col-md-4"><input name="trn_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course / Training" value="{{ t.course }}" /></div>
+          <div class="col-md-4"><input name="trn_institution[]" class="form-control form-control-sm" maxlength="120" placeholder="Training institution" value="{{ t.institution }}" /></div>
+          <div class="col-md-2"><input name="trn_hours[]" class="form-control form-control-sm" maxlength="10" placeholder="Hours" value="{{ t.hours }}" /></div>
+          <div class="col-md-2 d-flex gap-1"><input name="trn_certificate[]" class="form-control form-control-sm" maxlength="80" placeholder="Certificate" value="{{ t.certificate }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Eligibility / License -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="fw-semibold sec-head mb-0">8 · Eligibility / License</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('elig')"><i class="bi bi-plus-lg me-1"></i>Add entry</button>
+      </div>
+      <div id="elig-rows" class="d-flex flex-column gap-2">
+        {% for el in ap.eligibilities %}
+        <div class="repeat-row row g-2 border rounded p-2">
+          <div class="col-md-5"><input name="elig_title[]" class="form-control form-control-sm" maxlength="120" placeholder="Eligibility / License" value="{{ el.title }}" /></div>
+          <div class="col-md-3"><input name="elig_rating[]" class="form-control form-control-sm" maxlength="40" placeholder="Rating / License no." value="{{ el.rating }}" /></div>
+          <div class="col-md-4 d-flex gap-1"><input name="elig_date[]" class="form-control form-control-sm" maxlength="40" placeholder="Date / Valid until" value="{{ el.date }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Work Experience -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="fw-semibold sec-head mb-0">9 · Work Experience</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('we')"><i class="bi bi-plus-lg me-1"></i>Add experience</button>
+      </div>
+      <div id="we-rows" class="d-flex flex-column gap-2">
+        {% for w in ap.work_history %}
+        <div class="repeat-row row g-2 border rounded p-2">
+          <div class="col-md-3"><input name="we_company[]" class="form-control form-control-sm" maxlength="120" placeholder="Company" value="{{ w.company }}" /></div>
+          <div class="col-md-3"><input name="we_address[]" class="form-control form-control-sm" maxlength="120" placeholder="Address" value="{{ w.address }}" /></div>
+          <div class="col-md-2"><input name="we_position[]" class="form-control form-control-sm" maxlength="100" placeholder="Position" value="{{ w.position }}" /></div>
+          <div class="col-md-1"><input name="we_months[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Mos." value="{{ w.months }}" /></div>
+          <div class="col-md-3 d-flex gap-1"><select name="we_status[]" class="form-select form-select-sm"><option value="">Status</option>{% for st in work_status_choices %}<option value="{{ st }}" {% if w.status == st %}selected{% endif %}>{{ st }}</option>{% endfor %}</select><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Other Skills + ML Skills -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-3">10 · Skills</p>
+      <label class="form-label fw-semibold small">Skills / Competencies <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:.7rem;">(used for recommendations — click chips to add)</span></label>
+      <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control mb-2 {% if not ap.skills %}border-danger{% endif %}" placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ ap.skills or '' }}</textarea>
+      <div class="d-flex flex-wrap gap-1 mb-3">{% for skill in skills_list %}<span class="skill-chip" onclick="addChip('skills-input','{{ skill }}')">{{ skill }}</span>{% endfor %}</div>
+
+      <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training</label>
+      <div class="row g-1">
+        {% for sk in other_skills_choices %}
+        <div class="col-sm-4 col-6">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="other_skills" value="{{ sk }}" id="os_{{ loop.index }}" {% if sk in ap.other_skills %}checked{% endif %} />
+            <label class="form-check-label small" for="os_{{ loop.index }}">{{ sk }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <input type="text" name="other_skills_other" class="form-control form-control-sm mt-2" maxlength="120" placeholder="Others (specify)" />
+    </div>
+  </div>
+
+  <!-- 11. Certification / Authorization -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3">
+      <p class="fw-semibold sec-head mb-2">11 · Certification / Authorization</p>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="certify" id="certify" value="1" {% if ap.certified %}checked{% endif %} />
+        <label class="form-check-label small text-muted" for="certify">
+          This is to certify that all data/information that I have provided in this form are true to the best of my knowledge.
+          This is also to authorize DOLE to include my profile in the PESO Employment Information System and use my personal
+          information for employment facilitation. I am also aware that DOLE is not obliged to seek employment on my behalf.
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary fw-semibold mb-4"><i class="bi bi-save me-1"></i>Save Profile</button>
 </form>
+
+<!-- Row templates for repeatable sections -->
+<template id="edu-tpl"><div class="repeat-row row g-2 border rounded p-2">
+  <div class="col-md-3"><select name="edu_level[]" class="form-select form-select-sm"><option value="">Level</option>{% for lvl in educ_levels %}<option value="{{ lvl }}">{{ lvl }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><input name="edu_school[]" class="form-control form-control-sm" maxlength="120" placeholder="School" /></div>
+  <div class="col-md-3"><input name="edu_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course" /></div>
+  <div class="col-md-1"><input name="edu_year[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Year" /></div>
+  <div class="col-md-2 d-flex gap-1"><input name="edu_awards[]" class="form-control form-control-sm" maxlength="120" placeholder="Awards" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+</div></template>
+<template id="trn-tpl"><div class="repeat-row row g-2 border rounded p-2">
+  <div class="col-md-4"><input name="trn_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course / Training" /></div>
+  <div class="col-md-4"><input name="trn_institution[]" class="form-control form-control-sm" maxlength="120" placeholder="Training institution" /></div>
+  <div class="col-md-2"><input name="trn_hours[]" class="form-control form-control-sm" maxlength="10" placeholder="Hours" /></div>
+  <div class="col-md-2 d-flex gap-1"><input name="trn_certificate[]" class="form-control form-control-sm" maxlength="80" placeholder="Certificate" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+</div></template>
+<template id="elig-tpl"><div class="repeat-row row g-2 border rounded p-2">
+  <div class="col-md-5"><input name="elig_title[]" class="form-control form-control-sm" maxlength="120" placeholder="Eligibility / License" /></div>
+  <div class="col-md-3"><input name="elig_rating[]" class="form-control form-control-sm" maxlength="40" placeholder="Rating / License no." /></div>
+  <div class="col-md-4 d-flex gap-1"><input name="elig_date[]" class="form-control form-control-sm" maxlength="40" placeholder="Date / Valid until" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+</div></template>
+<template id="we-tpl"><div class="repeat-row row g-2 border rounded p-2">
+  <div class="col-md-3"><input name="we_company[]" class="form-control form-control-sm" maxlength="120" placeholder="Company" /></div>
+  <div class="col-md-3"><input name="we_address[]" class="form-control form-control-sm" maxlength="120" placeholder="Address" /></div>
+  <div class="col-md-2"><input name="we_position[]" class="form-control form-control-sm" maxlength="100" placeholder="Position" /></div>
+  <div class="col-md-1"><input name="we_months[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Mos." /></div>
+  <div class="col-md-3 d-flex gap-1"><select name="we_status[]" class="form-select form-select-sm"><option value="">Status</option>{% for st in work_status_choices %}<option value="{{ st }}">{{ st }}</option>{% endfor %}</select><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+</div></template>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const BRGY_DISTRICT = {{ barangay_district_map | tojson }};
-
-function autoFillDistrict(val) {
-  const key = val.trim().toUpperCase();
-  const dist = BRGY_DISTRICT[key] || '';
-  document.getElementById('district-input').value = dist;
-}
-
-function addChip(fieldId, value) {
-  const ta = document.getElementById(fieldId);
-  const current = ta.value.trim();
-  if (current) {
-    const existing = current.split(',').map(s => s.trim().toLowerCase());
-    if (!existing.includes(value.toLowerCase())) {
-      ta.value = current + ', ' + value;
-    }
-  } else {
-    ta.value = value;
+  var BRGY_MAP = {{ barangay_district_map|tojson }};
+  function autoFillDistrict(v) {
+    var key = (v || '').toUpperCase().replace(/\s+/g, ' ').trim();
+    var d = BRGY_MAP[key] || '';
+    var el = document.getElementById('district-input');
+    if (el) el.value = d;
   }
-}
-
-window.addEventListener('DOMContentLoaded', function () {
-  const brgyInput = document.getElementById('barangay-input');
-  if (brgyInput && brgyInput.value) {
-    autoFillDistrict(brgyInput.value);
+  function addChip(targetId, text) {
+    var ta = document.getElementById(targetId);
+    var cur = ta.value.trim();
+    var parts = cur ? cur.split(',').map(function (s) { return s.trim(); }) : [];
+    if (parts.indexOf(text) === -1) { parts.push(text); ta.value = parts.join(', '); }
   }
-});
+  function addRow(section) {
+    var tpl = document.getElementById(section + '-tpl');
+    document.getElementById(section + '-rows').appendChild(tpl.content.cloneNode(true));
+  }
+  document.addEventListener('click', function (e) {
+    var del = e.target.closest('.row-del');
+    if (del) del.closest('.repeat-row').remove();
+  });
+  function toggle(id, show) { var el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; }
+  function empToggle() {
+    var emp = document.getElementById('es_emp').checked;
+    toggle('employed-fields', emp);
+    toggle('unemployed-fields', !emp);
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    empToggle();
+    toggle('ofw-country', document.getElementById('is_ofw').checked);
+    toggle('fofw-fields', document.getElementById('is_fofw').checked);
+  });
 </script>
 {% endblock %}

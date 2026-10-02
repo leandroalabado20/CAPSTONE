@@ -86,6 +86,14 @@
        class="{% if request.endpoint == 'employer_referred' %}active{% endif %}">
       <i class="bi bi-people me-1"></i>Referred Applicants
     </a>
+    <a href="{{ url_for('employer_profile') }}"
+       class="{% if request.endpoint == 'employer_profile' %}active{% endif %}">
+      <i class="bi bi-building-gear me-1"></i>Company Profile
+    </a>
+    <a href="{{ url_for('employer_account') }}"
+       class="{% if request.endpoint == 'employer_account' %}active{% endif %}">
+      <i class="bi bi-person-gear me-1"></i>Account
+    </a>
   </div>
   <div class="d-flex align-items-center gap-2">
     <span class="text-white small d-none d-lg-inline opacity-75">

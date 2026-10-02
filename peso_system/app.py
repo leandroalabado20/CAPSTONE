@@ -60,6 +60,26 @@ EDUC_LEVELS = [
 
 APPLICANTS_PER_PAGE = 24
 
+EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+
+# ── EMPLOYER PROFILE CHOICES (PhilJobNet-aligned) ─────────────────────────────
+EMPLOYER_SECTORS = ['Public', 'Private']
+EMPLOYER_TYPES = {
+    'Public': [
+        'National Government Agency',
+        'Local Government Unit',
+        'Government-Owned and Controlled Corporation',
+        'State/Local University College',
+    ],
+    'Private': [
+        'Direct Hire',
+        'Private Employment Agency',
+        'Overseas Recruitment Agency',
+    ],
+}
+WORKFORCE_SIZES = ['Micro (1–9)', 'Small (10–99)', 'Medium (100–199)', 'Large (200+)']
+LOCATION_TYPES = ['Main', 'Branch']
+
 CAT_ICONS = {
     'Warehouse and Logistics':       'bi-box-seam',
     'Production and Manufacturing':  'bi-gear-fill',
@@ -339,6 +359,31 @@ def init_db():
     rcols = [r[1] for r in db.execute("PRAGMA table_info(referrals)").fetchall()]
     if 'suitability_score' not in rcols:
         db.execute('ALTER TABLE referrals ADD COLUMN suitability_score REAL')
+
+    ecols = [r[1] for r in db.execute("PRAGMA table_info(employers)").fetchall()]
+    for col, ddl in [
+        ('tin',               'TEXT'),
+        ('trade_name',        'TEXT'),
+        ('location_type',     'TEXT'),
+        ('employer_sector',   'TEXT'),
+        ('employer_type',     'TEXT'),
+        ('total_workforce',   'TEXT'),
+        ('line_of_business',  'TEXT'),
+        ('address_line',      'TEXT'),
+        ('barangay',          'TEXT'),
+        ('city',              'TEXT'),
+        ('province',          'TEXT'),
+        ('position',          'TEXT'),
+        ('telephone',         'TEXT'),
+        ('mobile',            'TEXT'),
+        ('fax',               'TEXT'),
+        ('profile_email',     'TEXT'),
+        ('certified',         'INTEGER DEFAULT 0'),
+        ('certified_at',      'DATETIME'),
+        ('profile_completed', 'INTEGER DEFAULT 0'),
+    ]:
+        if col not in ecols:
+            db.execute(f'ALTER TABLE employers ADD COLUMN {col} {ddl}')
 
     ucols = [r[1] for r in db.execute("PRAGMA table_info(users)").fetchall()]
     if 'role' not in ucols:
@@ -664,6 +709,33 @@ def public_jobs():
                            search=search, category=category,
                            categories=CATEGORY_LIST)
 
+@app.route('/jobs/<int:vid>')
+def public_job_detail(vid):
+    db = get_db()
+    v = db.execute(f'''
+        SELECT jv.*, {EXPIRED_SQL} AS expired,
+               e.company_name AS e_company, e.line_of_business,
+               e.employer_sector, e.employer_type,
+               e.address_line, e.barangay, e.city, e.province
+        FROM job_vacancies jv
+        LEFT JOIN employers e ON e.user_id = jv.employer_id
+        WHERE jv.id=?
+    ''', (vid,)).fetchone()
+    if not v or not v['is_active']:
+        flash('That job is no longer available.', 'danger')
+        return redirect(url_for('public_jobs'))
+    is_jobseeker = session.get('role') == ROLE_JOBSEEKER
+    applied, profile_ok = False, True
+    if is_jobseeker:
+        ap = _get_my_applicant()
+        if ap:
+            profile_ok = bool(ap['educ_level'] and ap['preferred_position'] and ap['skills'])
+            applied = bool(db.execute(
+                "SELECT 1 FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status!='cancelled'",
+                (ap['id'], vid)).fetchone())
+    return render_template('public/job_detail.html', v=v, is_jobseeker=is_jobseeker,
+                           logged_in=('user_id' in session), applied=applied, profile_ok=profile_ok)
+
 # ── AUTH ROUTES ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -802,17 +874,18 @@ def register_employer():
     if 'user_id' in session:
         return redirect(_role_home())
     if request.method == 'POST':
-        f            = request.form
-        username     = f.get('username', '').strip()
-        email        = f.get('email', '').strip()
-        pw           = f.get('password', '')
-        conf         = f.get('confirm_password', '')
-        company_name = f.get('company_name', '').strip()
-        contact      = f.get('contact_person', '').strip()
+        f         = request.form
+        full_name = f.get('full_name', '').strip()
+        username  = f.get('username', '').strip()
+        email     = f.get('email', '').strip()
+        pw        = f.get('password', '')
+        conf      = f.get('confirm_password', '')
 
         errs = []
-        if not all([username, email, pw, company_name, contact]):
+        if not all([full_name, username, email, pw]):
             errs.append('All required fields must be filled.')
+        if email and not EMAIL_RE.match(email):
+            errs.append('Please enter a valid email address.')
         if pw != conf:
             errs.append('Passwords do not match.')
         if len(pw) < 8:
@@ -820,41 +893,28 @@ def register_employer():
         if errs:
             for e in errs:
                 flash(e, 'danger')
-            return render_template('auth/register_employer.html', form=f,
-                                   categories=CATEGORY_LIST)
+            return render_template('auth/register_employer.html', form=f)
         db = get_db()
         try:
-            db.execute(
+            cur = db.execute(
                 'INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?,?,?,?,?)',
-                (company_name, username, email,
-                 generate_password_hash(pw), ROLE_EMPLOYER)
+                (full_name, username, email, generate_password_hash(pw), ROLE_EMPLOYER)
             )
-            db.commit()
-            uid = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+            uid = cur.lastrowid
+            # Company details are encoded later via the Company Profile page
             db.execute(
-                'INSERT INTO employers (user_id, company_name, contact_person, phone, address) '
-                'VALUES (?,?,?,?,?)',
-                (uid, company_name, contact,
-                 f.get('phone', '').strip(), f.get('address', '').strip())
+                'INSERT INTO employers (user_id, company_name, contact_person, profile_completed) '
+                'VALUES (?,?,?,0)',
+                (uid, '', '')
             )
-            # Save initial vacancy as inactive — activates on approval
-            job_title = f.get('job_title', '').strip()
-            occ_cat   = f.get('occupational_category', '').strip()
-            if job_title and occ_cat:
-                db.execute(
-                    'INSERT INTO job_vacancies '
-                    '(employer_name, job_title, occupational_category, is_local, is_active, employer_id) '
-                    'VALUES (?,?,?,?,0,?)',
-                    (company_name, job_title, occ_cat,
-                     1 if f.get('is_local', '1') == '1' else 0, uid)
-                )
             db.commit()
-            flash('Employer account submitted! PESO admin will review and approve your registration.', 'success')
+            flash('Account created! Log in to encode your company profile — '
+                  'PESO admin will review and approve it before you can post vacancies.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
+            db.rollback()
             flash('Username or email already exists.', 'danger')
-    return render_template('auth/register_employer.html', form={},
-                           categories=CATEGORY_LIST)
+    return render_template('auth/register_employer.html', form={})
 
 @app.route('/settings/password', methods=['GET', 'POST'])
 @login_required
@@ -1143,7 +1203,100 @@ def employer_pending():
     emp = _get_my_employer()
     if emp and emp['is_approved']:
         return redirect(url_for('employer_dashboard'))
-    return render_template('employer/pending.html')
+    return render_template('employer/pending.html', emp=emp)
+
+@app.route('/employer/profile', methods=['GET', 'POST'])
+@employer_required
+def employer_profile():
+    db  = get_db()
+    emp = _get_my_employer()
+    if not emp:
+        flash('Employer record not found.', 'danger')
+        return redirect(_role_home())
+    tmpl_kwargs = dict(sectors=EMPLOYER_SECTORS, employer_types=EMPLOYER_TYPES,
+                       workforce_sizes=WORKFORCE_SIZES, location_types=LOCATION_TYPES,
+                       barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title))
+    if request.method == 'POST':
+        f        = request.form
+        sector   = f.get('employer_sector', '').strip()
+        emp_type = f.get('employer_type', '').strip()
+        mail     = f.get('profile_email', '').strip()
+        required = {
+            'Business name':             f.get('company_name', '').strip(),
+            'TIN':                       f.get('tin', '').strip(),
+            'Location type':             f.get('location_type', '').strip(),
+            'Employer sector':           sector,
+            'Employer type':             emp_type,
+            'Total work force':          f.get('total_workforce', '').strip(),
+            'Line of business/industry': f.get('line_of_business', '').strip(),
+            'Address':                   f.get('address_line', '').strip(),
+            'Barangay':                  f.get('barangay', '').strip(),
+            'City/Municipality':         f.get('city', '').strip(),
+            'Province':                  f.get('province', '').strip(),
+            'Contact person':            f.get('contact_person', '').strip(),
+            'Position':                  f.get('position', '').strip(),
+            'Mobile no.':                f.get('mobile', '').strip(),
+            'Email address':             mail,
+        }
+        missing = [k for k, v in required.items() if not v]
+        if missing:
+            err = 'Please fill in: ' + ', '.join(missing) + '.'
+        elif sector not in EMPLOYER_TYPES or emp_type not in EMPLOYER_TYPES.get(sector, []):
+            err = 'Please select a valid employer type for the chosen sector.'
+        elif not EMAIL_RE.match(mail):
+            err = 'Please enter a valid contact email address.'
+        else:
+            err = None
+        if err:
+            flash(err, 'danger')
+            return render_template('employer/profile.html',
+                                   emp={**dict(emp), **f.to_dict()}, **tmpl_kwargs)
+        db.execute('''
+            UPDATE employers SET
+              tin=?, company_name=?, trade_name=?, location_type=?, employer_sector=?,
+              employer_type=?, total_workforce=?, line_of_business=?,
+              address_line=?, barangay=?, city=?, province=?,
+              contact_person=?, position=?, telephone=?, mobile=?, fax=?, profile_email=?,
+              certified=1, certified_at=CURRENT_TIMESTAMP, profile_completed=1
+            WHERE id=?
+        ''', (
+            required['TIN'], required['Business name'], f.get('trade_name', '').strip(),
+            required['Location type'], sector, emp_type, required['Total work force'],
+            required['Line of business/industry'], required['Address'], required['Barangay'],
+            required['City/Municipality'], required['Province'], required['Contact person'],
+            required['Position'], f.get('telephone', '').strip(), required['Mobile no.'],
+            f.get('fax', '').strip(), mail, emp['id'],
+        ))
+        db.commit()
+        flash('Company profile saved. PESO admin will review it before your account is approved.', 'success')
+        return redirect(url_for('employer_dashboard') if emp['is_approved']
+                        else url_for('employer_pending'))
+    return render_template('employer/profile.html', emp=dict(emp), **tmpl_kwargs)
+
+@app.route('/employer/account', methods=['GET', 'POST'])
+@employer_required
+def employer_account():
+    db   = get_db()
+    user = current_user()
+    if request.method == 'POST':
+        name = request.form.get('full_name', '').strip()
+        mail = request.form.get('email', '').strip()
+        if not name or not mail:
+            flash('Full name and email are required.', 'danger')
+        elif not EMAIL_RE.match(mail):
+            flash('Please enter a valid email address.', 'danger')
+        else:
+            try:
+                db.execute('UPDATE users SET full_name=?, email=? WHERE id=?',
+                           (name, mail, user['id']))
+                db.commit()
+                session['full_name'] = name
+                flash('Account updated.', 'success')
+                return redirect(url_for('employer_account'))
+            except sqlite3.IntegrityError:
+                flash('That email is already in use by another account.', 'danger')
+        user = {**dict(user), 'full_name': name, 'email': mail}
+    return render_template('employer/account.html', user=dict(user))
 
 @app.route('/employer/dashboard')
 @employer_required
@@ -1306,6 +1459,35 @@ def employer_referred():
     ''', params).fetchall()
     return render_template('employer/referred.html', emp=emp,
                            referrals=referrals, status=status)
+
+@app.route('/employer/referred/<int:rid>')
+@employer_required
+def employer_referred_detail(rid):
+    emp = _get_my_employer()
+    if not emp or not emp['is_approved']:
+        return redirect(url_for('employer_pending'))
+    db = get_db()
+    r = db.execute('''
+        SELECT r.id AS referral_id, r.suitability_score AS score,
+               r.status AS ref_status, r.referred_at AS ref_at,
+               a.first_name, a.last_name, a.sex, a.age, a.barangay, a.district,
+               a.employment_status, a.is_pwd, a.educ_level, a.preferred_position,
+               a.skills, a.work_experience, a.contact_number,
+               jv.job_title, jv.occupational_category,
+               jv.req_gender, jv.req_age_min, jv.req_age_max, jv.req_education,
+               jv.req_physical, jv.req_experience,
+               u.email AS applicant_email
+        FROM referrals r
+        JOIN applicants a     ON r.applicant_id = a.id
+        JOIN job_vacancies jv ON r.vacancy_id   = jv.id
+        LEFT JOIN users u     ON a.user_id       = u.id
+        WHERE r.id=? AND jv.employer_id=?
+    ''', (rid, session['user_id'])).fetchone()
+    if not r:
+        flash('Referred applicant not found.', 'danger')
+        return redirect(url_for('employer_referred'))
+    return render_template('employer/referred_detail.html', r=r,
+                           chips=req_summary(r), warnings=req_warnings(r, r))
 
 # ── HOME / OVERVIEW (admin) ──────────────────────────────────────────────────
 @app.route('/home')
@@ -1764,15 +1946,13 @@ def admin_employer_approve(eid):
     if not emp:
         flash('Employer not found.', 'danger')
         return redirect(url_for('admin_employers'))
+    if not emp['profile_completed']:
+        flash('Cannot approve — this employer has not completed their company profile yet.', 'warning')
+        return redirect(url_for('admin_employers'))
     db.execute('UPDATE employers SET is_approved=1 WHERE id=?', (eid,))
     db.execute('UPDATE users SET is_active=1 WHERE id=?', (emp['user_id'],))
-    # Activate all vacancies submitted during registration
-    db.execute('UPDATE job_vacancies SET is_active=1 WHERE employer_id=?', (emp['user_id'],))
     db.commit()
-    vac_count = db.execute(
-        'SELECT COUNT(*) FROM job_vacancies WHERE employer_id=?', (emp['user_id'],)
-    ).fetchone()[0]
-    flash(f'Employer "{emp["company_name"]}" approved — {vac_count} vacancy/vacancies now live.', 'success')
+    flash(f'Employer "{emp["company_name"]}" approved. They can now post job vacancies.', 'success')
     return redirect(url_for('admin_employers'))
 
 @app.route('/admin/employers/<int:eid>/reject', methods=['POST'])

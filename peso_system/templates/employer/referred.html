@@ -16,14 +16,16 @@
         <th class="py-2">Vacancy</th>
         <th class="py-2">ML Match</th>
         <th class="py-2">Referred</th>
-        <th class="py-2">Slip</th>
+        <th class="py-2">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for r in referrals %}
       <tr>
         <td class="px-3 py-2">
-          <div class="fw-semibold small">{{ r.first_name }} {{ r.last_name }}</div>
+          <a href="{{ url_for('employer_referred_detail', rid=r.id) }}" class="fw-semibold small text-decoration-none">
+            {{ r.first_name }} {{ r.last_name }}
+          </a>
         </td>
         <td class="py-2 small text-muted">{{ r.job_title }}</td>
         <td class="py-2">
@@ -35,10 +37,16 @@
         </td>
         <td class="py-2 small text-muted">{{ r.referred_at|friendly_dt }}</td>
         <td class="py-2">
-          <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
-             class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.72rem;">
-            <i class="bi bi-file-earmark-text me-1"></i>View
-          </a>
+          <div class="d-flex gap-1">
+            <a href="{{ url_for('employer_referred_detail', rid=r.id) }}"
+               class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.72rem;">
+              <i class="bi bi-eye me-1"></i>View
+            </a>
+            <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
+               class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.72rem;">
+              <i class="bi bi-file-earmark-text me-1"></i>Slip
+            </a>
+          </div>
         </td>
       </tr>
       {% endfor %}

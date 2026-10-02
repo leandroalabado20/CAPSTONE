@@ -531,6 +531,29 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   color: #fff;
 }
 
+/* Icon button that looks like the theme toggle but is not wired to it (e.g. Home link) */
+.icon-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--peso-border);
+  background: var(--peso-surface);
+  color: var(--peso-muted);
+  text-decoration: none;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+  flex-shrink: 0;
+}
+.icon-fab:hover { background: var(--peso-bg); color: var(--peso-text); }
+.icon-fab-inverse {
+  border-color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .85);
+}
+.icon-fab-inverse:hover { background: rgba(255, 255, 255, .18); color: #fff; }
+
 /* ── PUBLIC NAV (theme-aware) ────────────────────────────────────────────── */
 .public-nav {
   background: var(--peso-surface);

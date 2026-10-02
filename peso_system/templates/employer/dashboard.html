@@ -1,4 +1,4 @@
-﻿{% extends 'base_employer.html' %}
+{% extends 'base_employer.html' %}
 {% block title %}Employer Dashboard{% endblock %}
 
 {% block content %}
@@ -9,18 +9,32 @@
 
 <!-- KPI row -->
 <div class="row g-3 mb-4">
-  <div class="col-sm-6">
-    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
+  <div class="col-6 col-lg-3">
+    <div class="card border shadow-sm text-center p-3 h-100" style="border-radius:10px;">
       <div class="fw-bold fs-3 text-primary">{{ active_vac }}</div>
       <div class="text-muted small">Active Vacancies</div>
       <a href="{{ url_for('employer_vacancies') }}" class="small text-primary mt-1 d-block">Manage →</a>
     </div>
   </div>
-  <div class="col-sm-6">
-    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
-      <div class="fw-bold fs-3 text-info">{{ total_referred }}</div>
-      <div class="text-muted small">Total Referred</div>
+  <div class="col-6 col-lg-3">
+    <div class="card border shadow-sm text-center p-3 h-100" style="border-radius:10px;">
+      <div class="fw-bold fs-3 text-success">{{ new_this_week }}</div>
+      <div class="text-muted small">New Applicants (7 days)</div>
       <a href="{{ url_for('employer_referred') }}" class="small text-primary mt-1 d-block">View →</a>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border shadow-sm text-center p-3 h-100" style="border-radius:10px;">
+      <div class="fw-bold fs-3 text-info">{{ total_referred }}</div>
+      <div class="text-muted small">Total Applicants</div>
+      <a href="{{ url_for('employer_referred') }}" class="small text-primary mt-1 d-block">View →</a>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border shadow-sm text-center p-3 h-100" style="border-radius:10px;">
+      <div class="fw-bold fs-3 {% if expired_vac %}text-danger{% else %}text-muted{% endif %}">{{ expired_vac }}</div>
+      <div class="text-muted small">Expired Vacancies</div>
+      <a href="{{ url_for('employer_vacancies') }}" class="small text-primary mt-1 d-block">Renew →</a>
     </div>
   </div>
 </div>
@@ -28,44 +42,67 @@
 <div class="row g-4">
 
   <!-- Recent referrals -->
-  <div class="col-md-7">
+  <div class="col-lg-7">
     <div class="card shadow-sm border-0 h-100" style="border-radius:12px;">
       <div class="card-header bg-transparent border-bottom fw-semibold py-2 px-3 d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-people text-primary me-2"></i>Recent Referred Applicants</span>
+        <span><i class="bi bi-people text-primary me-2"></i>Recent Applicants</span>
         <a href="{{ url_for('employer_referred') }}" class="small text-primary">View all</a>
       </div>
       <div class="card-body p-3">
         {% if recent_referrals %}
         {% for r in recent_referrals %}
-        <div class="d-flex align-items-center gap-2 py-2 {% if not loop.last %}border-bottom{% endif %}">
+        <a href="{{ url_for('employer_referred_detail', rid=r.id) }}"
+           class="d-flex align-items-center gap-2 py-2 text-decoration-none text-reset {% if not loop.last %}border-bottom{% endif %}">
           <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle"
                style="width:32px;height:32px;background:#eff6ff;font-size:.7rem;font-weight:700;color:#2563eb;">
             {{ r.first_name[0]|upper }}{{ r.last_name[0]|upper }}
           </div>
           <div class="flex-grow-1 overflow-hidden">
             <div class="fw-semibold small text-truncate">{{ r.first_name }} {{ r.last_name }}</div>
-            <div class="text-muted" style="font-size:.72rem;">{{ r.job_title }}</div>
+            <div class="text-muted" style="font-size:.72rem;">{{ r.job_title }} · {{ r.referred_at|friendly_dt }}</div>
           </div>
-          {% if r.status == 'referred' %}
-          <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0" style="font-size:.65rem;">Referred</span>
-          {% elif r.status == 'cancelled' %}
-          <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0" style="font-size:.65rem;">Cancelled</span>
+          {% if r.suitability_score is not none %}
+          <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0" style="font-size:.65rem;">{{ '%.0f'|format(r.suitability_score * 100) }}% match</span>
           {% endif %}
-        </div>
+          {% if r.status == 'cancelled' %}
+          <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0" style="font-size:.65rem;">Withdrawn</span>
+          {% endif %}
+        </a>
         {% endfor %}
         {% else %}
         <div class="text-center text-muted py-3 small">
           <i class="bi bi-people" style="font-size:1.5rem;opacity:.25;"></i>
-          <p class="mt-2 mb-0">No referred applicants yet. Post vacancies so PESO admin can refer candidates.</p>
+          <p class="mt-2 mb-0">No applicants yet. Post vacancies so jobseekers can apply and be matched to them.</p>
         </div>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- Quick actions -->
-  <div class="col-md-5">
-    <div class="card shadow-sm border-0 h-100" style="border-radius:12px;">
+  <!-- Right column -->
+  <div class="col-lg-5">
+    {% if expiring_soon %}
+    <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+      <div class="card-header bg-transparent border-bottom fw-semibold py-2 px-3">
+        <i class="bi bi-hourglass-split text-warning me-2"></i>Expiring Tomorrow
+      </div>
+      <div class="card-body p-3">
+        {% for v in expiring_soon %}
+        <div class="d-flex align-items-center gap-2 py-1 {% if not loop.last %}border-bottom{% endif %}">
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold small text-truncate">{{ v.job_title }}</div>
+            <div class="text-warning-emphasis" style="font-size:.72rem;">
+              <i class="bi bi-calendar-x me-1"></i>Deadline is tomorrow ({{ v.application_deadline|friendly_date }})
+            </div>
+          </div>
+          <a href="{{ url_for('employer_vacancy_edit', vid=v.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2 flex-shrink-0" style="font-size:.72rem;">Extend</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0" style="border-radius:12px;">
       <div class="card-header bg-transparent border-bottom fw-semibold py-2 px-3">
         <i class="bi bi-lightning-fill text-warning me-2"></i>Quick Actions
       </div>
@@ -77,12 +114,12 @@
           <i class="bi bi-list-task me-2"></i>Manage My Vacancies
         </a>
         <a href="{{ url_for('employer_referred') }}" class="btn btn-outline-secondary w-100">
-          <i class="bi bi-people me-2"></i>View Referred Applicants
+          <i class="bi bi-people me-2"></i>View Applicants
         </a>
         <hr class="my-1" />
         <div class="card border p-2 small text-muted" style="border-radius:8px;background:var(--peso-bg);">
           <i class="bi bi-info-circle me-1"></i>
-          Applicants are referred to your vacancies by PESO admin — you cannot select applicants directly.
+          Jobseekers apply to your vacancies and are matched by the system. Review them under Referred Applicants and contact them directly for interviews.
         </div>
       </div>
     </div>

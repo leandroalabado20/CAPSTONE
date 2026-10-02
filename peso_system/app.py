@@ -864,6 +864,12 @@ def register():
 @login_required
 def change_password():
     user = current_user()
+    role = session.get('role')
+    # Render inside the user's own portal layout, and send Cancel back where they came from
+    layout = {ROLE_EMPLOYER: 'base_employer.html',
+              ROLE_JOBSEEKER: 'base_jobseeker.html'}.get(role, 'base.html')
+    cancel_url = {ROLE_EMPLOYER: url_for('employer_account'),
+                  ROLE_JOBSEEKER: url_for('jobseeker_profile')}.get(role, url_for('home'))
     if request.method == 'POST':
         cur  = request.form.get('current_password', '')
         new  = request.form.get('new_password', '')
@@ -880,7 +886,8 @@ def change_password():
             get_db().commit()
             flash('Password changed successfully.', 'success')
             return redirect(_role_home())
-    return render_template('settings/password.html', user=user)
+    return render_template('settings/password.html', user=user,
+                           layout=layout, cancel_url=cancel_url)
 
 # ── JOBSEEKER PORTAL ──────────────────────────────────────────────────────────
 def _get_my_applicant():
@@ -1022,6 +1029,35 @@ def jobseeker_referrals():
             ORDER BY r.referred_at DESC
         ''', (ap['id'],)).fetchall()
     return render_template('jobseeker/referrals.html', ap=ap, my_referrals=my_referrals)
+
+@app.route('/jobseeker/jobs')
+@jobseeker_required
+def jobseeker_jobs():
+    db       = get_db()
+    ap       = _get_my_applicant()
+    search   = request.args.get('search', '').strip()
+    category = request.args.get('category', '')
+    conds, params = [OPEN_VACANCY_SQL], []
+    if search:
+        conds.append('(job_title LIKE ? OR employer_name LIKE ?)')
+        like = f'%{search}%'
+        params += [like, like]
+    if category:
+        conds.append('occupational_category=?')
+        params.append(category)
+    vacancies = db.execute(
+        f'SELECT * FROM job_vacancies WHERE {" AND ".join(conds)} ORDER BY created_at DESC', params
+    ).fetchall()
+    applied_ids = set()
+    if ap:
+        applied_ids = {r['vacancy_id'] for r in db.execute(
+            "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
+            (ap['id'],)
+        ).fetchall()}
+    profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
+    return render_template('jobseeker/jobs.html', ap=ap, vacancies=vacancies,
+                           applied_ids=applied_ids, profile_ok=profile_ok,
+                           search=search, category=category, categories=CATEGORY_LIST)
 
 @app.route('/jobseeker/apply/<int:vid>/confirm')
 @jobseeker_required
@@ -1248,28 +1284,45 @@ def employer_dashboard():
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
         return redirect(url_for('employer_pending'))
-    db = get_db()
+    db  = get_db()
+    uid = session['user_id']
+    # Active = truly open (active and not past deadline); expired = active but deadline passed
     active_vac = db.execute(
-        'SELECT COUNT(*) FROM job_vacancies WHERE employer_id=? AND is_active=1',
-        (session['user_id'],)
+        f'SELECT COUNT(*) FROM job_vacancies WHERE employer_id=? AND {OPEN_VACANCY_SQL}', (uid,)
+    ).fetchone()[0]
+    expired_vac = db.execute(
+        f'SELECT COUNT(*) FROM job_vacancies WHERE employer_id=? AND is_active=1 AND {EXPIRED_SQL}', (uid,)
     ).fetchone()[0]
     total_referred = db.execute(
-        'SELECT COUNT(*) FROM referrals r '
-        'JOIN job_vacancies jv ON r.vacancy_id=jv.id '
-        'WHERE jv.employer_id=?',
-        (session['user_id'],)
+        'SELECT COUNT(*) FROM referrals r JOIN job_vacancies jv ON r.vacancy_id=jv.id '
+        "WHERE jv.employer_id=? AND r.status!='cancelled'", (uid,)
+    ).fetchone()[0]
+    new_this_week = db.execute(
+        'SELECT COUNT(*) FROM referrals r JOIN job_vacancies jv ON r.vacancy_id=jv.id '
+        "WHERE jv.employer_id=? AND r.status!='cancelled' "
+        "AND date(r.referred_at) >= date('now','+8 hours','-7 days')", (uid,)
     ).fetchone()[0]
     recent_referrals = db.execute('''
-        SELECT r.*, a.first_name, a.last_name, jv.job_title
+        SELECT r.id, r.status, r.referred_at, r.suitability_score,
+               a.first_name, a.last_name, jv.job_title
         FROM referrals r
         JOIN applicants a ON r.applicant_id=a.id
         JOIN job_vacancies jv ON r.vacancy_id=jv.id
         WHERE jv.employer_id=?
         ORDER BY r.referred_at DESC LIMIT 5
-    ''', (session['user_id'],)).fetchall()
+    ''', (uid,)).fetchall()
+    # Vacancies expiring tomorrow (one-day warning to renew the deadline)
+    expiring_soon = db.execute('''
+        SELECT jv.id, jv.job_title, jv.application_deadline
+        FROM job_vacancies jv
+        WHERE jv.employer_id=? AND jv.is_active=1
+          AND jv.application_deadline = date('now','+8 hours','+1 day')
+        ORDER BY jv.job_title
+    ''', (uid,)).fetchall()
     return render_template('employer/dashboard.html', emp=emp,
-                           active_vac=active_vac, total_referred=total_referred,
-                           recent_referrals=recent_referrals)
+                           active_vac=active_vac, expired_vac=expired_vac,
+                           total_referred=total_referred, new_this_week=new_this_week,
+                           recent_referrals=recent_referrals, expiring_soon=expiring_soon)
 
 @app.route('/employer/vacancies')
 @employer_required

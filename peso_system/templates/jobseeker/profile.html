@@ -345,11 +345,11 @@
   <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
     <div class="card-body p-3">
       <p class="fw-semibold sec-head mb-3">10 · Skills</p>
-      <label class="form-label fw-semibold small">Skills / Competencies <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:.7rem;">(used for recommendations — click chips to add)</span></label>
+      <label class="form-label fw-semibold small">Skills / Competencies <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5; used for recommendations, click chips to add)</span></label>
       <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control mb-2 {% if not ap.skills %}border-danger{% endif %}" placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ ap.skills or '' }}</textarea>
       <div class="d-flex flex-wrap gap-1 mb-3">{% for skill in skills_list %}<span class="skill-chip" onclick="addChip('skills-input','{{ skill }}')">{{ skill }}</span>{% endfor %}</div>
 
-      <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training</label>
+      <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5)</span></label>
       <div class="row g-1">
         {% for sk in other_skills_choices %}
         <div class="col-sm-4 col-6">
@@ -419,12 +419,22 @@
     var el = document.getElementById('district-input');
     if (el) el.value = d;
   }
+  var SKILL_LIMIT = 5;
   function addChip(targetId, text) {
     var ta = document.getElementById(targetId);
-    var cur = ta.value.trim();
-    var parts = cur ? cur.split(',').map(function (s) { return s.trim(); }) : [];
+    var parts = ta.value.trim() ? ta.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+    if (targetId === 'skills-input' && parts.length >= SKILL_LIMIT) return;
     if (parts.indexOf(text) === -1) { parts.push(text); ta.value = parts.join(', '); }
   }
+  function limitOtherSkills() {
+    var boxes = document.querySelectorAll('input[name="other_skills"]');
+    var checked = 0;
+    boxes.forEach(function (b) { if (b.checked) checked++; });
+    boxes.forEach(function (b) { b.disabled = (!b.checked && checked >= SKILL_LIMIT); });
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.name === 'other_skills') limitOtherSkills();
+  });
   function addRow(section) {
     var tpl = document.getElementById(section + '-tpl');
     document.getElementById(section + '-rows').appendChild(tpl.content.cloneNode(true));
@@ -443,6 +453,7 @@
     empToggle();
     toggle('ofw-country', document.getElementById('is_ofw').checked);
     toggle('fofw-fields', document.getElementById('is_fofw').checked);
+    limitOtherSkills();
   });
 </script>
 {% endblock %}

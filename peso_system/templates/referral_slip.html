@@ -78,13 +78,12 @@
   </dl>
 
   {% set v = r %}
-  {% if req_summary(r) or r.req_other or r.req_documents or r.application_deadline %}
+  {% if req_summary(r) or r.req_documents or r.application_deadline %}
   <div class="sec">Job Requirements</div>
   <div class="small">
     <div><span class="text-muted">Date Posted:</span> <strong>{{ r.posted_at|friendly_date }}</strong>
       {% if r.application_deadline %} &nbsp;·&nbsp; <span class="text-muted">Application Deadline:</span> <strong>{{ r.application_deadline|friendly_date }}</strong>{% endif %}</div>
-    {% if req_summary(r) %}<div><span class="text-muted">Applicant:</span> <strong>{{ req_summary(r)|join(' · ') }}</strong></div>{% endif %}
-    {% if r.req_other %}<div><span class="text-muted">Other:</span> {{ r.req_other }}</div>{% endif %}
+    {% if req_summary(r) %}<div><span class="text-muted">Requirements:</span> <strong>{{ req_summary(r)|join(' · ') }}</strong></div>{% endif %}
     {% if r.req_documents %}<div><span class="text-muted">Documents needed:</span> {{ r.req_documents }}</div>{% endif %}
   </div>
   {% endif %}

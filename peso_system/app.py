@@ -393,6 +393,7 @@ def init_db():
         ('req_experience',       'TEXT'),
         ('req_other',            'TEXT'),
         ('req_documents',        'TEXT'),
+        ('req_experience_months', 'INTEGER'),
     ]:
         if col not in vcols:
             db.execute(f'ALTER TABLE job_vacancies ADD COLUMN {col} {ddl}')
@@ -541,15 +542,13 @@ def parse_vacancy_requirements(f):
         gender = 'Any'
     edu = f.get('req_education', '').strip()
     vals = {
-        'application_deadline': (f.get('application_deadline') or '').strip() or None,
-        'req_gender':     gender,
-        'req_age_min':    num('req_age_min'),
-        'req_age_max':    num('req_age_max'),
-        'req_education':  edu if edu in EDUC_RANK else None,
-        'req_physical':   f.get('req_physical', '').strip() or None,
-        'req_experience': f.get('req_experience', '').strip() or None,
-        'req_other':      f.get('req_other', '').strip() or None,
-        'req_documents':  f.get('req_documents', '').strip() or None,
+        'application_deadline':   (f.get('application_deadline') or '').strip() or None,
+        'req_gender':             gender,
+        'req_age_min':            num('req_age_min'),
+        'req_age_max':            num('req_age_max'),
+        'req_education':          edu if edu in EDUC_RANK else None,
+        'req_experience_months': num('req_experience_months'),
+        'req_documents':          f.get('req_documents', '').strip() or None,
     }
     if vals['req_age_min'] and vals['req_age_max'] and vals['req_age_min'] > vals['req_age_max']:
         return vals, 'Minimum age cannot be greater than maximum age.'
@@ -561,7 +560,7 @@ def parse_vacancy_requirements(f):
     return vals, None
 
 REQ_COLS = ['application_deadline', 'req_gender', 'req_age_min', 'req_age_max',
-            'req_education', 'req_physical', 'req_experience', 'req_other', 'req_documents']
+            'req_education', 'req_experience_months', 'req_documents']
 
 def req_summary(v):
     """Short human-readable requirement chips for a vacancy row/dict."""
@@ -578,30 +577,71 @@ def req_summary(v):
         out.append(f'Up to {hi} yrs old')
     if _g(v, 'req_education'):
         out.append(f"{_g(v, 'req_education')} or higher")
-    for k in ('req_physical', 'req_experience'):
-        if _g(v, k):
-            out.append(_g(v, k))
+    m = _g(v, 'req_experience_months')
+    if m:
+        out.append(f'{m}+ mos. experience')
     return out
+
+def _total_exp_months(ap):
+    """Total months of work experience from an applicant's Work Experience JSON."""
+    raw = _g(ap, 'work_history')
+    if not raw:
+        return 0
+    try:
+        data = json.loads(raw) if isinstance(raw, str) else raw
+    except (ValueError, TypeError):
+        return 0
+    total = 0
+    for e in (data or []):
+        mo = str(e.get('months', '')).strip()
+        if mo.isdigit():
+            total += int(mo)
+    return total
 
 def req_warnings(v, ap):
     """Ways the applicant profile does not meet the vacancy's checkable requirements."""
     if not ap:
         return []
     w = []
-    g, sex = _g(v, 'req_gender'), (ap['sex'] or '')
+    g, sex = _g(v, 'req_gender'), (_g(ap, 'sex') or '')
     if g in ('Male', 'Female') and sex and sex != g:
         w.append(f'Requires {g.lower()} applicants')
-    age = ap['age']
+    age = _g(ap, 'age')
     lo, hi = _g(v, 'req_age_min'), _g(v, 'req_age_max')
     if age is not None:
         if lo and age < lo:
             w.append(f'Minimum age is {lo}')
         if hi and age > hi:
             w.append(f'Maximum age is {hi}')
-    need, have = _g(v, 'req_education'), (ap['educ_level'] or '')
+    need, have = _g(v, 'req_education'), (_g(ap, 'educ_level') or '')
     if need in EDUC_RANK and have in EDUC_RANK and EDUC_RANK[have] < EDUC_RANK[need]:
         w.append(f'Requires {need} or higher')
+    need_m = _g(v, 'req_experience_months')
+    if need_m and _total_exp_months(ap) < need_m:
+        w.append(f'Requires at least {need_m} months of work experience')
     return w
+
+def _vacancy_location(v):
+    """Best-effort location string for a vacancy: CSJDM if local, else the
+    employer's city/province (when joined into the row as e_city/e_province)."""
+    if _g(v, 'is_local'):
+        return 'City of San Jose del Monte'
+    parts = [p for p in (_g(v, 'e_city'), _g(v, 'e_province')) if p]
+    return ', '.join(parts)
+
+def _location_matches(v, ap):
+    """True if the applicant's preferred local work location matches the vacancy's."""
+    if not ap:
+        return False
+    pref = (_g(ap, 'pref_work_local') or '').strip().lower()
+    if not pref:
+        return False
+    loc = _vacancy_location(v).lower()
+    if loc and (pref in loc or loc in pref):
+        return True
+    if _g(v, 'is_local') and any(k in pref for k in ('san jose del monte', 'csjdm', 'sjdm')):
+        return True
+    return False
 
 app.jinja_env.globals['req_summary'] = req_summary
 app.jinja_env.globals['req_warnings'] = req_warnings
@@ -633,10 +673,12 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
             'info':       v,
             'req_unmet':  unmet,
             'qualified':  unmet == 0,
+            'location':   _vacancy_location(v),
+            'loc_match':  _location_matches(v, applicant),
         })
-    # Layer 2: stable-sort each category's vacancies so best requirement-fit rises
+    # Layer 2: within each category, best requirement-fit first, then preferred-location matches
     for cat_vacs in vac_by_cat.values():
-        cat_vacs.sort(key=lambda x: x['req_unmet'])
+        cat_vacs.sort(key=lambda x: (x['req_unmet'], 0 if x['loc_match'] else 1))
     results = []
     for rank, (cat_name, score) in enumerate(cat_scores, 1):
         results.append({
@@ -794,8 +836,17 @@ def public_job_detail(vid):
             applied = bool(db.execute(
                 "SELECT 1 FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status!='cancelled'",
                 (ap['id'], vid)).fetchone())
+    # Back link reflects where the visitor came from
+    src = request.args.get('src', '')
+    if is_jobseeker and src == 'rec':
+        back_url, back_label = url_for('jobseeker_recommendations', generate=1), 'Back to recommendations'
+    elif is_jobseeker and src == 'jobs':
+        back_url, back_label = url_for('jobseeker_jobs'), 'Back to jobs'
+    else:
+        back_url, back_label = url_for('public_jobs'), 'Back to all jobs'
     return render_template('public/job_detail.html', v=v, is_jobseeker=is_jobseeker,
-                           logged_in=('user_id' in session), applied=applied, profile_ok=profile_ok)
+                           logged_in=('user_id' in session), applied=applied, profile_ok=profile_ok,
+                           back_url=back_url, back_label=back_label)
 
 # ── AUTH ROUTES ───────────────────────────────────────────────────────────────
 @app.route('/login', methods=['GET', 'POST'])
@@ -1021,10 +1072,8 @@ def jobseeker_profile():
                 languages.append({'language': lang, **flags})
 
         disability   = f.getlist('disability')
-        other_skills = f.getlist('other_skills')
         os_other     = f.get('other_skills_other', '').strip()
-        if os_other:
-            other_skills = other_skills + [os_other]
+        other_skills = (f.getlist('other_skills') + ([os_other] if os_other else []))[:5]
 
         # ── derive the ML inputs from the structured data ──
         ml_educ, best = '', -1
@@ -1035,7 +1084,8 @@ def jobseeker_profile():
         if not ml_educ:
             ml_educ = f.get('educ_level', '').strip()
         ml_pref   = f.get('preferred_position', '').strip()
-        skills_in = f.get('skills', '').strip()
+        skills_items = [s.strip() for s in f.get('skills', '').split(',') if s.strip()][:5]
+        skills_in = ', '.join(skills_items)
         ml_skills = ', '.join([s for s in ([skills_in] + other_skills) if s])
         positions = [w['position'] for w in work_hist if w.get('position')]
         ml_workx  = ', '.join(positions)
@@ -1112,7 +1162,9 @@ def jobseeker_recommendations():
     profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
     if profile_ok and request.args.get('generate') and pipeline:
         vacancies = db.execute(
-            f'SELECT * FROM job_vacancies WHERE {OPEN_VACANCY_SQL}'
+            'SELECT jv.*, e.city AS e_city, e.province AS e_province '
+            'FROM job_vacancies jv LEFT JOIN employers e ON e.user_id = jv.employer_id '
+            f'WHERE {OPEN_VACANCY_SQL}'
         ).fetchall()
         results = get_recommendations(
             ap['educ_level'], ap['preferred_position'],
@@ -1596,10 +1648,10 @@ def employer_referred_detail(rid):
                r.status AS ref_status, r.referred_at AS ref_at,
                a.first_name, a.last_name, a.sex, a.age, a.barangay, a.district,
                a.employment_status, a.is_pwd, a.educ_level, a.preferred_position,
-               a.skills, a.work_experience, a.contact_number,
+               a.skills, a.work_experience, a.work_history, a.contact_number,
                jv.job_title, jv.occupational_category,
                jv.req_gender, jv.req_age_min, jv.req_age_max, jv.req_education,
-               jv.req_physical, jv.req_experience,
+               jv.req_experience_months,
                u.email AS applicant_email
         FROM referrals r
         JOIN applicants a     ON r.applicant_id = a.id
@@ -1845,8 +1897,7 @@ def referral_slip(rid):
                a.contact_number, a.educ_level, a.preferred_position, a.user_id AS applicant_user_id,
                jv.job_title, jv.employer_name, jv.occupational_category, jv.employer_id,
                jv.created_at AS posted_at, jv.application_deadline, jv.req_gender, jv.req_age_min,
-               jv.req_age_max, jv.req_education, jv.req_physical, jv.req_experience,
-               jv.req_other, jv.req_documents,
+               jv.req_age_max, jv.req_education, jv.req_experience_months, jv.req_documents,
                u.full_name AS accepted_by_name
         FROM referrals r
         JOIN applicants a     ON r.applicant_id = a.id

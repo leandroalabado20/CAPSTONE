@@ -36,36 +36,27 @@
            value="{{ vacancy.req_age_max if vacancy and vacancy.req_age_max else '' }}" />
   </div>
 </div>
-<div class="mb-3">
-  <label class="form-label fw-semibold">Minimum Education</label>
-  <select name="req_education" class="form-select">
-    <option value="">No requirement</option>
-    {% for e in educ_choices %}
-    <option value="{{ e }}" {% if vacancy and vacancy.req_education == e %}selected{% endif %}>{{ e }}</option>
-    {% endfor %}
-  </select>
-</div>
 <div class="row g-3 mb-3">
   <div class="col-sm-6">
-    <label class="form-label fw-semibold">Physical Requirements</label>
-    <input type="text" name="req_physical" class="form-control" maxlength="150" placeholder="e.g. Physically fit"
-           value="{{ vacancy.req_physical if vacancy and vacancy.req_physical else '' }}" />
+    <label class="form-label fw-semibold">Minimum Education</label>
+    <select name="req_education" class="form-select">
+      <option value="">No requirement</option>
+      {% for e in educ_choices %}
+      <option value="{{ e }}" {% if vacancy and vacancy.req_education == e %}selected{% endif %}>{{ e }}</option>
+      {% endfor %}
+    </select>
   </div>
   <div class="col-sm-6">
-    <label class="form-label fw-semibold">Work Experience</label>
-    <input type="text" name="req_experience" class="form-control" maxlength="150" placeholder="e.g. At least 6 months in retail"
-           value="{{ vacancy.req_experience if vacancy and vacancy.req_experience else '' }}" />
+    <label class="form-label fw-semibold">Minimum Work Experience (months)</label>
+    <input type="number" name="req_experience_months" class="form-control" min="0" max="600" placeholder="e.g. 6"
+           value="{{ vacancy.req_experience_months if vacancy and vacancy.req_experience_months else '' }}" />
   </div>
 </div>
+<p class="text-muted small mb-4"><i class="bi bi-info-circle me-1"></i>These requirements are automatically checked against each applicant's profile.</p>
 
-<h6 class="fw-bold mb-3 mt-4"><i class="bi bi-list-check me-1"></i>Requirements</h6>
-<div class="mb-3">
-  <label class="form-label fw-semibold">Other Qualifications / Requirements</label>
-  <textarea name="req_other" rows="3" class="form-control" maxlength="1000"
-            placeholder="e.g. Willing to work night shifts; can read and write in English">{{ vacancy.req_other if vacancy and vacancy.req_other else '' }}</textarea>
-</div>
+<h6 class="fw-bold mb-3 mt-4"><i class="bi bi-file-earmark-text me-1"></i>Documents to Bring</h6>
 <div class="mb-4">
-  <label class="form-label fw-semibold">Documents Needed</label>
+  <label class="form-label fw-semibold">Documents the applicant should bring</label>
   <textarea name="req_documents" rows="2" class="form-control" maxlength="500"
             placeholder="e.g. Resume, Barangay Clearance, NBI Clearance">{{ vacancy.req_documents if vacancy and vacancy.req_documents else '' }}</textarea>
 </div>

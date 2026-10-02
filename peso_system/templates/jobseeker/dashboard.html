@@ -78,9 +78,6 @@
             {% endif %}
           </div>
         </div>
-        <a href="{{ url_for('jobseeker_recommendations') }}" class="btn btn-outline-primary btn-sm w-100 mt-3">
-          See All Recommendations
-        </a>
         {% else %}
         <div class="text-muted small text-center py-3">No recommendations yet.</div>
         {% endif %}
@@ -113,7 +110,7 @@
         {% else %}
         <div class="text-center text-muted py-3 small">
           <i class="bi bi-send" style="font-size:1.5rem;opacity:.25;"></i>
-          <p class="mt-2 mb-0">No referrals yet. PESO admin will issue one once your profile is reviewed.</p>
+          <p class="mt-2 mb-0">No applications yet. Check your recommendations or browse jobs, then apply to generate your referral slip.</p>
         </div>
         {% endif %}
       </div>
@@ -149,21 +146,4 @@
     </a>
   </div>
 </div>
-
-<!-- Job matches CTA -->
-{% if ap and ap.educ_level and ap.preferred_position and ap.skills %}
-<div class="card border-0 shadow-sm mt-3" style="border-radius:12px;background:linear-gradient(135deg,var(--peso-cta-a),var(--peso-cta-b));color:var(--peso-text);">
-  <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
-    <div>
-      <div class="fw-bold mb-1"><i class="bi bi-stars text-primary me-2"></i>See your job matches</div>
-      <p class="small mb-0" style="color:var(--peso-muted);">
-        The system recommends jobs that fit your profile. Apply to any match to get your referral slip instantly.
-      </p>
-    </div>
-    <a href="{{ url_for('jobseeker_recommendations') }}" class="btn btn-primary btn-sm fw-semibold flex-shrink-0">
-      <i class="bi bi-stars me-1"></i>View Job Matches
-    </a>
-  </div>
-</div>
-{% endif %}
 {% endblock %}

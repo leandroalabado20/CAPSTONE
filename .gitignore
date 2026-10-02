@@ -17,6 +17,8 @@ instance/
 *.db
 *.sqlite
 *.sqlite3
+# Track the seeded demo database so it deploys with the app
+!peso_system/peso.db
 
 # IDE
 .vscode/

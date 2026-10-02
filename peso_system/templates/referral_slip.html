@@ -47,14 +47,14 @@
       {% if r.status == 'cancelled' %}
       <span class="stamp cancelled">CANCELLED</span>
       {% else %}
-      <span class="stamp">ACCEPTED</span>
+      <span class="stamp">REFERRED</span>
       {% endif %}
     </div>
   </div>
 
   <div class="row small">
     <div class="col-6"><span class="text-muted">Slip No.:</span> <strong>RS-{{ r.referred_at[:4] }}-{{ '%05d'|format(r.id) }}</strong></div>
-    <div class="col-6 text-end"><span class="text-muted">Date Accepted:</span> <strong>{{ r.referred_at|friendly_dt }}</strong></div>
+    <div class="col-6 text-end"><span class="text-muted">Date Referred:</span> <strong>{{ r.referred_at|friendly_dt }}</strong></div>
   </div>
 
   <div class="sec">Applicant</div>
@@ -72,6 +72,9 @@
     <dt class="col-4">Position</dt><dd class="col-8">{{ r.job_title }}</dd>
     <dt class="col-4">Employer</dt><dd class="col-8">{{ r.employer_name }}</dd>
     <dt class="col-4">Category</dt><dd class="col-8">{{ r.occupational_category }}</dd>
+    {% if r.suitability_score is not none %}
+    <dt class="col-4">ML Match</dt><dd class="col-8">{{ '%.1f'|format(r.suitability_score * 100) }}% suitability (system-recommended)</dd>
+    {% endif %}
   </dl>
 
   {% set v = r %}
@@ -92,13 +95,14 @@
   {% endif %}
 
   <p class="small mt-4 mb-0">
-    This certifies that the above-named applicant has been referred by the Public Employment Service Office
-    to the employer and position stated above.
+    This referral was generated online through the PESO CSJDM job-matching portal. It certifies that the
+    above-named applicant has been matched and referred to the employer and position stated above.
   </p>
+  <p class="text-muted" style="font-size:.72rem;">Generated online · No manual signature required to be valid.</p>
 
   <div class="row mt-2">
     <div class="col-6">
-      <div class="sigline"><strong>{{ r.accepted_by_name }}</strong><br />PESO Officer (Accepted by)</div>
+      <div class="sigline">PESO CSJDM<br />(Verifying Officer, if required)</div>
     </div>
     <div class="col-6">
       <div class="sigline">Employer's Representative<br />(Received by / Date)</div>

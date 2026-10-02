@@ -260,6 +260,7 @@ def init_db():
             referred_by  INTEGER  NOT NULL,
             referred_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
             status       TEXT     DEFAULT 'referred',
+            suitability_score REAL,
             notes        TEXT,
             FOREIGN KEY (applicant_id) REFERENCES applicants(id),
             FOREIGN KEY (vacancy_id)   REFERENCES job_vacancies(id),
@@ -334,6 +335,10 @@ def init_db():
     ]:
         if col not in vcols:
             db.execute(f'ALTER TABLE job_vacancies ADD COLUMN {col} {ddl}')
+
+    rcols = [r[1] for r in db.execute("PRAGMA table_info(referrals)").fetchall()]
+    if 'suitability_score' not in rcols:
+        db.execute('ALTER TABLE referrals ADD COLUMN suitability_score REAL')
 
     ucols = [r[1] for r in db.execute("PRAGMA table_info(users)").fetchall()]
     if 'role' not in ucols:
@@ -1029,9 +1034,21 @@ def jobseeker_apply():
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
         return redirect(url_for('referral_slip', rid=existing['id']))
+    # Capture the ML suitability score for this vacancy's category (soft-gate signal)
+    score = None
+    if pipeline:
+        recs = get_recommendations(
+            ap['educ_level'], ap['preferred_position'],
+            ap['skills'], ap['work_experience'] or '', [dict(jv)]
+        )
+        for cat in recs:
+            if cat['category'] == jv['occupational_category']:
+                score = cat['suitability_score']
+                break
     cur = db.execute(
-        'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, status) VALUES (?,?,?,?)',
-        (ap['id'], vacancy_id, session['user_id'], 'referred')
+        'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, status, suitability_score) '
+        'VALUES (?,?,?,?,?)',
+        (ap['id'], vacancy_id, session['user_id'], 'referred', score)
     )
     db.commit()
     rid = cur.lastrowid
@@ -1228,7 +1245,7 @@ def home():
         'SELECT COUNT(*) FROM job_vacancies WHERE is_active=1'
     ).fetchone()[0]
     total_employers = db.execute(
-        'SELECT COUNT(DISTINCT employer_name) FROM job_vacancies WHERE is_active=1'
+        'SELECT COUNT(*) FROM employers WHERE is_approved=1'
     ).fetchone()[0]
     total_recs = db.execute(
         'SELECT COUNT(*) FROM recommendations'
@@ -1436,7 +1453,7 @@ def referrals_list():
         {where}
         ORDER BY r.referred_at DESC
     ''', params).fetchall()
-    return render_template('staff/referrals.html', referrals=referrals,
+    return render_template('admin/referrals.html', referrals=referrals,
                            status=status, search=search)
 
 @app.route('/referrals/<int:rid>/slip')

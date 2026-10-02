@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-4">
   <h4 class="fw-bold mb-0">Referred Applicants</h4>
-  <p class="text-muted small">Applicants referred to your vacancies by PESO admin.</p>
+  <p class="text-muted small">Applicants matched to your vacancies through the PESO online job-matching portal.</p>
 </div>
 
 {% if referrals %}
@@ -14,6 +14,7 @@
       <tr>
         <th class="px-3 py-2">Applicant</th>
         <th class="py-2">Vacancy</th>
+        <th class="py-2">ML Match</th>
         <th class="py-2">Referred</th>
         <th class="py-2">Slip</th>
       </tr>
@@ -25,6 +26,13 @@
           <div class="fw-semibold small">{{ r.first_name }} {{ r.last_name }}</div>
         </td>
         <td class="py-2 small text-muted">{{ r.job_title }}</td>
+        <td class="py-2">
+          {% if r.suitability_score is not none %}
+          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.68rem;">{{ '%.0f'|format(r.suitability_score * 100) }}%</span>
+          {% else %}
+          <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
         <td class="py-2 small text-muted">{{ r.referred_at|friendly_dt }}</td>
         <td class="py-2">
           <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
@@ -40,14 +48,14 @@
 
 <div class="alert alert-info d-flex gap-2 mt-3">
   <i class="bi bi-info-circle-fill flex-shrink-0"></i>
-  <span class="small">Applicant contact details are handled through PESO admin. To receive more referred applicants, make sure your vacancies are active.</span>
+  <span class="small">Applicant contact details are shown on each referral slip. To receive more referred applicants, make sure your vacancies are active.</span>
 </div>
 
 {% else %}
 <div class="text-center py-5 text-muted">
   <i class="bi bi-people" style="font-size:2.5rem;opacity:.25;"></i>
   <p class="mt-3">No referred applicants yet.</p>
-  <p class="small">PESO admin will refer qualified candidates once your vacancies are active.</p>
+  <p class="small">Jobseekers will be matched and referred to your vacancies once they are active.</p>
   <a href="{{ url_for('employer_vacancy_add') }}" class="btn btn-primary btn-sm">Post a Vacancy</a>
 </div>
 {% endif %}

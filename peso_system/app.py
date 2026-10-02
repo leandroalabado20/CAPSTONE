@@ -4,7 +4,7 @@ Flask Application Entry Point — Multi-Entity Version
 
 Roles: admin | employer | jobseeker
 Run:  python app.py
-Default login: username=admin  password=admin123
+Default login: admin@peso.gov.ph  password=admin123
 """
 
 import os
@@ -212,7 +212,6 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name     TEXT    NOT NULL,
-            username      TEXT    UNIQUE NOT NULL,
             email         TEXT    UNIQUE NOT NULL,
             password_hash TEXT    NOT NULL,
             role          TEXT    DEFAULT 'admin',
@@ -391,12 +390,32 @@ def init_db():
     # Merge staff role into admin
     db.execute("UPDATE users SET role='admin' WHERE role='staff'")
 
+    # Drop the obsolete username column (login is by email now) — rebuild users table
+    if 'username' in [r[1] for r in db.execute("PRAGMA table_info(users)").fetchall()]:
+        db.executescript('''
+            PRAGMA foreign_keys=OFF;
+            CREATE TABLE users_new (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                full_name     TEXT    NOT NULL,
+                email         TEXT    UNIQUE NOT NULL,
+                password_hash TEXT    NOT NULL,
+                role          TEXT    DEFAULT 'admin',
+                is_active     INTEGER DEFAULT 1,
+                created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            INSERT INTO users_new (id, full_name, email, password_hash, role, is_active, created_at)
+                SELECT id, full_name, email, password_hash, role, is_active, created_at FROM users;
+            DROP TABLE users;
+            ALTER TABLE users_new RENAME TO users;
+            PRAGMA foreign_keys=ON;
+        ''')
+
     # ── Seed default admin ─────────────────────────────────────────────────────
     existing = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
     if existing == 0:
         db.execute(
-            'INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
-            ('Administrator', 'admin', 'admin@peso.gov.ph',
+            'INSERT INTO users (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+            ('Administrator', 'admin@peso.gov.ph',
              generate_password_hash('admin123'), ROLE_ADMIN)
         )
     else:
@@ -742,25 +761,25 @@ def login():
     if 'user_id' in session:
         return redirect(_role_home())
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        email    = request.form.get('email', '').strip()
         password = request.form.get('password', '')
         ip       = request.remote_addr
         db       = get_db()
-        user     = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        user     = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+        log_name = email
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
-                           (user['id'], username, ip, 'denied_inactive'))
+                           (user['id'], log_name, ip, 'denied_inactive'))
                 db.commit()
                 flash('Your account is deactivated. Contact an administrator.', 'danger')
             else:
                 session.clear()
                 session['user_id']   = user['id']
-                session['username']  = user['username']
                 session['full_name'] = user['full_name']
                 session['role']      = user['role'] or ROLE_ADMIN
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
-                           (user['id'], username, ip, 'success'))
+                           (user['id'], log_name, ip, 'success'))
                 db.commit()
                 # Employer must be approved before accessing portal
                 if session['role'] == ROLE_EMPLOYER:
@@ -772,9 +791,9 @@ def login():
         else:
             uid = user['id'] if user else None
             db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
-                       (uid, username, ip, 'failed'))
+                       (uid, log_name, ip, 'failed'))
             db.commit()
-            flash('Invalid username or password.', 'danger')
+            flash('Invalid email or password.', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -782,139 +801,64 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-@app.route('/register/jobseeker', methods=['GET', 'POST'])
-def register_jobseeker():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if 'user_id' in session:
         return redirect(_role_home())
-    form_kwargs = dict(
-        educ_levels=EDUC_LEVELS,
-        barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
-        barangay_district_map=BARANGAY_DISTRICT,
-        positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-        work_exp_list=WORK_EXPERIENCE_LIST,
-    )
-    if request.method == 'POST':
-        f         = request.form
-        username  = f.get('username', '').strip()
-        email     = f.get('email', '').strip()
-        pw        = f.get('password', '')
-        conf      = f.get('confirm_password', '')
-        first     = f.get('first_name', '').strip()
-        last      = f.get('last_name', '').strip()
-        birthdate = f.get('birthdate', '').strip()
-        contact   = f.get('contact_number', '').strip()
-
-        errs = []
-        if not all([username, email, pw, first, last, birthdate]):
-            errs.append('All required fields must be filled.')
-        if f.get('is_pwd') not in ('0', '1'):
-            errs.append('Please indicate whether you are a Person with Disability (PWD).')
-        if pw != conf:
-            errs.append('Passwords do not match.')
-        if len(pw) < 8:
-            errs.append('Password must be at least 8 characters.')
-        if errs:
-            for e in errs:
-                flash(e, 'danger')
-            return render_template('auth/register_jobseeker.html', form=f, **form_kwargs)
-
-        db = get_db()
-        if f.get('confirm_duplicate') != '1':
-            dup = find_duplicate_applicant(db, first, last, birthdate)
-            if dup:
-                msg = (f"A record for {dup['first_name']} {dup['last_name']} "
-                       f"(born {dup['birthdate']}) already exists")
-                if contact and dup['contact_number'] and contact == dup['contact_number']:
-                    msg += ', with the same contact number'
-                msg += '. If this is a different person, check the box below and submit again.'
-                flash(msg, 'warning')
-                return render_template('auth/register_jobseeker.html', form=f,
-                                       duplicate_warning=True, **form_kwargs)
-        try:
-            db.execute(
-                'INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?,?,?,?,?)',
-                (f'{first} {last}', username, email,
-                 generate_password_hash(pw), ROLE_JOBSEEKER)
-            )
-            db.commit()
-            uid = db.execute('SELECT last_insert_rowid()').fetchone()[0]
-            age = f.get('age', '').strip()
-            educ       = f.get('educ_level', '')
-            preferred  = f.get('preferred_position', '').strip()
-            skills     = f.get('skills', '').strip()
-            work_exp   = f.get('work_experience', '').strip()
-            barangay   = f.get('barangay', '').strip()
-            db.execute('''
-                INSERT INTO applicants
-                    (first_name, last_name, sex, age, barangay, district,
-                     employment_status, is_pwd, educ_level, preferred_position,
-                     skills, work_experience, birthdate, contact_number, user_id)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ''', (
-                first, last,
-                f.get('sex', ''),
-                int(age) if age.isdigit() else None,
-                barangay,
-                barangay_to_district(barangay),
-                'Unemployed',
-                1 if f.get('is_pwd') == '1' else 0,
-                educ, preferred, skills, work_exp,
-                birthdate, contact,
-                uid,
-            ))
-            db.commit()
-            flash('Account created! Please log in.', 'success')
-            return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            flash('Username or email already exists.', 'danger')
-    return render_template('auth/register_jobseeker.html', form={}, **form_kwargs)
-
-@app.route('/register/employer', methods=['GET', 'POST'])
-def register_employer():
-    if 'user_id' in session:
-        return redirect(_role_home())
+    role = request.values.get('role', '')
     if request.method == 'POST':
         f         = request.form
         full_name = f.get('full_name', '').strip()
-        username  = f.get('username', '').strip()
         email     = f.get('email', '').strip()
         pw        = f.get('password', '')
-        conf      = f.get('confirm_password', '')
+        role      = f.get('role', '').strip()
 
         errs = []
-        if not all([full_name, username, email, pw]):
+        if not all([full_name, email, pw]):
             errs.append('All required fields must be filled.')
+        if role not in (ROLE_JOBSEEKER, ROLE_EMPLOYER):
+            errs.append('Please choose whether you are a jobseeker or an employer.')
         if email and not EMAIL_RE.match(email):
             errs.append('Please enter a valid email address.')
-        if pw != conf:
-            errs.append('Passwords do not match.')
         if len(pw) < 8:
             errs.append('Password must be at least 8 characters.')
         if errs:
             for e in errs:
                 flash(e, 'danger')
-            return render_template('auth/register_employer.html', form=f)
+            return render_template('auth/signup.html', form=f, role=role)
         db = get_db()
         try:
             cur = db.execute(
-                'INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?,?,?,?,?)',
-                (full_name, username, email, generate_password_hash(pw), ROLE_EMPLOYER)
+                'INSERT INTO users (full_name, email, password_hash, role) VALUES (?,?,?,?)',
+                (full_name, email, generate_password_hash(pw), role)
             )
             uid = cur.lastrowid
-            # Company details are encoded later via the Company Profile page
-            db.execute(
-                'INSERT INTO employers (user_id, company_name, contact_person, profile_completed) '
-                'VALUES (?,?,?,0)',
-                (uid, '', '')
-            )
+            if role == ROLE_JOBSEEKER:
+                parts = full_name.split()
+                first, last = parts[0], ' '.join(parts[1:])
+                # Profile details (education, skills, etc.) are completed later
+                db.execute(
+                    'INSERT INTO applicants (first_name, last_name, employment_status, '
+                    'educ_level, preferred_position, skills, user_id) VALUES (?,?,?,?,?,?,?)',
+                    (first, last, 'Unemployed', '', '', '', uid)
+                )
+                msg = 'Account created! Log in and complete your profile to get job recommendations.'
+            else:
+                # Company details are encoded later via the Company Profile page
+                db.execute(
+                    'INSERT INTO employers (user_id, company_name, contact_person, profile_completed) '
+                    'VALUES (?,?,?,0)',
+                    (uid, '', '')
+                )
+                msg = ('Account created! Log in to encode your company profile — '
+                       'PESO admin will review and approve it before you can post vacancies.')
             db.commit()
-            flash('Account created! Log in to encode your company profile — '
-                  'PESO admin will review and approve it before you can post vacancies.', 'success')
+            flash(msg, 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             db.rollback()
-            flash('Username or email already exists.', 'danger')
-    return render_template('auth/register_employer.html', form={})
+            flash('That email is already registered.', 'danger')
+    return render_template('auth/signup.html', form={}, role=role)
 
 @app.route('/settings/password', methods=['GET', 'POST'])
 @login_required
@@ -1653,7 +1597,7 @@ def applicants_list():
 @admin_required
 def applicant_view(aid):
     ap = get_db().execute('''
-        SELECT a.*, u.username, u.email
+        SELECT a.*, u.email
         FROM applicants a LEFT JOIN users u ON a.user_id = u.id
         WHERE a.id = ?
     ''', (aid,)).fetchone()
@@ -1813,13 +1757,14 @@ def user_add():
     if request.method == 'POST':
         f    = request.form
         name = f.get('full_name','').strip()
-        user = f.get('username','').strip()
         mail = f.get('email','').strip()
         pw   = f.get('password','')
         conf = f.get('confirm_password','')
         errs = []
-        if not all([name, user, mail, pw]):
+        if not all([name, mail, pw]):
             errs.append('All fields are required.')
+        if mail and not EMAIL_RE.match(mail):
+            errs.append('Please enter a valid email address.')
         if pw != conf:
             errs.append('Passwords do not match.')
         if len(pw) < 8:
@@ -1830,14 +1775,18 @@ def user_add():
         else:
             try:
                 get_db().execute(
-                    'INSERT INTO users (full_name,username,email,password_hash,role) VALUES (?,?,?,?,?)',
-                    (name, user, mail, generate_password_hash(pw), ROLE_ADMIN)
+                    'INSERT INTO users (full_name,email,password_hash,role) VALUES (?,?,?,?)',
+                    (name, mail, generate_password_hash(pw), ROLE_ADMIN)
                 )
                 get_db().commit()
                 flash('User account created.', 'success')
                 return redirect(url_for('users_list'))
             except sqlite3.IntegrityError:
-                flash('Username or email already exists.', 'danger')
+                flash('That email is already registered.', 'danger')
+        # Preserve what was typed so an error doesn't blank the form
+        return render_template('users/form.html',
+                               user={'full_name': f.get('full_name',''), 'email': f.get('email','')},
+                               action='add')
     return render_template('users/form.html', user=None, action='add')
 
 @app.route('/users/<int:uid>/edit', methods=['GET', 'POST'])
@@ -1852,7 +1801,6 @@ def user_edit(uid):
         f        = request.form
         name     = f.get('full_name','').strip()
         mail     = f.get('email','').strip()
-        username = f.get('username','').strip()
         pw       = f.get('new_password','')
         new_role = f.get('role', u['role'])
         # Prevent removing the last admin
@@ -1868,16 +1816,16 @@ def user_edit(uid):
                 if len(pw) < 8:
                     flash('Password must be at least 8 characters.', 'danger')
                     return render_template('users/form.html', user=dict(u), action='edit')
-                db.execute('UPDATE users SET full_name=?,username=?,email=?,password_hash=?,role=? WHERE id=?',
-                           (name, username, mail, generate_password_hash(pw), new_role, uid))
+                db.execute('UPDATE users SET full_name=?,email=?,password_hash=?,role=? WHERE id=?',
+                           (name, mail, generate_password_hash(pw), new_role, uid))
             else:
-                db.execute('UPDATE users SET full_name=?,username=?,email=?,role=? WHERE id=?',
-                           (name, username, mail, new_role, uid))
+                db.execute('UPDATE users SET full_name=?,email=?,role=? WHERE id=?',
+                           (name, mail, new_role, uid))
             db.commit()
             flash('User updated.', 'success')
             return redirect(url_for('users_list'))
         except sqlite3.IntegrityError:
-            flash('Username or email already exists.', 'danger')
+            flash('That email is already registered.', 'danger')
     return render_template('users/form.html', user=dict(u), action='edit')
 
 @app.route('/users/<int:uid>/delete', methods=['POST'])
@@ -1887,14 +1835,14 @@ def user_delete(uid):
         flash('You cannot delete your own account.', 'danger')
         return redirect(url_for('users_list'))
     db = get_db()
-    u  = db.execute('SELECT full_name, username FROM users WHERE id=?', (uid,)).fetchone()
+    u  = db.execute('SELECT full_name, email FROM users WHERE id=?', (uid,)).fetchone()
     if not u:
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
     db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
     db.execute('DELETE FROM users WHERE id=?', (uid,))
     db.commit()
-    flash(f'Account for {u["full_name"]} (@{u["username"]}) has been permanently deleted.', 'success')
+    flash(f'Account for {u["full_name"]} ({u["email"]}) has been permanently deleted.', 'success')
     return redirect(url_for('users_list'))
 
 
@@ -1916,19 +1864,19 @@ def admin_employers():
     status = request.args.get('status', 'pending')
     if status == 'pending':
         rows = db.execute(
-            'SELECT e.*, u.username, u.email, u.is_active '
+            'SELECT e.*, u.email, u.is_active '
             'FROM employers e JOIN users u ON e.user_id=u.id '
             'WHERE e.is_approved=0 ORDER BY e.created_at DESC'
         ).fetchall()
     elif status == 'approved':
         rows = db.execute(
-            'SELECT e.*, u.username, u.email, u.is_active '
+            'SELECT e.*, u.email, u.is_active '
             'FROM employers e JOIN users u ON e.user_id=u.id '
             'WHERE e.is_approved=1 ORDER BY e.created_at DESC'
         ).fetchall()
     else:
         rows = db.execute(
-            'SELECT e.*, u.username, u.email, u.is_active '
+            'SELECT e.*, u.email, u.is_active '
             'FROM employers e JOIN users u ON e.user_id=u.id '
             'ORDER BY e.created_at DESC'
         ).fetchall()

@@ -17,27 +17,13 @@
       <div class="mb-3">
         <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
         <input type="text" name="full_name" class="form-control"
-               value="{{ user.full_name if user else '' }}" required />
+               value="{{ user.full_name if user else '' }}" required maxlength="100" />
       </div>
-
-      {% if action == 'add' %}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-        <input type="text" name="username" class="form-control" required
-               autocomplete="off" placeholder="Must be unique" />
-      </div>
-      {% else %}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-        <input type="text" name="username" class="form-control"
-               value="{{ user.username }}" required autocomplete="off" />
-      </div>
-      {% endif %}
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
         <input type="email" name="email" class="form-control"
-               value="{{ user.email if user else '' }}" required autocomplete="off" />
+               value="{{ user.email if user else '' }}" required autocomplete="off" maxlength="254" />
       </div>
 
       <input type="hidden" name="role" value="admin" />
@@ -47,7 +33,7 @@
         <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
         <div class="input-group">
           <input type="password" name="password" class="form-control" required
-                 minlength="8" autocomplete="new-password" />
+                 minlength="8" maxlength="64" autocomplete="new-password" />
           <button class="btn btn-outline-secondary" type="button"
                   onclick="togglePw(this)" aria-label="Show or hide password">
             <i class="bi bi-eye"></i>
@@ -59,7 +45,7 @@
         <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
         <div class="input-group">
           <input type="password" name="confirm_password" class="form-control"
-                 required autocomplete="new-password" />
+                 required maxlength="64" autocomplete="new-password" />
           <button class="btn btn-outline-secondary" type="button"
                   onclick="togglePw(this)" aria-label="Show or hide password">
             <i class="bi bi-eye"></i>
@@ -75,7 +61,7 @@
         <label class="form-label fw-semibold">New Password</label>
         <div class="input-group">
           <input type="password" name="new_password" class="form-control"
-                 autocomplete="new-password" minlength="8"
+                 autocomplete="new-password" minlength="8" maxlength="64"
                  placeholder="Leave blank to keep current password" />
           <button class="btn btn-outline-secondary" type="button"
                   onclick="togglePw(this)" aria-label="Show or hide password">

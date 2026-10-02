@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login &mdash; PESO CSJDM Job Recommendation System</title>
+  <title>Sign up &mdash; PESO CSJDM Job Recommendation System</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/peso_logo.png') }}" />
   <script>
   (function(){try{if(localStorage.getItem('peso-theme')==='dark'){var r=document.documentElement;r.setAttribute('data-theme','dark');r.setAttribute('data-bs-theme','dark');r.setAttribute('data-coreui-theme','dark');}}catch(e){}})();
@@ -25,7 +25,7 @@
   </button>
 </div>
 
-<div class="login-card card shadow-lg p-4" style="width:100%;max-width:420px;">
+<div class="login-card card shadow-lg p-4" style="width:100%;max-width:440px;">
   <div class="text-center mb-4">
     <div class="login-icon mb-3">
       <img src="{{ url_for('static', filename='img/peso_logo.png') }}" alt="PESO CSJDM" />
@@ -44,36 +44,63 @@
     {% endfor %}
   {% endwith %}
 
-  <form method="POST" action="{{ url_for('login') }}">
+  <form method="POST" action="{{ url_for('register') }}">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Full name</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input type="text" name="full_name" class="form-control" placeholder="Your full name"
+               value="{{ form.get('full_name','') }}" required autofocus maxlength="100" />
+      </div>
+    </div>
     <div class="mb-3">
       <label class="form-label fw-semibold">Email address</label>
       <div class="input-group">
         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-        <input type="email" name="email" class="form-control" placeholder="Enter email address"
-               required autofocus autocomplete="email" maxlength="254" />
+        <input type="email" name="email" class="form-control" placeholder="Email address"
+               value="{{ form.get('email','') }}" required autocomplete="email" maxlength="254" />
       </div>
     </div>
-    <div class="mb-4">
+    <div class="mb-3">
       <label class="form-label fw-semibold">Password</label>
       <div class="input-group">
         <span class="input-group-text"><i class="bi bi-lock"></i></span>
         <input type="password" name="password" id="pw" class="form-control"
-               placeholder="Enter password" required autocomplete="current-password" />
+               placeholder="At least 8 characters" required minlength="8" maxlength="64" autocomplete="new-password" />
         <button type="button" class="btn btn-outline-secondary" onclick="togglePw()">
           <i class="bi bi-eye" id="pw-eye"></i>
         </button>
       </div>
     </div>
+
+    <label class="form-label fw-semibold">I am a</label>
+    <div class="row g-2 mb-4">
+      <div class="col-6">
+        <input type="radio" class="btn-check" name="role" id="role_js" value="jobseeker"
+               {% if role == 'jobseeker' %}checked{% endif %} required />
+        <label class="btn btn-sm btn-outline-primary w-100" for="role_js">
+          <i class="bi bi-person-badge me-1"></i>Jobseeker
+        </label>
+      </div>
+      <div class="col-6">
+        <input type="radio" class="btn-check" name="role" id="role_emp" value="employer"
+               {% if role == 'employer' %}checked{% endif %} required />
+        <label class="btn btn-sm btn-outline-success w-100" for="role_emp">
+          <i class="bi bi-building me-1"></i>Employer
+        </label>
+      </div>
+    </div>
+
     <button type="submit" class="btn btn-primary w-100 fw-semibold">
-      <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+      <i class="bi bi-person-plus me-1"></i> Create Account
     </button>
   </form>
 
   <hr class="my-3" />
   <div class="text-center">
-    <span class="text-muted small">Don't have an account?</span>
-    <a href="{{ url_for('register') }}" class="btn btn-sm btn-outline-primary ms-1">
-      <i class="bi bi-person-plus me-1"></i>Sign up
+    <span class="text-muted small">Already have an account?</span>
+    <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-primary ms-1">
+      <i class="bi bi-box-arrow-in-right me-1"></i>Sign in
     </a>
   </div>
 </div>

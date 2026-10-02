@@ -14,15 +14,16 @@
       <div class="row g-3">
         <div class="col-sm-6">
           <label class="form-label fw-semibold">TIN <span class="text-danger">*</span></label>
-          <input type="text" name="tin" class="form-control" value="{{ emp.get('tin','') }}" required placeholder="000-000-000-000" />
+          <input type="text" name="tin" class="form-control" value="{{ emp.get('tin','') }}" required placeholder="000-000-000-000"
+                 maxlength="20" inputmode="numeric" pattern="[0-9\-]{9,20}" title="TIN, e.g. 000-000-000-000" />
         </div>
         <div class="col-sm-6">
           <label class="form-label fw-semibold">Business Name <span class="text-danger">*</span></label>
-          <input type="text" name="company_name" class="form-control" value="{{ emp.get('company_name','') }}" required placeholder="Registered / legal name" />
+          <input type="text" name="company_name" class="form-control" value="{{ emp.get('company_name','') }}" required maxlength="150" placeholder="Registered / legal name" />
         </div>
         <div class="col-sm-6">
           <label class="form-label fw-semibold">Trade Name</label>
-          <input type="text" name="trade_name" class="form-control" value="{{ emp.get('trade_name','') }}" placeholder="Business / DBA name (if any)" />
+          <input type="text" name="trade_name" class="form-control" value="{{ emp.get('trade_name','') }}" maxlength="150" placeholder="Business / DBA name (if any)" />
         </div>
         <div class="col-sm-6">
           <label class="form-label fw-semibold d-block">Location Type <span class="text-danger">*</span></label>
@@ -60,7 +61,7 @@
         </div>
         <div class="col-12">
           <label class="form-label fw-semibold">Line of Business / Industry <span class="text-danger">*</span></label>
-          <input type="text" name="line_of_business" class="form-control" value="{{ emp.get('line_of_business','') }}" required placeholder="e.g. Manufacturing, Retail, BPO" />
+          <input type="text" name="line_of_business" class="form-control" value="{{ emp.get('line_of_business','') }}" required maxlength="100" placeholder="e.g. Manufacturing, Retail, BPO" />
         </div>
       </div>
     </div>
@@ -72,22 +73,22 @@
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label fw-semibold">House/Building No., Street, Village <span class="text-danger">*</span></label>
-          <input type="text" name="address_line" class="form-control" value="{{ emp.get('address_line','') }}" required />
+          <input type="text" name="address_line" class="form-control" value="{{ emp.get('address_line','') }}" required maxlength="150" />
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Barangay <span class="text-danger">*</span></label>
-          <input type="text" list="brgy-list" name="barangay" class="form-control" value="{{ emp.get('barangay','') }}" required placeholder="Type to search…" autocomplete="off" />
+          <input type="text" list="brgy-list" name="barangay" class="form-control" value="{{ emp.get('barangay','') }}" required maxlength="60" placeholder="Type to search" autocomplete="off" />
           <datalist id="brgy-list">
             {% for b in barangays %}<option value="{{ b|title }}"></option>{% endfor %}
           </datalist>
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">City / Municipality <span class="text-danger">*</span></label>
-          <input type="text" name="city" class="form-control" value="{{ emp.get('city') or 'City of San Jose del Monte' }}" required />
+          <input type="text" name="city" class="form-control" value="{{ emp.get('city') or 'City of San Jose del Monte' }}" required maxlength="60" />
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Province <span class="text-danger">*</span></label>
-          <input type="text" name="province" class="form-control" value="{{ emp.get('province') or 'Bulacan' }}" required />
+          <input type="text" name="province" class="form-control" value="{{ emp.get('province') or 'Bulacan' }}" required maxlength="60" />
         </div>
       </div>
     </div>
@@ -99,27 +100,30 @@
       <div class="row g-3">
         <div class="col-sm-6">
           <label class="form-label fw-semibold">Contact Person <span class="text-danger">*</span></label>
-          <input type="text" name="contact_person" class="form-control" value="{{ emp.get('contact_person','') }}" required />
+          <input type="text" name="contact_person" class="form-control" value="{{ emp.get('contact_person','') }}" required maxlength="100" />
         </div>
         <div class="col-sm-6">
           <label class="form-label fw-semibold">Position <span class="text-danger">*</span></label>
-          <input type="text" name="position" class="form-control" value="{{ emp.get('position','') }}" required placeholder="e.g. HR Manager" />
+          <input type="text" name="position" class="form-control" value="{{ emp.get('position','') }}" required maxlength="100" placeholder="e.g. HR Manager" />
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Telephone No.</label>
-          <input type="text" name="telephone" class="form-control" value="{{ emp.get('telephone','') }}" />
+          <input type="text" name="telephone" class="form-control" value="{{ emp.get('telephone','') }}"
+                 maxlength="12" inputmode="numeric" pattern="[0-9\-]{7,12}" title="Landline number (7 to 12 digits)" />
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Mobile No. <span class="text-danger">*</span></label>
-          <input type="text" name="mobile" class="form-control" value="{{ emp.get('mobile','') }}" required placeholder="09XX-XXX-XXXX" />
+          <input type="text" name="mobile" class="form-control" value="{{ emp.get('mobile','') }}" required placeholder="09XXXXXXXXX"
+                 maxlength="11" inputmode="numeric" pattern="09[0-9]{9}" title="11-digit mobile number (09XXXXXXXXX)" />
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Fax No.</label>
-          <input type="text" name="fax" class="form-control" value="{{ emp.get('fax','') }}" />
+          <input type="text" name="fax" class="form-control" value="{{ emp.get('fax','') }}"
+                 maxlength="12" inputmode="numeric" pattern="[0-9\-]{7,12}" title="Fax number (7 to 12 digits)" />
         </div>
         <div class="col-12">
           <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
-          <input type="email" name="profile_email" class="form-control" value="{{ emp.get('profile_email','') }}" required />
+          <input type="email" name="profile_email" class="form-control" value="{{ emp.get('profile_email','') }}" required maxlength="254" />
         </div>
       </div>
     </div>

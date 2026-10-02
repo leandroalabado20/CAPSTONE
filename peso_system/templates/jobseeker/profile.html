@@ -51,10 +51,6 @@
               <input type="text" class="form-control" value="{{ user.full_name }}" disabled />
             </div>
             <div class="col-sm-6">
-              <label class="form-label fw-semibold small">Username</label>
-              <input type="text" class="form-control" value="{{ user.username }}" disabled />
-            </div>
-            <div class="col-12">
               <label class="form-label fw-semibold small">Email</label>
               <input type="text" class="form-control" value="{{ user.email }}" disabled />
             </div>
@@ -106,14 +102,16 @@
             <div class="col-sm-6">
               <label class="form-label fw-semibold small">Contact Number</label>
               <input type="text" name="contact_number" class="form-control"
-                     value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX" />
+                     value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX"
+                     maxlength="11" inputmode="numeric" pattern="09[0-9]{9}"
+                     title="11-digit mobile number (09XXXXXXXXX)" />
             </div>
 
             <!-- Barangay with datalist + auto-fill district -->
             <div class="col-sm-6">
               <label class="form-label fw-semibold small">Barangay</label>
               <input type="text" name="barangay" id="barangay-input" class="form-control"
-                     list="barangay-list" autocomplete="off"
+                     list="barangay-list" autocomplete="off" maxlength="60"
                      value="{{ ap.barangay or '' }}"
                      placeholder="Type or select barangay"
                      oninput="autoFillDistrict(this.value)" />
@@ -165,7 +163,7 @@
             <div class="col-sm-6">
               <label class="form-label fw-semibold small">Preferred Position <span class="text-danger">*</span></label>
               <input type="text" name="preferred_position" id="pref-pos"
-                     list="pos-list" autocomplete="off"
+                     list="pos-list" autocomplete="off" maxlength="100"
                      class="form-control {% if not ap.preferred_position %}border-danger{% endif %}"
                      value="{{ ap.preferred_position or '' }}"
                      placeholder="Type or select a position" />
@@ -182,7 +180,7 @@
                 <span>Skills <span class="text-danger">*</span></span>
                 <span class="text-muted fw-normal" style="font-size:.7rem;">Click chips to add</span>
               </label>
-              <textarea name="skills" id="skills-input" rows="2"
+              <textarea name="skills" id="skills-input" rows="2" maxlength="255"
                         class="form-control mb-2 {% if not ap.skills %}border-danger{% endif %}"
                         placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ ap.skills or '' }}</textarea>
               <div class="d-flex flex-wrap gap-1">
@@ -196,10 +194,10 @@
             <div class="col-12">
               <label class="form-label fw-semibold small">Work Experience</label>
               <input type="text" name="work_experience" id="work-exp"
-                     list="exp-list" autocomplete="off"
+                     list="exp-list" autocomplete="off" maxlength="150"
                      class="form-control"
                      value="{{ ap.work_experience or '' }}"
-                     placeholder="e.g. Cashier — leave blank if none" />
+                     placeholder="e.g. Cashier, leave blank if none" />
               <datalist id="exp-list">
                 {% for exp in work_exp_list %}
                 <option value="{{ exp }}">{{ exp }}</option>

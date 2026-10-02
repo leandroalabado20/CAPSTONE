@@ -3,14 +3,9 @@
 
 {% block content %}
 <div class="container py-5">
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-    <div>
-      <h2 class="fw-bold mb-0">Available Jobs</h2>
-      <p class="text-muted small mb-0">{{ vacancies|length }} active position{{ 's' if vacancies|length != 1 else '' }}</p>
-    </div>
-    <a href="{{ url_for('register_jobseeker') }}" class="btn btn-primary fw-semibold">
-      <i class="bi bi-person-plus me-1"></i>Register to Get Referred
-    </a>
+  <div class="mb-4">
+    <h2 class="fw-bold mb-0">Available Jobs</h2>
+    <p class="text-muted small mb-0">{{ vacancies|length }} active position{{ 's' if vacancies|length != 1 else '' }}</p>
   </div>
 
   <!-- Filters -->
@@ -71,9 +66,5 @@
   </div>
   {% endif %}
 
-  <div class="alert alert-info mt-5 d-flex align-items-center gap-2">
-    <i class="bi bi-info-circle-fill flex-shrink-0"></i>
-    <span><a href="{{ url_for('register_jobseeker') }}" class="fw-semibold">Register as a jobseeker</a> to get ML-matched job recommendations, then apply to generate your referral slip instantly.</span>
-  </div>
 </div>
 {% endblock %}

@@ -82,7 +82,7 @@
         {% elif logged_in %}
         <p class="small text-muted mb-0">Log in as a jobseeker to apply for this job.</p>
         {% else %}
-        <a href="{{ url_for('register_jobseeker') }}" class="btn btn-primary fw-semibold">
+        <a href="{{ url_for('register', role='jobseeker') }}" class="btn btn-primary fw-semibold">
           <i class="bi bi-person-plus me-1"></i>Register to Apply
         </a>
         <a href="{{ url_for('login') }}" class="btn btn-outline-secondary ms-1">Sign in</a>

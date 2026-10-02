@@ -14,7 +14,7 @@
         <form method="POST">
           <div class="mb-3">
             <label class="form-label fw-semibold">Job Title <span class="text-danger">*</span></label>
-            <input type="text" name="job_title" class="form-control" required
+            <input type="text" name="job_title" class="form-control" required maxlength="100"
                    value="{{ vacancy.job_title if vacancy else '' }}"
                    placeholder="e.g. Production Worker, Cashier, Security Guard" />
           </div>

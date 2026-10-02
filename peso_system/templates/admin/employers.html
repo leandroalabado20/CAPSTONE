@@ -47,7 +47,7 @@
           </div>
         </div>
         <div class="row g-1 small text-muted mb-3">
-          <div class="col-12"><i class="bi bi-person me-1"></i>@{{ e.username }} &middot; {{ e.email }}</div>
+          <div class="col-12"><i class="bi bi-envelope me-1"></i>{{ e.email }}</div>
           {% if e.profile_completed %}
           <div class="col-12"><i class="bi bi-upc-scan me-1"></i>TIN: {{ e.tin }}</div>
           <div class="col-12"><i class="bi bi-building me-1"></i>{{ e.employer_sector }} &mdash; {{ e.employer_type }}</div>

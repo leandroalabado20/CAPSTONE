@@ -48,7 +48,6 @@
       <div class="col-md-6">
         <h6 class="text-uppercase text-muted small fw-bold mb-2">Account</h6>
         <dl class="row small mb-3">
-          <dt class="col-5">Username</dt><dd class="col-7">{% if ap.username %}<code>{{ ap.username }}</code>{% else %}—{% endif %}</dd>
           <dt class="col-5">Email</dt><dd class="col-7">{{ ap.email or '—' }}</dd>
           <dt class="col-5">Registered</dt><dd class="col-7">{{ ap.created_at|friendly_dt if ap.created_at else '—' }}</dd>
         </dl>

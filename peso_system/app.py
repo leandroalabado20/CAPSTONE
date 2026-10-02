@@ -13,7 +13,7 @@ import json
 import sqlite3
 import joblib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 
 from flask import (
@@ -755,8 +755,12 @@ def inject_globals():
 # ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────
 _PHT = timedelta(hours=8)
 
+def _now_ph():
+    """Current Philippine time as a naive datetime (UTC+8)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None) + _PHT
+
 def _today_ph():
-    return (datetime.utcnow() + _PHT).strftime('%Y-%m-%d')
+    return _now_ph().strftime('%Y-%m-%d')
 
 @app.template_filter('friendly_dt')
 def friendly_dt(value):
@@ -1042,7 +1046,7 @@ def jobseeker_profile():
         if bd:
             try:
                 b     = datetime.strptime(bd, '%Y-%m-%d')
-                today = datetime.utcnow() + _PHT
+                today = _now_ph()
                 age   = today.year - b.year - ((today.month, today.day) < (b.month, b.day))
             except ValueError:
                 age = None

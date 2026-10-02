@@ -962,7 +962,7 @@ def change_password():
     layout = {ROLE_EMPLOYER: 'base_employer.html',
               ROLE_JOBSEEKER: 'base_jobseeker.html'}.get(role, 'base.html')
     cancel_url = {ROLE_EMPLOYER: url_for('employer_account'),
-                  ROLE_JOBSEEKER: url_for('jobseeker_profile')}.get(role, url_for('home'))
+                  ROLE_JOBSEEKER: url_for('jobseeker_account')}.get(role, url_for('home'))
     if request.method == 'POST':
         cur  = request.form.get('current_password', '')
         new  = request.form.get('new_password', '')
@@ -1151,6 +1151,48 @@ def jobseeker_profile():
                            unemployed_reasons=UNEMPLOYED_REASONS,
                            work_status_choices=WORK_STATUS_CHOICES,
                            other_skills_choices=OTHER_SKILLS_CHOICES)
+
+@app.route('/jobseeker/account', methods=['GET', 'POST'])
+@jobseeker_required
+def jobseeker_account():
+    db   = get_db()
+    user = current_user()
+    if request.method == 'POST':
+        name = request.form.get('full_name', '').strip()
+        mail = request.form.get('email', '').strip()
+        if not name or not mail:
+            flash('Full name and email are required.', 'danger')
+        elif not EMAIL_RE.match(mail):
+            flash('Please enter a valid email address.', 'danger')
+        else:
+            try:
+                db.execute('UPDATE users SET full_name=?, email=? WHERE id=?',
+                           (name, mail, user['id']))
+                db.commit()
+                session['full_name'] = name
+                flash('Account updated.', 'success')
+                return redirect(url_for('jobseeker_account'))
+            except sqlite3.IntegrityError:
+                flash('That email is already in use by another account.', 'danger')
+        user = {**dict(user), 'full_name': name, 'email': mail}
+    return render_template('jobseeker/account.html', user=dict(user))
+
+@app.route('/jobseeker/account/delete', methods=['POST'])
+@jobseeker_required
+def jobseeker_account_delete():
+    db  = get_db()
+    uid = session['user_id']
+    ap  = _get_my_applicant()
+    if ap:
+        db.execute('DELETE FROM referrals WHERE applicant_id=?', (ap['id'],))
+        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['id'],))
+        db.execute('DELETE FROM applicants WHERE id=?', (ap['id'],))
+    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
+    db.execute("DELETE FROM users WHERE id=? AND role='jobseeker'", (uid,))
+    db.commit()
+    session.clear()
+    flash('Your account has been permanently deleted.', 'success')
+    return redirect(url_for('index'))
 
 @app.route('/jobseeker/recommendations')
 @jobseeker_required
@@ -1456,6 +1498,25 @@ def employer_account():
                 flash('That email is already in use by another account.', 'danger')
         user = {**dict(user), 'full_name': name, 'email': mail}
     return render_template('employer/account.html', user=dict(user))
+
+@app.route('/employer/account/delete', methods=['POST'])
+@employer_required
+def employer_account_delete():
+    db  = get_db()
+    uid = session['user_id']
+    vac_ids = [r['id'] for r in db.execute(
+        'SELECT id FROM job_vacancies WHERE employer_id=?', (uid,)).fetchall()]
+    for vid in vac_ids:
+        db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
+        db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
+    db.execute('DELETE FROM job_vacancies WHERE employer_id=?', (uid,))
+    db.execute('DELETE FROM employers WHERE user_id=?', (uid,))
+    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
+    db.execute("DELETE FROM users WHERE id=? AND role='employer'", (uid,))
+    db.commit()
+    session.clear()
+    flash('Your employer account has been permanently deleted.', 'success')
+    return redirect(url_for('index'))
 
 @app.route('/employer/dashboard')
 @employer_required

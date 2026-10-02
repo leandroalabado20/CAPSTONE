@@ -1,4 +1,4 @@
-{% extends 'base_employer.html' %}
+{% extends 'base_jobseeker.html' %}
 {% block title %}Manage Account{% endblock %}
 
 {% block content %}
@@ -10,18 +10,18 @@
 <div class="card shadow-sm border-0 mb-3 mx-auto" style="max-width:560px;border-radius:12px;">
   <div class="card-body p-4">
     <p class="fw-semibold text-muted mb-3" style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Account</p>
-    <form method="POST" action="{{ url_for('employer_account') }}">
+    <form method="POST" action="{{ url_for('jobseeker_account') }}">
       <div class="mb-3">
-        <label class="form-label fw-semibold">Full name</label>
-        <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" required />
+        <label class="form-label fw-semibold">Display name</label>
+        <input type="text" name="full_name" class="form-control" maxlength="100" value="{{ user.full_name }}" required />
       </div>
       <div class="mb-3">
         <label class="form-label fw-semibold">Email address</label>
-        <input type="email" name="email" class="form-control" value="{{ user.email }}" required />
+        <input type="email" name="email" class="form-control" maxlength="254" value="{{ user.email }}" required />
       </div>
       <div class="mb-3">
         <label class="form-label fw-semibold">User account type</label>
-        <input type="text" class="form-control" value="Employer" disabled readonly />
+        <input type="text" class="form-control" value="Jobseeker" disabled readonly />
       </div>
       <button type="submit" class="btn btn-success fw-semibold">
         <i class="bi bi-check2 me-1"></i>Save changes
@@ -46,7 +46,7 @@
   <div class="card-body p-4 d-flex align-items-center justify-content-between gap-2 flex-wrap">
     <div>
       <div class="fw-semibold text-danger">Delete account</div>
-      <div class="text-muted small">Permanently delete your account, company profile, and all job postings.</div>
+      <div class="text-muted small">Permanently delete your account, profile, and applications.</div>
     </div>
     <button type="button" class="btn btn-outline-danger btn-sm" data-coreui-toggle="modal" data-coreui-target="#deleteAccountModal">
       <i class="bi bi-trash3 me-1"></i>Delete account
@@ -64,11 +64,11 @@
           </span>
         </div>
         <h5 class="fw-bold mb-1">Delete your account?</h5>
-        <p class="text-muted small mb-0">This permanently deletes your company profile and all your job postings. This cannot be undone.</p>
+        <p class="text-muted small mb-0">This permanently deletes your profile, your applications, and all related data. This cannot be undone.</p>
       </div>
       <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
         <button type="button" class="btn btn-outline-secondary px-4" data-coreui-dismiss="modal">Cancel</button>
-        <form method="POST" action="{{ url_for('employer_account_delete') }}">
+        <form method="POST" action="{{ url_for('jobseeker_account_delete') }}">
           <button type="submit" class="btn btn-danger px-4 fw-semibold"><i class="bi bi-trash3 me-1"></i>Delete permanently</button>
         </form>
       </div>

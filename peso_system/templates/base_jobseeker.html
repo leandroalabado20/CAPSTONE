@@ -81,6 +81,13 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link {% if request.endpoint == 'jobseeker_account' %}active{% endif %}"
+         href="{{ url_for('jobseeker_account') }}">
+        <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
+        Account
+      </a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link" href="#" data-coreui-toggle="modal" data-coreui-target="#logoutModal">
         <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>
         Logout

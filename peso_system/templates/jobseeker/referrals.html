@@ -52,10 +52,20 @@
           {% endif %}
         </td>
         <td class="py-2">
-          <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
-             class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.72rem;">
-            <i class="bi bi-file-earmark-text me-1"></i>View Slip
-          </a>
+          <div class="d-flex gap-1">
+            <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
+               class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.72rem;">
+              <i class="bi bi-file-earmark-text me-1"></i>View Slip
+            </a>
+            {% if r.status == 'referred' %}
+            <form method="POST" action="{{ url_for('jobseeker_cancel_referral', rid=r.id) }}">
+              <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size:.72rem;"
+                      onclick="return confirm('Withdraw your application for &quot;{{ r.job_title }}&quot;? This cannot be undone, but you can re-apply later.')">
+                <i class="bi bi-x-circle me-1"></i>Withdraw
+              </button>
+            </form>
+            {% endif %}
+          </div>
         </td>
       </tr>
       {% endfor %}

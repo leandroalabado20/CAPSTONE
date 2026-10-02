@@ -500,7 +500,13 @@ def req_warnings(v, ap):
 app.jinja_env.globals['req_summary'] = req_summary
 app.jinja_env.globals['req_warnings'] = req_warnings
 
-def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies):
+def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies,
+                        applicant=None):
+    """Two-layer hybrid recommender.
+    Layer 1 (ML): rank the 5 occupational categories by predicted suitability.
+    Layer 2 (rule-based): within each category, order the individual vacancies by
+    how well the applicant meets their stated requirements (fewest unmet first).
+    Layer 2 only reorders — it never hides or blocks a vacancy (soft-gate)."""
     if pipeline is None:
         return []
     vec   = pipeline['vectorizer']
@@ -513,12 +519,18 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     )
     vac_by_cat = {}
     for v in vacancies:
+        unmet = len(req_warnings(v, applicant)) if applicant is not None else 0
         vac_by_cat.setdefault(v['occupational_category'], []).append({
-            'id':       v['id'],
-            'title':    v['job_title'],
-            'employer': v['employer_name'],
-            'info':     v,
+            'id':         v['id'],
+            'title':      v['job_title'],
+            'employer':   v['employer_name'],
+            'info':       v,
+            'req_unmet':  unmet,
+            'qualified':  unmet == 0,
         })
+    # Layer 2: stable-sort each category's vacancies so best requirement-fit rises
+    for cat_vacs in vac_by_cat.values():
+        cat_vacs.sort(key=lambda x: x['req_unmet'])
     results = []
     for rank, (cat_name, score) in enumerate(cat_scores, 1):
         results.append({
@@ -896,7 +908,7 @@ def jobseeker_dashboard():
             recs = get_recommendations(
                 ap['educ_level'], ap['preferred_position'],
                 ap['skills'], ap['work_experience'] or '',
-                [dict(v) for v in vacancies]
+                [dict(v) for v in vacancies], applicant=ap
             )
             top_rec = recs[0] if recs else None
 
@@ -967,7 +979,7 @@ def jobseeker_recommendations():
         results = get_recommendations(
             ap['educ_level'], ap['preferred_position'],
             ap['skills'], ap['work_experience'] or '',
-            [dict(v) for v in vacancies]
+            [dict(v) for v in vacancies], applicant=ap
         )
         generated = True
         # Keep only the latest generated set for this applicant
@@ -1006,6 +1018,43 @@ def jobseeker_referrals():
             ORDER BY r.referred_at DESC
         ''', (ap['id'],)).fetchall()
     return render_template('jobseeker/referrals.html', ap=ap, my_referrals=my_referrals)
+
+@app.route('/jobseeker/apply/<int:vid>/confirm')
+@jobseeker_required
+def jobseeker_apply_confirm(vid):
+    db = get_db()
+    ap = _get_my_applicant()
+    if not ap:
+        flash('Profile not found.', 'danger')
+        return redirect(url_for('jobseeker_dashboard'))
+    if not ap['educ_level'] or not ap['preferred_position'] or not ap['skills']:
+        flash('Please complete your profile before applying.', 'warning')
+        return redirect(url_for('jobseeker_profile'))
+    jv = db.execute(
+        f'SELECT * FROM job_vacancies WHERE id=? AND {OPEN_VACANCY_SQL}', (vid,)
+    ).fetchone()
+    if not jv:
+        flash('That job is no longer available or its deadline has passed.', 'danger')
+        return redirect(url_for('jobseeker_recommendations') + '?generate=1')
+    existing = db.execute(
+        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status != 'cancelled'",
+        (ap['id'], vid)
+    ).fetchone()
+    if existing:
+        flash(f'You have already applied for "{jv["job_title"]}".', 'info')
+        return redirect(url_for('referral_slip', rid=existing['id']))
+    score = None
+    if pipeline:
+        recs = get_recommendations(
+            ap['educ_level'], ap['preferred_position'],
+            ap['skills'], ap['work_experience'] or '', [dict(jv)], applicant=ap
+        )
+        for cat in recs:
+            if cat['category'] == jv['occupational_category']:
+                score = cat['suitability_score']
+                break
+    return render_template('jobseeker/apply_confirm.html', ap=ap, v=jv,
+                           score=score, warnings=req_warnings(jv, ap))
 
 @app.route('/jobseeker/apply', methods=['POST'])
 @jobseeker_required
@@ -1054,6 +1103,31 @@ def jobseeker_apply():
     rid = cur.lastrowid
     flash(f'Application submitted for "{jv["job_title"]}" at {jv["employer_name"]}!', 'success')
     return redirect(url_for('referral_slip', rid=rid))
+
+@app.route('/jobseeker/referrals/<int:rid>/cancel', methods=['POST'])
+@jobseeker_required
+def jobseeker_cancel_referral(rid):
+    db = get_db()
+    ap = _get_my_applicant()
+    if not ap:
+        flash('Profile not found.', 'danger')
+        return redirect(url_for('jobseeker_dashboard'))
+    r = db.execute(
+        'SELECT r.status, jv.job_title FROM referrals r '
+        'JOIN job_vacancies jv ON r.vacancy_id = jv.id '
+        'WHERE r.id=? AND r.applicant_id=?',
+        (rid, ap['id'])
+    ).fetchone()
+    if not r:
+        flash('Application not found.', 'danger')
+        return redirect(url_for('jobseeker_referrals'))
+    if r['status'] == 'cancelled':
+        flash('That application is already cancelled.', 'info')
+        return redirect(url_for('jobseeker_referrals'))
+    db.execute("UPDATE referrals SET status='cancelled' WHERE id=?", (rid,))
+    db.commit()
+    flash(f'Application for "{r["job_title"]}" has been withdrawn.', 'success')
+    return redirect(url_for('jobseeker_referrals'))
 
 # ── EMPLOYER PORTAL ───────────────────────────────────────────────────────────
 def _get_my_employer():

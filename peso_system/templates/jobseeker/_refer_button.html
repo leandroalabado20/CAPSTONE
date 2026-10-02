@@ -3,11 +3,8 @@
   <i class="bi bi-check-circle me-1"></i>Applied
 </span>
 {% else %}
-<form method="POST" action="{{ url_for('jobseeker_apply') }}" class="flex-shrink-0">
-  <input type="hidden" name="vacancy_id" value="{{ vac.id }}" />
-  <button type="submit" class="btn btn-success btn-sm py-0 px-2" style="font-size:.72rem;"
-          onclick="return confirm('Apply for this job? Your referral slip will be generated immediately.')">
-    <i class="bi bi-send-fill me-1"></i>Apply
-  </button>
-</form>
+<a href="{{ url_for('jobseeker_apply_confirm', vid=vac.id) }}"
+   class="btn btn-success btn-sm py-0 px-2 flex-shrink-0" style="font-size:.72rem;">
+  <i class="bi bi-send-fill me-1"></i>Apply
+</a>
 {% endif %}

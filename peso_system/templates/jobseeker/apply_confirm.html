@@ -1,0 +1,65 @@
+{% extends 'base_jobseeker.html' %}
+{% block title %}Confirm Application{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-0">Confirm your application</h4>
+  <p class="text-muted small mb-0">Please review the details below. Your referral slip will be generated once you confirm.</p>
+</div>
+
+<div class="card shadow-sm border-0 mx-auto" style="max-width:640px;border-radius:14px;">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-start gap-3 mb-3">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+           style="width:48px;height:48px;background:#dcfce7;">
+        <i class="bi bi-briefcase-fill text-success" style="font-size:1.2rem;"></i>
+      </div>
+      <div class="flex-grow-1">
+        <div class="fw-bold">{{ v.job_title }}</div>
+        <div class="text-muted small">{{ v.employer_name }}</div>
+        <span class="badge bg-primary-subtle text-primary-emphasis mt-1" style="font-size:.66rem;">{{ v.occupational_category }}</span>
+      </div>
+      {% if score is not none %}
+      <div class="text-end flex-shrink-0">
+        <div class="fw-bold text-success" style="font-size:1.1rem;line-height:1;">{{ '%.0f'|format(score * 100) }}%</div>
+        <div class="text-muted" style="font-size:.62rem;">ML match</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="border-top pt-3">
+      {% include '_vacancy_details.html' %}
+    </div>
+
+    {% if warnings %}
+    <div class="alert alert-warning d-flex gap-2 mt-3 mb-0 py-2 px-3" style="font-size:.8rem;">
+      <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+      <div>
+        <div class="fw-semibold">You may not meet some requirements:</div>
+        <ul class="mb-0 ps-3">
+          {% for w in warnings %}<li>{{ w }}</li>{% endfor %}
+        </ul>
+        <div class="mt-1">You can still apply — the employer makes the final decision.</div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-success d-flex gap-2 mt-3 mb-0 py-2 px-3" style="font-size:.8rem;">
+      <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+      <span>You meet the listed requirements for this job.</span>
+    </div>
+    {% endif %}
+
+    <div class="d-flex gap-2 mt-4">
+      <form method="POST" action="{{ url_for('jobseeker_apply') }}" class="flex-grow-1">
+        <input type="hidden" name="vacancy_id" value="{{ v.id }}" />
+        <button type="submit" class="btn btn-success w-100 fw-semibold">
+          <i class="bi bi-send-fill me-1"></i>Confirm &amp; Get Referral Slip
+        </button>
+      </form>
+      <a href="{{ url_for('jobseeker_recommendations') }}?generate=1" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg me-1"></i>Cancel
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

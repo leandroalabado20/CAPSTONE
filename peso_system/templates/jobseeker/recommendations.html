@@ -95,6 +95,9 @@
       <div class="small flex-grow-1">
         <strong>{{ vac.title }}</strong> <span class="text-muted">— {{ vac.employer }}</span>
         {% set v = vac.info %}{% include '_vacancy_details.html' %}
+        {% if vac.qualified %}
+        <div class="text-success" style="font-size:.72rem;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>
+        {% endif %}
         {% for w in req_warnings(vac.info, ap) %}
         <div class="text-warning-emphasis" style="font-size:.72rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ w }} — you may not meet this</div>
         {% endfor %}
@@ -136,6 +139,9 @@
         <div class="flex-grow-1">
           <i class="bi bi-briefcase me-1"></i><strong>{{ vac.title }}</strong> — {{ vac.employer }}
           {% set v = vac.info %}{% include '_vacancy_details.html' %}
+          {% if vac.qualified %}
+          <div class="text-success" style="font-size:.72rem;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>
+          {% endif %}
           {% for w in req_warnings(vac.info, ap) %}
           <div class="text-warning-emphasis" style="font-size:.72rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ w }} — you may not meet this</div>
           {% endfor %}

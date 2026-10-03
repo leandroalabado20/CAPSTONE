@@ -1475,6 +1475,11 @@ def _get_my_employer():
         'SELECT * FROM employers WHERE user_id=?', (session['user_id'],)
     ).fetchone()
 
+def _emp_form(emp):
+    """Employer row as a dict with NULL columns shown as empty strings, so the
+    profile form renders blank fields (with their placeholders) instead of 'None'."""
+    return {k: ('' if v is None else v) for k, v in dict(emp).items()}
+
 @app.route('/employer/pending')
 @login_required
 def employer_pending():
@@ -1530,7 +1535,7 @@ def employer_profile():
         if err:
             flash(err, 'danger')
             return render_template('employer/profile.html',
-                                   emp={**dict(emp), **f.to_dict()}, **tmpl_kwargs)
+                                   emp={**_emp_form(emp), **f.to_dict()}, **tmpl_kwargs)
         db.execute('''
             UPDATE employers SET
               tin=?, company_name=?, trade_name=?, location_type=?, employer_sector=?,
@@ -1551,7 +1556,7 @@ def employer_profile():
         flash('Company profile saved.', 'success')
         return redirect(url_for('employer_dashboard') if emp['is_approved']
                         else url_for('employer_profile'))
-    return render_template('employer/profile.html', emp=dict(emp), **tmpl_kwargs)
+    return render_template('employer/profile.html', emp=_emp_form(emp), **tmpl_kwargs)
 
 @app.route('/employer/request-approval', methods=['POST'])
 @employer_required

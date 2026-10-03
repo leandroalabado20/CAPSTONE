@@ -32,7 +32,12 @@
             <div class="form-text">This determines which jobseekers will be matched to this vacancy.</div>
           </div>
           <div class="mb-4">
-            <div class="form-check">
+            <label class="form-label fw-semibold">Job Location</label>
+            <input type="text" name="job_location" class="form-control" maxlength="120"
+                   value="{{ vacancy.job_location if vacancy else '' }}"
+                   placeholder="e.g. Brgy. Tungkong Mangga, City of San Jose del Monte" />
+            <div class="form-text">Where the job is based. Jobseekers whose preferred work location matches are surfaced higher within the matched category.</div>
+            <div class="form-check mt-2">
               <input type="checkbox" name="is_local" value="1" class="form-check-input" id="is_local"
                      {% if not vacancy or vacancy.get('is_local', 1) %}checked{% endif %} />
               <label class="form-check-label" for="is_local">Local vacancy (within CSJDM)</label>

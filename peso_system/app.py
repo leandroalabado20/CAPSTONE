@@ -396,6 +396,7 @@ def init_db():
         ('salary_min',           'INTEGER'),
         ('salary_max',           'INTEGER'),
         ('salary_period',        'TEXT'),
+        ('job_location',         'TEXT'),
     ]:
         if col not in vcols:
             db.execute(f'ALTER TABLE job_vacancies ADD COLUMN {col} {ddl}')
@@ -563,6 +564,7 @@ def parse_vacancy_requirements(f):
         'salary_min':             num('salary_min'),
         'salary_max':             num('salary_max'),
         'salary_period':          period if period in SALARY_PERIODS else None,
+        'job_location':           (f.get('job_location') or '').strip() or None,
     }
     if vals['salary_min'] and vals['salary_max'] and vals['salary_min'] > vals['salary_max']:
         return vals, 'Minimum salary cannot be greater than maximum salary.'
@@ -577,7 +579,7 @@ def parse_vacancy_requirements(f):
 
 REQ_COLS = ['application_deadline', 'req_gender', 'req_age_min', 'req_age_max',
             'req_education', 'req_experience_months', 'req_documents',
-            'salary_min', 'salary_max', 'salary_period']
+            'salary_min', 'salary_max', 'salary_period', 'job_location']
 
 def salary_text(v):
     """Human-readable salary for a vacancy row/dict, e.g. '₱18,000–₱22,000 / month'."""
@@ -657,8 +659,12 @@ def req_warnings(v, ap):
     return w
 
 def _vacancy_location(v):
-    """Best-effort location string for a vacancy: CSJDM if local, else the
-    employer's city/province (when joined into the row as e_city/e_province)."""
+    """Location string for a vacancy: the employer-specified job location when given,
+    otherwise CSJDM if flagged local, else the employer's city/province (when joined
+    into the row as e_city/e_province)."""
+    explicit = (_g(v, 'job_location') or '').strip()
+    if explicit:
+        return explicit
     if _g(v, 'is_local'):
         return 'City of San Jose del Monte'
     parts = [p for p in (_g(v, 'e_city'), _g(v, 'e_province')) if p]

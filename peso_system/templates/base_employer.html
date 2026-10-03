@@ -39,8 +39,18 @@
     </span>
   </div>
 
+  {% macro locked_item(icon, label) %}
+    <li class="nav-item">
+      <span class="nav-link" style="opacity:.5;cursor:not-allowed;" title="Available after your account is approved">
+        <span class="nav-icon"><i class="bi {{ icon }}"></i></span>
+        {{ label }}<i class="bi bi-lock-fill ms-2" style="font-size:.7rem;"></i>
+      </span>
+    </li>
+  {% endmacro %}
+
   <ul class="sidebar-nav">
     <li class="nav-title">Menu</li>
+    {% if employer_approved %}
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint == 'employer_dashboard' %}active{% endif %}"
          href="{{ url_for('employer_dashboard') }}">
@@ -62,6 +72,11 @@
         Referred Applicants
       </a>
     </li>
+    {% else %}
+    {{ locked_item('bi-house-door-fill', 'Dashboard') }}
+    {{ locked_item('bi-list-task', 'My Vacancies') }}
+    {{ locked_item('bi-people-fill', 'Referred Applicants') }}
+    {% endif %}
 
     <li class="nav-divider"></li>
     <li class="nav-title">Account</li>
@@ -73,6 +88,7 @@
         Company Profile
       </a>
     </li>
+    {% if employer_approved %}
     <li class="nav-item">
       <a class="nav-link {% if request.endpoint == 'employer_account' %}active{% endif %}"
          href="{{ url_for('employer_account') }}">
@@ -80,6 +96,9 @@
         Account
       </a>
     </li>
+    {% else %}
+    {{ locked_item('bi-person-gear', 'Account') }}
+    {% endif %}
     <li class="nav-item">
       <a class="nav-link" href="#" data-coreui-toggle="modal" data-coreui-target="#logoutModal">
         <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>

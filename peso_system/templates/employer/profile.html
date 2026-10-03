@@ -7,6 +7,13 @@
   <p class="text-muted small mb-0">Provide your establishment details. PESO admin reviews this before approving your account.</p>
 </div>
 
+{% if not emp.is_approved %}
+<div class="alert alert-info d-flex gap-2">
+  <i class="bi bi-info-circle-fill flex-shrink-0"></i>
+  <span class="small">Complete and save all fields below, then <strong>Request for Approval</strong>. The rest of the Employer Portal unlocks once PESO admin approves your account.</span>
+</div>
+{% endif %}
+
 <form method="POST" action="{{ url_for('employer_profile') }}">
   <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
     <div class="card-body p-4">
@@ -135,6 +142,39 @@
     </button>
   </div>
 </form>
+
+{% if not emp.is_approved %}
+<div class="card shadow-sm border-0 mt-3" style="border-radius:12px;">
+  <div class="card-body p-3">
+    {% if emp.approval_requested %}
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-hourglass-split text-warning fs-5"></i>
+      <div>
+        <div class="fw-semibold">Approval requested</div>
+        <div class="text-muted small">Your company profile is under review by PESO admin. You'll get full access to the portal once approved.</div>
+      </div>
+    </div>
+    {% elif emp.profile_completed %}
+    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+      <div>
+        <div class="fw-semibold">Your profile is complete</div>
+        <div class="text-muted small">Submit it for review so PESO admin can approve and activate your account.</div>
+      </div>
+      <form method="POST" action="{{ url_for('employer_request_approval') }}">
+        <button type="submit" class="btn btn-primary fw-semibold">
+          <i class="bi bi-send-check me-1"></i>Request for Approval
+        </button>
+      </form>
+    </div>
+    {% else %}
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-info-circle text-primary fs-5"></i>
+      <div class="text-muted small">Fill in and <strong>save</strong> all required fields above. Once saved, a <strong>Request for Approval</strong> button will appear here.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 
 <script>
   (function () {

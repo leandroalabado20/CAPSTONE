@@ -14,6 +14,7 @@
 
 {% if my_referrals %}
 <div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+  <div class="table-responsive">
   <table class="table table-hover mb-0">
     <thead style="background:#f8fafc;font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">
       <tr>
@@ -52,6 +53,9 @@
           {% endif %}
         </td>
         <td class="py-2">
+          {% if r.status == 'cancelled' %}
+          <span class="text-muted small">—</span>
+          {% else %}
           <div class="d-flex gap-1">
             <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
                class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.72rem;">
@@ -66,11 +70,13 @@
             </form>
             {% endif %}
           </div>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 
 {% else %}

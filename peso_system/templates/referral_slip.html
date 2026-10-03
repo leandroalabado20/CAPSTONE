@@ -97,14 +97,15 @@
     This referral was generated online through the PESO CSJDM job-matching portal. It certifies that the
     above-named applicant has been matched and referred to the employer and position stated above.
   </p>
-  <p class="text-muted" style="font-size:.72rem;">Generated online · No manual signature required to be valid.</p>
 
-  <div class="row mt-2">
-    <div class="col-6">
-      <div class="sigline">PESO CSJDM<br />(Verifying Officer, if required)</div>
+  <div class="row mt-5">
+    <div class="col-6 text-center">
+      <div class="fw-bold">PESO CSJDM</div>
+      <div style="border-top:1px solid #1e293b; margin:2px 16px 0; padding-top:4px; font-size:.78rem; color:#64748b;">Online Referral System</div>
     </div>
-    <div class="col-6">
-      <div class="sigline">Employer's Representative<br />(Received by / Date)</div>
+    <div class="col-6 text-center">
+      <div class="fw-bold">{{ r.e_contact or r.employer_name }}</div>
+      <div style="border-top:1px solid #1e293b; margin:2px 16px 0; padding-top:4px; font-size:.78rem; color:#64748b;">Employer's Representative, {{ r.e_company or r.employer_name }}</div>
     </div>
   </div>
 </div>

@@ -112,8 +112,8 @@
           <input type="text" name="tin" class="form-control" maxlength="20" inputmode="numeric" value="{{ ap.tin or '' }}" />
         </div>
         <div class="col-sm-3">
-          <label class="form-label fw-semibold small">Cellphone no.</label>
-          <input type="text" name="contact_number" class="form-control" maxlength="11" inputmode="numeric"
+          <label class="form-label fw-semibold small">Cellphone no. <span class="text-danger">*</span></label>
+          <input type="text" name="contact_number" class="form-control" maxlength="11" inputmode="numeric" required
                  pattern="09[0-9]{9}" title="11-digit mobile (09XXXXXXXXX)" value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX" />
         </div>
         <div class="col-sm-3">
@@ -122,12 +122,18 @@
         </div>
         <div class="col-12">
           <label class="form-label fw-semibold small d-block">Disability</label>
+          {% set custom_dis = ap.disability | reject('in', disability_types) | list %}
           {% for d in disability_types %}
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="disability" value="{{ d }}" id="dis_{{ loop.index }}" {% if d in ap.disability %}checked{% endif %} />
+            <input class="form-check-input" type="checkbox" name="disability" value="{{ d }}" id="dis_{{ loop.index }}"
+                   {% if d in ap.disability or (d == 'Others' and custom_dis) %}checked{% endif %}
+                   {% if d == 'Others' %}onchange="document.getElementById('disability-other').style.display = this.checked ? 'block' : 'none';"{% endif %} />
             <label class="form-check-label small" for="dis_{{ loop.index }}">{{ d }}</label>
           </div>
           {% endfor %}
+          <input type="text" name="disability_other" id="disability-other" class="form-control form-control-sm mt-2"
+                 style="max-width:320px;{% if not custom_dis %}display:none;{% endif %}" maxlength="60"
+                 placeholder="Please specify other disability" value="{{ custom_dis|join(', ') }}" />
         </div>
       </div>
 
@@ -185,6 +191,8 @@
             {% for r in unemployed_reasons %}<option value="{{ r }}" {% if ap.unemployed_reason == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
           </select>
         </div>
+      </div>
+      <div class="row g-3 mt-0">
         <div class="col-sm-6">
           <label class="form-label fw-semibold small">How long looking for work? (months)</label>
           <input type="number" name="job_search_months" class="form-control" min="0" max="600" value="{{ ap.job_search_months if ap.job_search_months is not none else '' }}" />

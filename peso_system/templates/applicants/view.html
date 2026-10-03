@@ -9,15 +9,13 @@
   </a>
   <form method="POST" action="{{ url_for('applicant_delete', aid=ap.id) }}" class="ms-auto"
         onsubmit="return confirm('Permanently delete {{ ap.first_name }} {{ ap.last_name }}? This removes the profile and the linked account. This cannot be undone.')">
-    <button type="submit" class="btn btn-sm btn-danger">
-      <i class="bi bi-trash3-fill me-1"></i>Delete
-    </button>
+    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash3-fill me-1"></i>Delete</button>
   </form>
 </div>
 
 <div class="card shadow-sm mb-3">
-  <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
-    <span><i class="bi bi-person-badge me-2 text-primary"></i>{{ ap.last_name }}, {{ ap.first_name }}</span>
+  <div class="card-header fw-semibold d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span><i class="bi bi-person-badge me-2 text-primary"></i>{{ ap.last_name }}, {{ ap.first_name }}{% if ap.middle_name %} {{ ap.middle_name }}{% endif %}{% if ap.suffix %} {{ ap.suffix }}{% endif %}</span>
     <span class="d-flex gap-1 flex-wrap">
       {% if not ap.skills or not ap.educ_level or not ap.preferred_position %}
       <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Incomplete</span>
@@ -28,47 +26,112 @@
     </span>
   </div>
   <div class="card-body">
-    <div class="row">
 
-      <!-- Personal -->
+    <div class="row">
       <div class="col-md-6">
-        <h6 class="text-uppercase text-muted small fw-bold mb-2">Personal</h6>
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Personal Information</h6>
         <dl class="row small mb-3">
-          <dt class="col-5">Sex</dt><dd class="col-7">{{ ap.sex or '—' }}</dd>
-          <dt class="col-5">Age</dt><dd class="col-7">{{ ap.age if ap.age is not none else '—' }}</dd>
+          <dt class="col-5">Sex / Age</dt><dd class="col-7">{{ ap.sex or '—' }}{% if ap.age is not none %} / {{ ap.age }}{% endif %}</dd>
           <dt class="col-5">Date of Birth</dt><dd class="col-7">{{ ap.birthdate|friendly_date if ap.birthdate else '—' }}</dd>
-          <dt class="col-5">PWD</dt><dd class="col-7">{{ 'Yes' if ap.is_pwd else 'No' }}</dd>
-          <dt class="col-5">Contact No.</dt><dd class="col-7">{{ ap.contact_number or '—' }}</dd>
-          <dt class="col-5">Barangay</dt><dd class="col-7">{{ ap.barangay or '—' }}</dd>
-          <dt class="col-5">District</dt><dd class="col-7">{{ ap.district or '—' }}</dd>
+          <dt class="col-5">Civil Status</dt><dd class="col-7">{{ ap.civil_status or '—' }}</dd>
+          <dt class="col-5">Height</dt><dd class="col-7">{% if ap.height_cm %}{{ ap.height_cm }} cm{% else %}—{% endif %}</dd>
+          <dt class="col-5">Religion</dt><dd class="col-7">{{ ap.religion or '—' }}</dd>
+          <dt class="col-5">Disability</dt><dd class="col-7">{{ ap.disability|join(', ') if ap.disability else 'None' }}</dd>
         </dl>
       </div>
-
-      <!-- Account -->
       <div class="col-md-6">
-        <h6 class="text-uppercase text-muted small fw-bold mb-2">Account</h6>
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Contact &amp; Address</h6>
         <dl class="row small mb-3">
           <dt class="col-5">Email</dt><dd class="col-7">{{ ap.email or '—' }}</dd>
+          <dt class="col-5">Cellphone</dt><dd class="col-7">{{ ap.contact_number or '—' }}</dd>
+          <dt class="col-5">Landline</dt><dd class="col-7">{{ ap.landline or '—' }}</dd>
+          <dt class="col-5">TIN</dt><dd class="col-7">{{ ap.tin or '—' }}</dd>
+          <dt class="col-5">Address</dt><dd class="col-7">{{ [ap.address_line, ap.barangay, ap.city, ap.province]|select|join(', ') or '—' }}</dd>
+          <dt class="col-5">District</dt><dd class="col-7">{{ ap.district or '—' }}</dd>
           <dt class="col-5">Registered</dt><dd class="col-7">{{ ap.created_at|friendly_dt if ap.created_at else '—' }}</dd>
         </dl>
       </div>
-
     </div>
+
+    {% set bens = [] %}
+    {% if ap.is_4ps %}{% set _ = bens.append('4Ps' + (' (HH: ' ~ ap.household_id ~ ')' if ap.household_id else '')) %}{% endif %}
+    {% if ap.is_wodp %}{% set _ = bens.append('WODP') %}{% endif %}
+    {% if ap.is_dswd_foodstamp %}{% set _ = bens.append('DSWD Foodstamp') %}{% endif %}
+    {% if ap.is_caregiver %}{% set _ = bens.append('Caregiver') %}{% endif %}
+    {% if ap.is_ofw %}{% set _ = bens.append('OFW' + (' - ' ~ ap.ofw_country if ap.ofw_country else '')) %}{% endif %}
+    {% if ap.is_former_ofw %}{% set _ = bens.append('Former OFW' + (' - ' ~ ap.former_ofw_country if ap.former_ofw_country else '')) %}{% endif %}
+    {% if bens %}
+    <div class="small mb-2"><span class="text-muted fw-semibold">Programs / Status:</span> {{ bens|join(' · ') }}</div>
+    {% endif %}
 
     <hr class="my-2">
 
-    <!-- Job profile -->
-    <h6 class="text-uppercase text-muted small fw-bold mb-2">Job Profile</h6>
-    <dl class="row small mb-0">
-      <dt class="col-sm-3">Employment Status</dt>
-      <dd class="col-sm-9">
-        <span class="badge {% if ap.employment_status == 'Unemployed' %}bg-danger-subtle text-danger-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %}">{{ ap.employment_status or 'Unemployed' }}</span>
-      </dd>
-      <dt class="col-sm-3">Education Level</dt><dd class="col-sm-9">{{ ap.educ_level or '—' }}</dd>
-      <dt class="col-sm-3">Preferred Position</dt><dd class="col-sm-9">{{ ap.preferred_position or '—' }}</dd>
-      <dt class="col-sm-3">Skills</dt><dd class="col-sm-9">{{ ap.skills or '—' }}</dd>
-      <dt class="col-sm-3">Work Experience</dt><dd class="col-sm-9">{{ ap.work_experience or '—' }}</dd>
-    </dl>
+    <div class="row">
+      <div class="col-md-6">
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Employment Status</h6>
+        <dl class="row small mb-3">
+          <dt class="col-5">Status</dt>
+          <dd class="col-7"><span class="badge {% if ap.employment_status == 'Unemployed' %}bg-danger-subtle text-danger-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %}">{{ ap.employment_status or 'Unemployed' }}</span></dd>
+          {% if ap.employed_type %}<dt class="col-5">Type</dt><dd class="col-7">{{ ap.employed_type }}</dd>{% endif %}
+          {% if ap.unemployed_reason %}<dt class="col-5">Reason</dt><dd class="col-7">{{ ap.unemployed_reason }}</dd>{% endif %}
+          {% if ap.job_search_months is not none %}<dt class="col-5">Looking (months)</dt><dd class="col-7">{{ ap.job_search_months }}</dd>{% endif %}
+        </dl>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-uppercase text-muted small fw-bold mb-2">Job Preferences</h6>
+        <dl class="row small mb-3">
+          <dt class="col-5">Preferred Occupation</dt><dd class="col-7">{{ ap.preferred_position or '—' }}</dd>
+          <dt class="col-5">Location (Local)</dt><dd class="col-7">{{ ap.pref_work_local or '—' }}</dd>
+          <dt class="col-5">Location (Overseas)</dt><dd class="col-7">{{ ap.pref_work_overseas or '—' }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if ap.languages %}
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Languages</h6>
+    <div class="small mb-3">
+      {% for l in ap.languages %}
+      <span class="badge bg-secondary-subtle text-secondary-emphasis me-1">{{ l.language }}: {% set cap=[] %}{% if l.read %}{% set _=cap.append('R') %}{% endif %}{% if l.write %}{% set _=cap.append('W') %}{% endif %}{% if l.speak %}{% set _=cap.append('S') %}{% endif %}{% if l.understand %}{% set _=cap.append('U') %}{% endif %}{{ cap|join('/') }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if ap.education %}
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Educational Background</h6>
+    <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
+      <thead class="table-light"><tr><th>Level</th><th>School</th><th>Course</th><th>Year</th><th>Awards</th></tr></thead>
+      <tbody>{% for e in ap.education %}<tr><td>{{ e.level }}</td><td>{{ e.school }}</td><td>{{ e.course }}</td><td>{{ e.year }}</td><td>{{ e.awards }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+
+    {% if ap.trainings %}
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Certification / Training</h6>
+    <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
+      <thead class="table-light"><tr><th>Course</th><th>Institution</th><th>Hours</th><th>Certificate</th></tr></thead>
+      <tbody>{% for t in ap.trainings %}<tr><td>{{ t.course }}</td><td>{{ t.institution }}</td><td>{{ t.hours }}</td><td>{{ t.certificate }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+
+    {% if ap.eligibilities %}
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Eligibility / License</h6>
+    <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
+      <thead class="table-light"><tr><th>Title</th><th>Rating / No.</th><th>Date / Valid until</th></tr></thead>
+      <tbody>{% for el in ap.eligibilities %}<tr><td>{{ el.title }}</td><td>{{ el.rating }}</td><td>{{ el.date }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+
+    {% if ap.work_history %}
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Work Experience <span class="text-muted fw-normal">(total {{ total_exp_months }} months)</span></h6>
+    <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
+      <thead class="table-light"><tr><th>Company</th><th>Address</th><th>Position</th><th>Months</th><th>Status</th></tr></thead>
+      <tbody>{% for w in ap.work_history %}<tr><td>{{ w.company }}</td><td>{{ w.address }}</td><td>{{ w.position }}</td><td>{{ w.months }}</td><td>{{ w.status }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+
+    <hr class="my-2">
+    <h6 class="text-uppercase text-muted small fw-bold mb-2">Skills <span class="text-muted fw-normal">(used for recommendations)</span></h6>
+    <p class="small mb-1">{{ ap.skills or '—' }}</p>
+    {% if ap.other_skills %}<p class="small mb-0"><span class="text-muted">Other skills:</span> {{ ap.other_skills|join(', ') }}</p>{% endif %}
   </div>
 </div>
 {% endblock %}

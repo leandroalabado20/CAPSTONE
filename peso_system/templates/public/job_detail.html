@@ -28,6 +28,10 @@
         </div>
       </div>
 
+      {% if salary_text(v) %}
+      <div class="fw-bold text-success mb-2" style="font-size:1.1rem;"><i class="bi bi-cash-coin me-1"></i>{{ salary_text(v) }}</div>
+      {% endif %}
+
       <!-- Vacancy details -->
       <div class="small text-muted mb-4">
         <i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_date }}

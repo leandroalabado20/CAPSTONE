@@ -180,7 +180,20 @@
 </div>
 {% endif %}
 
-<p class="text-center text-muted small mt-3">{{ vacancies|length }} vacancy/vacancies found</p>
+{% if pages > 1 %}
+{% set win_start = [1, page - 2]|max %}{% set win_end = [pages, page + 2]|min %}
+<nav class="mt-3 d-flex justify-content-center"><ul class="pagination mb-0">
+  <li class="page-item {% if page <= 1 %}disabled{% endif %}"><a class="page-link" href="{{ url_for('vacancies_list', page=page-1, search=search or none, status=status, view=view) }}">&lsaquo;</a></li>
+  {% for p in range(win_start, win_end + 1) %}
+  <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="{{ url_for('vacancies_list', page=p, search=search or none, status=status, view=view) }}">{{ p }}</a></li>
+  {% endfor %}
+  <li class="page-item {% if page >= pages %}disabled{% endif %}"><a class="page-link" href="{{ url_for('vacancies_list', page=page+1, search=search or none, status=status, view=view) }}">&rsaquo;</a></li>
+</ul></nav>
+{% endif %}
+
+<p class="text-center text-muted small mt-3">
+  {% if pages > 1 %}Page {{ page }} of {{ pages }} · {% endif %}{{ total }} vacancy/vacancies found
+</p>
 
 <!-- ── Delete Confirmation Modal ──────────────────────────────────────────── -->
 <div class="modal fade" id="deleteVacancyModal" tabindex="-1" aria-labelledby="deleteVacancyModalLabel" aria-hidden="true">

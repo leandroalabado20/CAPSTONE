@@ -4,7 +4,7 @@ Flask Application Entry Point — Multi-Entity Version
 
 Roles: admin | employer | jobseeker
 Run:  python app.py
-Default login: admin@peso.gov.ph  password=admin123
+Default admin account: admin@peso.gov.ph  (password set during seeding)
 """
 
 import os
@@ -59,6 +59,7 @@ EDUC_LEVELS = [
 ]
 
 APPLICANTS_PER_PAGE = 24
+LIST_PER_PAGE = 20
 
 EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
@@ -79,6 +80,7 @@ EMPLOYER_TYPES = {
 }
 WORKFORCE_SIZES = ['Micro (1–9)', 'Small (10–99)', 'Medium (100–199)', 'Large (200+)']
 LOCATION_TYPES = ['Main', 'Branch']
+SALARY_PERIODS = ['Daily', 'Weekly', 'Semi-monthly', 'Monthly']
 
 CAT_ICONS = {
     'Warehouse and Logistics':       'bi-box-seam',
@@ -389,14 +391,21 @@ def init_db():
         ('req_age_min',          'INTEGER'),
         ('req_age_max',          'INTEGER'),
         ('req_education',        'TEXT'),
-        ('req_physical',         'TEXT'),
-        ('req_experience',       'TEXT'),
-        ('req_other',            'TEXT'),
         ('req_documents',        'TEXT'),
         ('req_experience_months', 'INTEGER'),
+        ('salary_min',           'INTEGER'),
+        ('salary_max',           'INTEGER'),
+        ('salary_period',        'TEXT'),
     ]:
         if col not in vcols:
             db.execute(f'ALTER TABLE job_vacancies ADD COLUMN {col} {ddl}')
+    # Drop obsolete free-text requirement columns (replaced by matchable fields)
+    for dead in ('req_physical', 'req_experience', 'req_other'):
+        if dead in vcols:
+            try:
+                db.execute(f'ALTER TABLE job_vacancies DROP COLUMN {dead}')
+            except sqlite3.OperationalError:
+                pass  # older SQLite without DROP COLUMN support — harmless to keep
 
     rcols = [r[1] for r in db.execute("PRAGMA table_info(referrals)").fetchall()]
     if 'suitability_score' not in rcols:
@@ -423,6 +432,7 @@ def init_db():
         ('certified',         'INTEGER DEFAULT 0'),
         ('certified_at',      'DATETIME'),
         ('profile_completed', 'INTEGER DEFAULT 0'),
+        ('approval_requested', 'INTEGER DEFAULT 0'),
     ]:
         if col not in ecols:
             db.execute(f'ALTER TABLE employers ADD COLUMN {col} {ddl}')
@@ -541,6 +551,7 @@ def parse_vacancy_requirements(f):
     if gender not in ('Any', 'Male', 'Female'):
         gender = 'Any'
     edu = f.get('req_education', '').strip()
+    period = f.get('salary_period', '').strip()
     vals = {
         'application_deadline':   (f.get('application_deadline') or '').strip() or None,
         'req_gender':             gender,
@@ -549,7 +560,12 @@ def parse_vacancy_requirements(f):
         'req_education':          edu if edu in EDUC_RANK else None,
         'req_experience_months': num('req_experience_months'),
         'req_documents':          f.get('req_documents', '').strip() or None,
+        'salary_min':             num('salary_min'),
+        'salary_max':             num('salary_max'),
+        'salary_period':          period if period in SALARY_PERIODS else None,
     }
+    if vals['salary_min'] and vals['salary_max'] and vals['salary_min'] > vals['salary_max']:
+        return vals, 'Minimum salary cannot be greater than maximum salary.'
     if vals['req_age_min'] and vals['req_age_max'] and vals['req_age_min'] > vals['req_age_max']:
         return vals, 'Minimum age cannot be greater than maximum age.'
     if vals['application_deadline']:
@@ -560,7 +576,26 @@ def parse_vacancy_requirements(f):
     return vals, None
 
 REQ_COLS = ['application_deadline', 'req_gender', 'req_age_min', 'req_age_max',
-            'req_education', 'req_experience_months', 'req_documents']
+            'req_education', 'req_experience_months', 'req_documents',
+            'salary_min', 'salary_max', 'salary_period']
+
+def salary_text(v):
+    """Human-readable salary for a vacancy row/dict, e.g. '₱18,000–₱22,000 / month'."""
+    lo, hi, per = _g(v, 'salary_min'), _g(v, 'salary_max'), _g(v, 'salary_period')
+    if not lo and not hi:
+        return ''
+    unit = {'Daily': 'day', 'Weekly': 'week',
+            'Semi-monthly': 'half-month', 'Monthly': 'month'}.get(per, 'month')
+    fmt = lambda n: '₱{:,}'.format(int(n))
+    if lo and hi:
+        amt = f'{fmt(lo)}–{fmt(hi)}'
+    elif lo:
+        amt = f'{fmt(lo)}+'
+    else:
+        amt = f'up to {fmt(hi)}'
+    return f'{amt} / {unit}'
+
+app.jinja_env.globals['salary_text'] = salary_text
 
 def req_summary(v):
     """Short human-readable requirement chips for a vacancy row/dict."""
@@ -739,17 +774,28 @@ def current_user():
 @app.context_processor
 def inject_globals():
     pending_employers_count = 0
-    if session.get('role') == ROLE_ADMIN:
+    employer_approved = False
+    role = session.get('role')
+    if role == ROLE_ADMIN:
         try:
             pending_employers_count = get_db().execute(
-                "SELECT COUNT(*) FROM employers WHERE is_approved=0"
+                "SELECT COUNT(*) FROM employers WHERE is_approved=0 AND approval_requested=1"
             ).fetchone()[0]
+        except Exception:
+            pass
+    elif role == ROLE_EMPLOYER:
+        try:
+            row = get_db().execute(
+                'SELECT is_approved FROM employers WHERE user_id=?', (session.get('user_id'),)
+            ).fetchone()
+            employer_approved = bool(row and row['is_approved'])
         except Exception:
             pass
     return {
         'pipeline_loaded':         pipeline is not None,
-        'session_role':            session.get('role', ''),
+        'session_role':            role or '',
         'pending_employers_count': pending_employers_count,
+        'employer_approved':       employer_approved,
     }
 
 # ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────
@@ -883,7 +929,7 @@ def login():
                     emp = db.execute('SELECT is_approved FROM employers WHERE user_id=?',
                                      (user['id'],)).fetchone()
                     if not emp or not emp['is_approved']:
-                        return redirect(url_for('employer_pending'))
+                        return redirect(url_for('employer_profile'))
                 return redirect(_role_home())
         else:
             uid = user['id'] if user else None
@@ -907,6 +953,7 @@ def register():
         f         = request.form
         full_name = f.get('full_name', '').strip()
         email     = f.get('email', '').strip()
+        confirm   = f.get('confirm_email', '').strip()
         pw        = f.get('password', '')
         role      = f.get('role', '').strip()
 
@@ -917,6 +964,8 @@ def register():
             errs.append('Please choose whether you are a jobseeker or an employer.')
         if email and not EMAIL_RE.match(email):
             errs.append('Please enter a valid email address.')
+        if email.lower() != confirm.lower():
+            errs.append('Email addresses do not match.')
         if len(pw) < 8:
             errs.append('Password must be at least 8 characters.')
         if errs:
@@ -990,6 +1039,16 @@ def change_password():
 def _get_my_applicant():
     return get_db().execute(
         'SELECT * FROM applicants WHERE user_id=?', (session['user_id'],)
+    ).fetchone()
+
+def _active_referral(applicant_id):
+    """The applicant's current active (not-withdrawn) referral, if any.
+    An applicant may hold only one active referral at a time."""
+    return get_db().execute(
+        "SELECT r.id, r.vacancy_id, jv.job_title "
+        "FROM referrals r JOIN job_vacancies jv ON r.vacancy_id = jv.id "
+        "WHERE r.applicant_id=? AND r.status != 'cancelled' "
+        "ORDER BY r.referred_at DESC LIMIT 1", (applicant_id,)
     ).fetchone()
 
 @app.route('/jobseeker/dashboard')
@@ -1075,7 +1134,10 @@ def jobseeker_profile():
             if any(flags.values()):
                 languages.append({'language': lang, **flags})
 
-        disability   = f.getlist('disability')
+        disability = f.getlist('disability')
+        dis_other  = f.get('disability_other', '').strip()
+        if 'Others' in disability and dis_other:
+            disability = [d for d in disability if d != 'Others'] + [dis_other]
         os_other     = f.get('other_skills_other', '').strip()
         other_skills = (f.getlist('other_skills') + ([os_other] if os_other else []))[:5]
 
@@ -1229,14 +1291,17 @@ def jobseeker_recommendations():
                 )
         db.commit()
     applied_ids = set()
+    active = None
     if ap:
         applied_ids = {r['vacancy_id'] for r in db.execute(
             "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
             (ap['id'],)
         ).fetchall()}
+        active = _active_referral(ap['id'])
     return render_template('jobseeker/recommendations.html',
                            ap=ap, results=results, generated=generated,
                            profile_ok=profile_ok, applied_ids=applied_ids,
+                           has_active_referral=bool(active), active_referral=active,
                            pipeline_loaded=pipeline is not None)
 
 @app.route('/jobseeker/referrals')
@@ -1308,6 +1373,11 @@ def jobseeker_apply_confirm(vid):
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
         return redirect(url_for('referral_slip', rid=existing['id']))
+    active = _active_referral(ap['id'])
+    if active:
+        flash(f'You already have an active referral for "{active["job_title"]}". '
+              'Withdraw it from My Applications before applying to another job.', 'warning')
+        return redirect(url_for('jobseeker_referrals'))
     score = None
     if pipeline:
         recs = get_recommendations(
@@ -1348,6 +1418,11 @@ def jobseeker_apply():
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
         return redirect(url_for('referral_slip', rid=existing['id']))
+    active = _active_referral(ap['id'])
+    if active:
+        flash(f'You already have an active referral for "{active["job_title"]}". '
+              'Withdraw it from My Applications before applying to another job.', 'warning')
+        return redirect(url_for('jobseeker_referrals'))
     # Capture the ML suitability score for this vacancy's category (soft-gate signal)
     score = None
     if pipeline:
@@ -1473,14 +1548,34 @@ def employer_profile():
             f.get('fax', '').strip(), mail, emp['id'],
         ))
         db.commit()
-        flash('Company profile saved. PESO admin will review it before your account is approved.', 'success')
+        flash('Company profile saved.', 'success')
         return redirect(url_for('employer_dashboard') if emp['is_approved']
-                        else url_for('employer_pending'))
+                        else url_for('employer_profile'))
     return render_template('employer/profile.html', emp=dict(emp), **tmpl_kwargs)
+
+@app.route('/employer/request-approval', methods=['POST'])
+@employer_required
+def employer_request_approval():
+    db  = get_db()
+    emp = _get_my_employer()
+    if not emp:
+        return redirect(_role_home())
+    if emp['is_approved']:
+        return redirect(url_for('employer_dashboard'))
+    if not emp['profile_completed']:
+        flash('Please complete all company profile fields before requesting approval.', 'warning')
+        return redirect(url_for('employer_profile'))
+    db.execute('UPDATE employers SET approval_requested=1 WHERE id=?', (emp['id'],))
+    db.commit()
+    flash('Approval request sent. PESO admin will review your company profile.', 'success')
+    return redirect(url_for('employer_profile'))
 
 @app.route('/employer/account', methods=['GET', 'POST'])
 @employer_required
 def employer_account():
+    emp = _get_my_employer()
+    if not emp or not emp['is_approved']:
+        return redirect(url_for('employer_profile'))
     db   = get_db()
     user = current_user()
     if request.method == 'POST':
@@ -1527,7 +1622,7 @@ def employer_account_delete():
 def employer_dashboard():
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
-        return redirect(url_for('employer_pending'))
+        return redirect(url_for('employer_profile'))
     db  = get_db()
     uid = session['user_id']
     # Active = truly open (active and not past deadline); expired = active but deadline passed
@@ -1573,7 +1668,7 @@ def employer_dashboard():
 def employer_vacancies():
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
-        return redirect(url_for('employer_pending'))
+        return redirect(url_for('employer_profile'))
     db     = get_db()
     status = request.args.get('status', 'active')
     conds  = ['employer_id=?']
@@ -1595,7 +1690,7 @@ def employer_vacancies():
 def employer_vacancy_add():
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
-        return redirect(url_for('employer_pending'))
+        return redirect(url_for('employer_profile'))
     if request.method == 'POST':
         f = request.form
         req, err = parse_vacancy_requirements(f)
@@ -1607,7 +1702,8 @@ def employer_vacancy_add():
             flash(err, 'danger')
             return render_template('employer/vacancy_form.html', emp=emp,
                                    vacancy=f, categories=CATEGORY_LIST, action='add',
-                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
+                                   educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
+                                   salary_periods=SALARY_PERIODS)
         get_db().execute(
             'INSERT INTO job_vacancies (employer_name, job_title, occupational_category, '
             'is_local, employer_id, ' + ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,?,' +
@@ -1622,14 +1718,15 @@ def employer_vacancy_add():
         return redirect(url_for('employer_vacancies'))
     return render_template('employer/vacancy_form.html', emp=emp,
                            vacancy=None, categories=CATEGORY_LIST, action='add',
-                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
+                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
+                           salary_periods=SALARY_PERIODS)
 
 @app.route('/employer/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @employer_required
 def employer_vacancy_edit(vid):
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
-        return redirect(url_for('employer_pending'))
+        return redirect(url_for('employer_profile'))
     db = get_db()
     v  = db.execute(
         'SELECT * FROM job_vacancies WHERE id=? AND employer_id=?',
@@ -1648,7 +1745,8 @@ def employer_vacancy_edit(vid):
             flash(err, 'danger')
             return render_template('employer/vacancy_form.html', emp=emp,
                                    vacancy={**dict(v), **f.to_dict()}, categories=CATEGORY_LIST,
-                                   action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
+                                   action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
+                                   salary_periods=SALARY_PERIODS)
         db.execute(
             'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, ' +
             ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE id=?',
@@ -1660,7 +1758,8 @@ def employer_vacancy_edit(vid):
         return redirect(url_for('employer_vacancies'))
     return render_template('employer/vacancy_form.html', emp=emp,
                            vacancy=dict(v), categories=CATEGORY_LIST, action='edit',
-                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph())
+                           educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
+                           salary_periods=SALARY_PERIODS)
 
 @app.route('/employer/vacancies/<int:vid>/toggle', methods=['POST'])
 @employer_required
@@ -1682,7 +1781,7 @@ def employer_vacancy_toggle(vid):
 def employer_referred():
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
-        return redirect(url_for('employer_pending'))
+        return redirect(url_for('employer_profile'))
     db     = get_db()
     status = request.args.get('status', 'all')
     conds  = ['jv.employer_id=?']
@@ -1706,7 +1805,7 @@ def employer_referred():
 def employer_referred_detail(rid):
     emp = _get_my_employer()
     if not emp or not emp['is_approved']:
-        return redirect(url_for('employer_pending'))
+        return redirect(url_for('employer_profile'))
     db = get_db()
     r = db.execute('''
         SELECT r.id AS referral_id, r.suitability_score AS score,
@@ -1901,7 +2000,15 @@ def applicant_view(aid):
     if not ap:
         flash('Applicant not found.', 'danger')
         return redirect(url_for('applicants_list'))
-    return render_template('applicants/view.html', ap=dict(ap))
+    ap_d = dict(ap)
+    for jcol in ('languages', 'education', 'trainings', 'eligibilities',
+                 'work_history', 'other_skills', 'disability'):
+        try:
+            ap_d[jcol] = json.loads(ap_d.get(jcol) or '[]')
+        except (ValueError, TypeError):
+            ap_d[jcol] = []
+    return render_template('applicants/view.html', ap=ap_d,
+                           total_exp_months=_total_exp_months(ap))
 
 @app.route('/applicants/<int:aid>/delete', methods=['POST'])
 @admin_required
@@ -1938,20 +2045,26 @@ def referrals_list():
         like = f'%{search}%'
         params += [like, like, like]
     where = ('WHERE ' + ' AND '.join(conds)) if conds else ''
+    joins = ('FROM referrals r JOIN applicants a ON r.applicant_id=a.id '
+             'JOIN job_vacancies jv ON r.vacancy_id=jv.id')
+    total = db.execute(f'SELECT COUNT(*) {joins} {where}', params).fetchone()[0]
+    page  = max(1, request.args.get('page', 1, type=int))
+    pages = max(1, (total + LIST_PER_PAGE - 1) // LIST_PER_PAGE)
+    page  = min(page, pages)
     referrals = db.execute(f'''
         SELECT r.*,
                a.first_name, a.last_name,
                jv.job_title, jv.employer_name, jv.occupational_category,
                u.full_name as referred_by_name
-        FROM referrals r
-        JOIN applicants a     ON r.applicant_id = a.id
-        JOIN job_vacancies jv ON r.vacancy_id   = jv.id
+        {joins}
         LEFT JOIN users u     ON r.referred_by  = u.id
         {where}
         ORDER BY r.referred_at DESC
-    ''', params).fetchall()
+        LIMIT ? OFFSET ?
+    ''', params + [LIST_PER_PAGE, (page - 1) * LIST_PER_PAGE]).fetchall()
     return render_template('admin/referrals.html', referrals=referrals,
-                           status=status, search=search)
+                           status=status, search=search,
+                           page=page, pages=pages, total=total)
 
 @app.route('/referrals/<int:rid>/slip')
 @login_required
@@ -1963,17 +2076,21 @@ def referral_slip(rid):
                jv.job_title, jv.employer_name, jv.occupational_category, jv.employer_id,
                jv.created_at AS posted_at, jv.application_deadline, jv.req_gender, jv.req_age_min,
                jv.req_age_max, jv.req_education, jv.req_experience_months, jv.req_documents,
-               u.full_name AS accepted_by_name
+               u.full_name AS accepted_by_name,
+               e.contact_person AS e_contact, e.company_name AS e_company
         FROM referrals r
         JOIN applicants a     ON r.applicant_id = a.id
         JOIN job_vacancies jv ON r.vacancy_id   = jv.id
         JOIN users u          ON r.referred_by  = u.id
+        LEFT JOIN employers e ON e.user_id       = jv.employer_id
         WHERE r.id=?
     ''', (rid,)).fetchone()
     role = session.get('role')
     allowed = bool(r) and (
         role == ROLE_ADMIN
-        or (role == ROLE_JOBSEEKER and r['applicant_user_id'] == session['user_id'])
+        # Jobseekers can't view a slip once they've withdrawn the application
+        or (role == ROLE_JOBSEEKER and r['applicant_user_id'] == session['user_id']
+            and r['status'] != 'cancelled')
         or (role == ROLE_EMPLOYER and r['employer_id'] == session['user_id'])
     )
     if not allowed:
@@ -2001,14 +2118,20 @@ def vacancies_list():
         conds.append('(employer_name LIKE ? OR job_title LIKE ?)')
         like = f'%{search}%'
         params += [like, like]
-    q = f'SELECT *, {EXPIRED_SQL} AS expired FROM job_vacancies'
-    if conds:
-        q += ' WHERE ' + ' AND '.join(conds)
-    q += ' ORDER BY created_at DESC'
-    vacancies = db.execute(q, params).fetchall()
+    where = (' WHERE ' + ' AND '.join(conds)) if conds else ''
+    total = db.execute(f'SELECT COUNT(*) FROM job_vacancies{where}', params).fetchone()[0]
+    page  = max(1, request.args.get('page', 1, type=int))
+    pages = max(1, (total + LIST_PER_PAGE - 1) // LIST_PER_PAGE)
+    page  = min(page, pages)
+    vacancies = db.execute(
+        f'SELECT *, {EXPIRED_SQL} AS expired FROM job_vacancies{where} '
+        'ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        params + [LIST_PER_PAGE, (page - 1) * LIST_PER_PAGE]
+    ).fetchall()
     view = request.args.get('view', 'card')
     return render_template('vacancies/list.html', vacancies=vacancies,
-                           search=search, status=status, view=view)
+                           search=search, status=status, view=view,
+                           page=page, pages=pages, total=total)
 
 @app.route('/vacancies/<int:vid>/toggle', methods=['POST'])
 @admin_required
@@ -2162,7 +2285,7 @@ def admin_employers():
         rows = db.execute(
             'SELECT e.*, u.email, u.is_active '
             'FROM employers e JOIN users u ON e.user_id=u.id '
-            'WHERE e.is_approved=0 ORDER BY e.created_at DESC'
+            'WHERE e.is_approved=0 AND e.approval_requested=1 ORDER BY e.created_at DESC'
         ).fetchall()
     elif status == 'approved':
         rows = db.execute(
@@ -2177,7 +2300,7 @@ def admin_employers():
             'ORDER BY e.created_at DESC'
         ).fetchall()
     pending_count = db.execute(
-        'SELECT COUNT(*) FROM employers WHERE is_approved=0'
+        'SELECT COUNT(*) FROM employers WHERE is_approved=0 AND approval_requested=1'
     ).fetchone()[0]
     return render_template('admin/employers.html', employers=rows,
                            status=status, pending_count=pending_count)
@@ -2207,10 +2330,17 @@ def admin_employer_reject(eid):
     if not emp:
         flash('Employer not found.', 'danger')
         return redirect(url_for('admin_employers'))
-    db.execute('UPDATE employers SET is_approved=0 WHERE id=?', (eid,))
-    db.execute('UPDATE users SET is_active=0 WHERE id=?', (emp['user_id'],))
+    if emp['is_approved']:
+        # Deactivate an already-approved employer
+        db.execute('UPDATE employers SET is_approved=0, approval_requested=0 WHERE id=?', (eid,))
+        db.execute('UPDATE users SET is_active=0 WHERE id=?', (emp['user_id'],))
+        flash(f'Employer "{emp["company_name"]}" deactivated.', 'warning')
+    else:
+        # Reject a pending request — let them revise their profile and request again
+        db.execute('UPDATE employers SET approval_requested=0 WHERE id=?', (eid,))
+        flash(f'Approval request for "{emp["company_name"]}" rejected. '
+              'They can revise their company profile and request approval again.', 'warning')
     db.commit()
-    flash(f'Employer "{emp["company_name"]}" rejected/deactivated.', 'warning')
     return redirect(url_for('admin_employers'))
 
 @app.route('/admin/employers/<int:eid>/delete', methods=['POST'])

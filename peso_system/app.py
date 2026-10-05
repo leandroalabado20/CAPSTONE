@@ -397,6 +397,7 @@ def init_db():
         ('salary_max',           'INTEGER'),
         ('salary_period',        'TEXT'),
         ('job_location',         'TEXT'),
+        ('req_skills',           'TEXT'),
     ]:
         if col not in vcols:
             db.execute(f'ALTER TABLE job_vacancies ADD COLUMN {col} {ddl}')
@@ -565,6 +566,7 @@ def parse_vacancy_requirements(f):
         'salary_max':             num('salary_max'),
         'salary_period':          period if period in SALARY_PERIODS else None,
         'job_location':           (f.get('job_location') or '').strip() or None,
+        'req_skills':             ','.join(f.getlist('req_skills')) or None,
     }
     if vals['salary_min'] and vals['salary_max'] and vals['salary_min'] > vals['salary_max']:
         return vals, 'Minimum salary cannot be greater than maximum salary.'
@@ -579,7 +581,7 @@ def parse_vacancy_requirements(f):
 
 REQ_COLS = ['application_deadline', 'req_gender', 'req_age_min', 'req_age_max',
             'req_education', 'req_experience_months', 'req_documents',
-            'salary_min', 'salary_max', 'salary_period', 'job_location']
+            'salary_min', 'salary_max', 'salary_period', 'job_location', 'req_skills']
 
 def salary_text(v):
     """Human-readable salary for a vacancy row/dict, e.g. '₱18,000–₱22,000 / month'."""
@@ -617,6 +619,11 @@ def req_summary(v):
     m = _g(v, 'req_experience_months')
     if m:
         out.append(f'{m}+ mos. experience')
+    req_s = _g(v, 'req_skills')
+    if req_s:
+        skills = [s.strip() for s in req_s.split(',') if s.strip()]
+        if skills:
+            out.append('Skills: ' + ', '.join(skills))
     return out
 
 def _total_exp_months(ap):
@@ -656,6 +663,12 @@ def req_warnings(v, ap):
     need_m = _g(v, 'req_experience_months')
     if need_m and _total_exp_months(ap) < need_m:
         w.append(f'Requires at least {need_m} months of work experience')
+    req_s = _g(v, 'req_skills')
+    if req_s:
+        req_set = {s.strip().lower() for s in req_s.split(',') if s.strip()}
+        have_set = {s.strip().lower() for s in (_g(ap, 'skills') or '').split(',') if s.strip()}
+        if req_set and not req_set.intersection(have_set):
+            w.append('None of the required skills match your profile')
     return w
 
 def _vacancy_location(v):
@@ -1714,7 +1727,7 @@ def employer_vacancy_add():
             return render_template('employer/vacancy_form.html', emp=emp,
                                    vacancy=f, categories=CATEGORY_LIST, action='add',
                                    educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                                   salary_periods=SALARY_PERIODS)
+                                   salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
         get_db().execute(
             'INSERT INTO job_vacancies (employer_name, job_title, occupational_category, '
             'is_local, employer_id, ' + ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,?,' +
@@ -1730,7 +1743,7 @@ def employer_vacancy_add():
     return render_template('employer/vacancy_form.html', emp=emp,
                            vacancy=None, categories=CATEGORY_LIST, action='add',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                           salary_periods=SALARY_PERIODS)
+                           salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
 
 @app.route('/employer/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @employer_required
@@ -1757,7 +1770,7 @@ def employer_vacancy_edit(vid):
             return render_template('employer/vacancy_form.html', emp=emp,
                                    vacancy={**dict(v), **f.to_dict()}, categories=CATEGORY_LIST,
                                    action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                                   salary_periods=SALARY_PERIODS)
+                                   salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
         db.execute(
             'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, ' +
             ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE id=?',
@@ -1770,7 +1783,7 @@ def employer_vacancy_edit(vid):
     return render_template('employer/vacancy_form.html', emp=emp,
                            vacancy=dict(v), categories=CATEGORY_LIST, action='edit',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                           salary_periods=SALARY_PERIODS)
+                           salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
 
 @app.route('/employer/vacancies/<int:vid>/toggle', methods=['POST'])
 @employer_required

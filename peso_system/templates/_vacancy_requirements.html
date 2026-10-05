@@ -52,7 +52,23 @@
            value="{{ vacancy.req_experience_months if vacancy and vacancy.req_experience_months else '' }}" />
   </div>
 </div>
-<p class="text-muted small mb-4"><i class="bi bi-info-circle me-1"></i>These requirements are automatically checked against each applicant's profile.</p>
+<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>These requirements are automatically checked against each applicant's profile.</p>
+
+<h6 class="fw-bold mb-2"><i class="bi bi-tools me-1"></i>Required Skills <span class="text-muted fw-normal small">(optional)</span></h6>
+<p class="text-muted small mb-2">Select skills the applicant should have. Jobseekers who have none of the selected skills are ranked lower.</p>
+{% if skills_list %}
+<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-2 mb-4">
+  {% for skill in skills_list %}
+  <div class="col">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="req_skills" value="{{ skill }}" id="rskill_{{ loop.index }}"
+             {% if vacancy and vacancy.req_skills and skill in vacancy.req_skills.split(',') %}checked{% endif %} />
+      <label class="form-check-label small" for="rskill_{{ loop.index }}">{{ skill }}</label>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 <h6 class="fw-bold mb-3 mt-4"><i class="bi bi-file-earmark-text me-1"></i>Documents to Bring</h6>
 <div class="mb-4">

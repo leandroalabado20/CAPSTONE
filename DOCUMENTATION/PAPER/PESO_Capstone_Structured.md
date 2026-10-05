@@ -82,18 +82,20 @@ The system is accessible through a responsive web interface on both desktop and 
 
 The following terms are defined operationally, as they are used in the present study, and are arranged alphabetically.
 
-**Analytical Dashboard.** The system module that presents registered job seeker data drawn from the applicants table. It covers total registrants with male and female breakdown, counts of youth, senior citizen, and person with disability registrants, distribution by educational attainment across ten levels, distribution by employment status, and barangay-level distribution separated by District 1 and District 2. Job vacancy records are used only by the recommendation engine and are not aggregated in the dashboard. The dashboard supports the preparation of the office's quarterly job seeker reports.
+**Analytical Dashboard.** The system module available to PESO staff that presents a summary of registered jobseeker data from the database. It shows the total number of registrants with male and female breakdown, counts of youth, senior citizen, and person with disability registrants, distribution by educational attainment, and barangay-level breakdown by District 1 and District 2. The dashboard supports the preparation of the office's quarterly jobseeker reports.
 
-**Applicant Profiling.** The process of organizing a job seeker's competency profile, including skills, educational attainment, work experience, and preferred position, into a structured format for classification. The system uses this structured profile to rank suitable job openings by suitability score.
+**Applicant Profiling.** The process of organizing a jobseeker's competency profile, including skills, educational attainment, work experience, and preferred position, into a structured format for classification. The system uses this structured profile to rank suitable job openings by suitability score.
 
-**Decision Support System (DSS).** A computer-based system that assists users in making informed decisions by processing and presenting relevant data in a structured format. In this study, the system supports PESO staff in referral decisions while retaining staff authority over every final outcome.
+**Decision Support System (DSS).** A computer-based system that helps users make informed decisions by processing and presenting relevant data in a structured format. In this study, the Analytical Dashboard serves as the decision support component for PESO staff, consolidating registrant data into summaries that support the office's monitoring and reporting tasks.
 
 
 **ISO/IEC 25010.** An international standard for software product quality used in this study to evaluate the system across nine characteristics: functional suitability, performance efficiency, compatibility, interaction capability, reliability, security, maintainability, flexibility, and safety (Rojas et al., 2025).
 
-**Job Recommendation Module.** The system module that applies the trained classification pipeline to a selected applicant's profile and ranks currently active vacancies by suitability score.
+**Jobseeker.** The primary user of the system's public portal. A jobseeker is a person who registers an account, completes a profile, and uses the system to receive job recommendations and generate referral slips. The term is used throughout this study to refer to individuals who are actively seeking employment, and distinguishes them from applicants who have already been referred to a specific vacancy.
 
-**Job Referral.** The act of connecting a registered job seeker to a specific employer or job opening based on qualifications, carried out by a PESO staff member as part of the office's employment facilitation mandate.
+**Job Recommendation Module.** The system module that applies the trained classification pipeline to a jobseeker's profile and ranks currently active vacancies by suitability score.
+
+**Job Referral.** The process by which a registered jobseeker is connected to a specific employer or job opening based on qualifications. In this study, jobseekers initiate and complete the referral process themselves through the system portal, which generates a referral slip upon confirmation. This removes the need for jobseekers to travel to the PESO office solely to request a referral.
 
 **Machine Learning.** A field of artificial intelligence in which algorithms learn patterns from historical data and apply those patterns to new inputs. In this study, a machine learning pipeline trained on PESO CSJDM placement records powers the Job Recommendation Module.
 
@@ -101,9 +103,11 @@ The following terms are defined operationally, as they are used in the present s
 
 **Occupational Category.** A broader grouping of related job titles used as the target label for the classification model. In the present study, 88 distinct job position titles from the PESO CSJDM historical placement records are consolidated into five occupational categories: Warehouse and Logistics, Production and Manufacturing, Sales/Service/Retail, Clerical and Administrative, and General Services and Security. Consolidation is necessary because individual job titles are too sparsely represented in the dataset for a valid stratified train-test split.
 
-**Philippine Employment Information System (PEIS).** The existing recordkeeping system used by PESO offices to store and retrieve applicant and employer information. The proposed system complements PEIS without replacing it as the office's primary system of record.
+**Philippine Employment Information System (PEIS).** The existing recordkeeping system used by PESO offices nationwide to store and retrieve jobseeker and employer information. The proposed system operates independently of PEIS. All jobseeker data is entered through the system's own registration portal and stored in a separate database, with no data exchange between the two systems.
 
-**Recommendation Engine.** The system component that applies the trained classification model to a job seeker's profile to identify and rank suitable job openings by suitability score.
+**Recommendation Engine.** The system component that applies the trained classification model to a jobseeker's profile to identify and rank suitable job openings by suitability score.
+
+**Referral Slip.** The system-generated document produced when a jobseeker confirms referral to a job vacancy. Each referral slip is assigned a unique reference code in the format RS-YYYY-NNNNN, where YYYY is the year and NNNNN is a zero-padded sequential number. The slip contains the jobseeker's name, the employer's name, the job title, and the date of referral, and serves as the official record of the jobseeker-to-vacancy connection within the system.
 
 **Technology Acceptance Model (TAM).** A framework for measuring technology adoption through three constructs: perceived usefulness, perceived ease of use, and behavioral intention to use. In this study, TAM assesses how PESO CSJDM staff perceive and intend to adopt the developed system.
 

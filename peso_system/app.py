@@ -1884,6 +1884,15 @@ def home():
         JOIN job_vacancies jv ON r.vacancy_id=jv.id
         ORDER BY r.referred_at DESC LIMIT 5
     ''').fetchall()
+    recent_recs = db.execute('''
+        SELECT a.first_name, a.last_name,
+               jv.job_title, jv.employer_name,
+               rec.suitability_score
+        FROM recommendations rec
+        JOIN applicants a     ON rec.applicant_id = a.id
+        JOIN job_vacancies jv ON rec.vacancy_id   = jv.id
+        ORDER BY rec.recommended_at DESC, rec.id DESC LIMIT 5
+    ''').fetchall()
     return render_template('home.html',
                            total_applicants=total_applicants,
                            active_vacancies=active_vacancies,
@@ -1893,7 +1902,8 @@ def home():
                            pending_employers=pending_employers,
                            last_login=last_login,
                            recent_applicants=recent_applicants,
-                           recent_referrals_rows=recent_referrals_rows)
+                           recent_referrals_rows=recent_referrals_rows,
+                           recent_recs=recent_recs)
 
 # ── ANALYTICS ─────────────────────────────────────────────────────────────────
 @app.route('/analytics')

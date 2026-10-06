@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="actor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fontSize=13;fontStyle=1;" value="PESO Staff&#xa;Web Browser" vertex="1">
+        <mxCell id="actor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;fontSize=13;fontStyle=1;" value="Web Browser&#xa;(Jobseeker / Employer / Admin)" vertex="1">
           <mxGeometry height="48" width="170" x="405" y="50" as="geometry" />
         </mxCell>
         <mxCell id="bg1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;" value="" vertex="1">
@@ -25,7 +25,7 @@
         <mxCell id="chip3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="DATA&#xa;TIER&#xa;&#xa;Database&#xa;SQLite&#xa;(file-based)" vertex="1">
           <mxGeometry height="126" width="150" x="54" y="562" as="geometry" />
         </mxCell>
-        <mxCell id="f1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fontSize=12;align=center;verticalAlign=middle;" value="&lt;b&gt;Web UI&lt;/b&gt;&#xa;2 tabs: Recommendation,&#xa;Analytics" vertex="1">
+        <mxCell id="f1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fontSize=12;align=center;verticalAlign=middle;" value="&lt;b&gt;Web UI&lt;/b&gt;&#xa;Jobseeker portal · Employer portal&#xa;Admin panel (incl. Analytics)" vertex="1">
           <mxGeometry height="94" width="215" x="230" y="168" as="geometry" />
         </mxCell>
         <mxCell id="f2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fontSize=12;align=center;verticalAlign=middle;" value="&lt;b&gt;Data Management&lt;/b&gt;&#xa;Applicant, Vacancy &amp;&#xa;User Account forms" vertex="1">
@@ -43,7 +43,7 @@
         <mxCell id="b3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;fontSize=12;align=center;verticalAlign=middle;" value="&lt;b&gt;ML Inference Engine&lt;/b&gt;&#xa;&lt;i&gt;(in-process)&lt;/i&gt;&#xa;&#xa;TF-IDF → Best classifier (LR / RF / NB)&#xa;loads pre-trained model file" vertex="1">
           <mxGeometry height="120" width="240" x="685" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="d1" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fontSize=12;verticalAlign=top;spacingTop=6;align=center;" value="&lt;b&gt;SQLite (peso_csjdm.db)&lt;/b&gt;&#xa;&#xa;users · applicants · job_vacancies&#xa;recommendations · login_logs" vertex="1">
+        <mxCell id="d1" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fontSize=12;verticalAlign=top;spacingTop=6;align=center;" value="&lt;b&gt;SQLite (peso_csjdm.db)&lt;/b&gt;&#xa;&#xa;users · applicants · employers&#xa;job_vacancies · referrals · recommendations · login_logs" vertex="1">
           <mxGeometry height="100" width="435" x="230" y="574" as="geometry" />
         </mxCell>
         <mxCell id="d2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;fontSize=12;align=center;verticalAlign=middle;" value="&lt;b&gt;Model artifact&lt;/b&gt;&#xa;pre-trained model file" vertex="1">

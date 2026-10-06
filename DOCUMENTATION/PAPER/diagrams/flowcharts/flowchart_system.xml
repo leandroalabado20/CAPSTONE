@@ -1,73 +1,94 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0">
   <diagram name="System Process Flowchart" id="flowSysProc">
-    <mxGraphModel dx="1414" dy="743" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="1650" math="0" shadow="0">
+    <mxGraphModel dx="1704" dy="895" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="1900" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;" value="START" vertex="1">
           <mxGeometry height="40" width="120" x="500" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="openTab" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Staff opens Job Recommendation tab" vertex="1">
+        <mxCell id="openTab" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;shape=label;shapeInside=1;fixedSize=1;" value="Jobseeker navigates to Job Recommendations page" vertex="1">
           <mxGeometry height="50" width="400" x="360" y="110" as="geometry" />
         </mxCell>
-        <mxCell id="selectApplicant" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;shape=parallelogram;perimeter=parallelogramPerimeter;shapeInside=1;fixedSize=1;" value="Staff selects applicant from existing records&#xa;or enters applicant profile directly" vertex="1">
-          <mxGeometry height="56" width="400" x="360" y="190" as="geometry" />
+        <mxCell id="loadProfile" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;shape=parallelogram;perimeter=parallelogramPerimeter;shapeInside=1;fixedSize=1;" value="System loads jobseeker&#39;s saved profile" vertex="1">
+          <mxGeometry height="50" width="400" x="360" y="190" as="geometry" />
         </mxCell>
         <mxCell id="fieldCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="All 4 required&#xa;fields filled?" vertex="1">
-          <mxGeometry height="80" width="200" x="460" y="286" as="geometry" />
+          <mxGeometry height="80" width="200" x="460" y="282" as="geometry" />
         </mxCell>
-        <mxCell id="promptFill" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Prompt staff to complete&#xa;missing profile fields" vertex="1">
-          <mxGeometry height="56" width="220" x="110" y="298" as="geometry" />
+        <mxCell id="promptFill" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Prompt jobseeker to complete&#xa;missing profile fields" vertex="1">
+          <mxGeometry height="56" width="220" x="110" y="294" as="geometry" />
         </mxCell>
         <mxCell id="lbl_no_field" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="No" vertex="1">
-          <mxGeometry height="20" width="30" x="386" y="303" as="geometry" />
+          <mxGeometry height="20" width="30" x="386" y="299" as="geometry" />
         </mxCell>
         <mxCell id="lbl_yes_field" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="Yes" vertex="1">
-          <mxGeometry height="20" width="30" x="573" y="366" as="geometry" />
+          <mxGeometry height="20" width="30" x="573" y="362" as="geometry" />
         </mxCell>
-        <mxCell id="cleanText" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Clean profile text&#xa;(Lowercase → Remove special characters →&#xa;Strip numeric noise from WORK EXPERIENCE →&#xa;Concatenate 4 fields into PROFILE_TEXT)" vertex="1">
-          <mxGeometry height="70" width="400" x="360" y="406" as="geometry" />
+        <mxCell id="cleanText" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Normalize profile text&#xa;(Fill blank WORK EXPERIENCE with &#39;NO EXPERIENCE&#39; →&#xa;Lowercase → Remove special characters →&#xa;Strip numeric noise → Concatenate 4 fields into PROFILE_TEXT)" vertex="1">
+          <mxGeometry height="80" width="400" x="360" y="402" as="geometry" />
         </mxCell>
         <mxCell id="applyTFIDF" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Apply fitted TF-IDF vectorizer&#xa;from recommendation_pipeline.pkl&#xa;Convert PROFILE_TEXT into 356-term numerical vector" vertex="1">
-          <mxGeometry height="66" width="400" x="360" y="506" as="geometry" />
+          <mxGeometry height="66" width="400" x="360" y="512" as="geometry" />
         </mxCell>
         <mxCell id="runPredict" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Run predict_proba()&#xa;Logistic Regression returns probability score&#xa;for each of the 5 occupational categories" vertex="1">
-          <mxGeometry height="66" width="400" x="360" y="602" as="geometry" />
+          <mxGeometry height="66" width="400" x="360" y="608" as="geometry" />
         </mxCell>
         <mxCell id="queryVacancies" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Query all active job vacancies from database" vertex="1">
-          <mxGeometry height="50" width="400" x="360" y="698" as="geometry" />
+          <mxGeometry height="50" width="400" x="360" y="704" as="geometry" />
         </mxCell>
         <mxCell id="vacancyCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="Active vacancies&#xa;found?" vertex="1">
-          <mxGeometry height="80" width="200" x="460" y="778" as="geometry" />
+          <mxGeometry height="80" width="200" x="460" y="784" as="geometry" />
         </mxCell>
         <mxCell id="noVacancy" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Display: No active vacancies&#xa;currently available" vertex="1">
-          <mxGeometry height="56" width="220" x="790" y="790" as="geometry" />
+          <mxGeometry height="56" width="220" x="790" y="796" as="geometry" />
         </mxCell>
         <mxCell id="lbl_no_vac" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="No" vertex="1">
-          <mxGeometry height="20" width="30" x="710" y="796" as="geometry" />
+          <mxGeometry height="20" width="30" x="710" y="802" as="geometry" />
         </mxCell>
         <mxCell id="lbl_yes_vac" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="Yes" vertex="1">
-          <mxGeometry height="20" width="30" x="573" y="858" as="geometry" />
+          <mxGeometry height="20" width="30" x="573" y="864" as="geometry" />
         </mxCell>
         <mxCell id="assignScore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Assign each vacancy the suitability score&#xa;of its occupational category&#xa;from predict_proba() output" vertex="1">
-          <mxGeometry height="66" width="400" x="360" y="898" as="geometry" />
+          <mxGeometry height="66" width="400" x="360" y="904" as="geometry" />
         </mxCell>
         <mxCell id="sortVacancies" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Sort vacancies in descending order by suitability score" vertex="1">
-          <mxGeometry height="50" width="400" x="360" y="994" as="geometry" />
+          <mxGeometry height="50" width="400" x="360" y="1000" as="geometry" />
         </mxCell>
-        <mxCell id="displayList" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;shape=parallelogram;perimeter=parallelogramPerimeter;shapeInside=1;fixedSize=1;" value="Display ranked vacancy list to PESO staff&#xa;Staff reviews and refers applicant to chosen vacancy" vertex="1">
-          <mxGeometry height="56" width="400" x="360" y="1074" as="geometry" />
+        <mxCell id="displayList" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Display ranked vacancy list to jobseeker" vertex="1">
+          <mxGeometry height="56" width="400" x="360" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="selectVacancy" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Jobseeker reviews vacancy details&#xa;and submits referral confirmation" vertex="1">
+          <mxGeometry height="56" width="400" x="360" y="1166" as="geometry" />
+        </mxCell>
+        <mxCell id="referralCheck" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;" value="Active referral&#xa;already exists?" vertex="1">
+          <mxGeometry height="80" width="200" x="460" y="1262" as="geometry" />
+        </mxCell>
+        <mxCell id="referralBlocked" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Notify: referral request blocked;&#xa;cancel existing referral to proceed" vertex="1">
+          <mxGeometry height="56" width="240" x="780" y="1274" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_yes_ref" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="Yes" vertex="1">
+          <mxGeometry height="20" width="30" x="710" y="1280" as="geometry" />
+        </mxCell>
+        <mxCell id="lbl_no_ref" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;" value="No" vertex="1">
+          <mxGeometry height="20" width="30" x="573" y="1342" as="geometry" />
+        </mxCell>
+        <mxCell id="saveReferral" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Save referral record to referrals table" vertex="1">
+          <mxGeometry height="50" width="400" x="360" y="1382" as="geometry" />
+        </mxCell>
+        <mxCell id="generateSlip" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;shape=parallelogram;perimeter=parallelogramPerimeter;shapeInside=1;fixedSize=1;" value="Generate and display referral slip&#xa;(Reference code: RS-YYYY-NNNNN)" vertex="1">
+          <mxGeometry height="56" width="400" x="360" y="1462" as="geometry" />
         </mxCell>
         <mxCell id="endMain" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;" value="END" vertex="1">
-          <mxGeometry height="40" width="120" x="500" y="1160" as="geometry" />
+          <mxGeometry height="40" width="120" x="500" y="1558" as="geometry" />
         </mxCell>
         <mxCell id="e1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;" target="openTab">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e2" edge="1" parent="1" source="openTab" style="edgeStyle=orthogonalEdgeStyle;" target="selectApplicant">
+        <mxCell id="e2" edge="1" parent="1" source="openTab" style="edgeStyle=orthogonalEdgeStyle;" target="loadProfile">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e3" edge="1" parent="1" source="selectApplicant" style="edgeStyle=orthogonalEdgeStyle;" target="fieldCheck">
+        <mxCell id="e3" edge="1" parent="1" source="loadProfile" style="edgeStyle=orthogonalEdgeStyle;" target="fieldCheck">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e4" edge="1" parent="1" source="fieldCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="promptFill">
@@ -76,10 +97,10 @@
         <mxCell id="e5" edge="1" label="Correct and retry" parent="1" source="promptFill" style="edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;endArrow=open;endFill=0;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="40.06" y="326.03" />
-              <mxPoint x="40.06" y="170.09" />
+              <mxPoint x="40" y="322" />
+              <mxPoint x="40" y="170" />
             </Array>
-            <mxPoint x="560.33" y="170.07" as="targetPoint" />
+            <mxPoint x="560" y="170" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="e6" edge="1" parent="1" source="fieldCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="cleanText">
@@ -100,13 +121,12 @@
         <mxCell id="e11" edge="1" parent="1" source="vacancyCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="noVacancy">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e12" edge="1" parent="1" source="noVacancy" style="edgeStyle=orthogonalEdgeStyle;">
+        <mxCell id="e12" edge="1" parent="1" source="noVacancy" style="edgeStyle=orthogonalEdgeStyle;" target="endMain">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1080" y="818" />
-              <mxPoint x="1080" y="1140.6" />
+              <mxPoint x="1080" y="824" />
+              <mxPoint x="1080" y="1578" />
             </Array>
-            <mxPoint x="560.3" y="1140.02" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="e13" edge="1" parent="1" source="vacancyCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="assignScore">
@@ -118,7 +138,30 @@
         <mxCell id="e15" edge="1" parent="1" source="sortVacancies" style="edgeStyle=orthogonalEdgeStyle;" target="displayList">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e16" edge="1" parent="1" source="displayList" style="edgeStyle=orthogonalEdgeStyle;" target="endMain">
+        <mxCell id="e16" edge="1" parent="1" source="displayList" style="edgeStyle=orthogonalEdgeStyle;" target="selectVacancy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="selectVacancy" style="edgeStyle=orthogonalEdgeStyle;" target="referralCheck">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="referralCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="referralBlocked">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="referralBlocked" style="edgeStyle=orthogonalEdgeStyle;" target="endMain">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="1302" />
+              <mxPoint x="1080" y="1578" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="referralCheck" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="saveReferral">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="saveReferral" style="edgeStyle=orthogonalEdgeStyle;" target="generateSlip">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="generateSlip" style="edgeStyle=orthogonalEdgeStyle;" target="endMain">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>

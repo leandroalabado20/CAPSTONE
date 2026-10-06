@@ -1,330 +1,423 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36">
   <diagram name="DFD Level 1" id="WajgQOi2V4e4Nwn0aBmb">
-    <mxGraphModel dx="1414" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=12;" value="PESO STAFF" vertex="1">
-          <mxGeometry height="130" width="150" x="20" y="440" as="geometry" />
+
+        <!-- ═══════════════════════════════════════════════════════
+             EXTERNAL ENTITIES
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="EJ" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=12;" value="JOBSEEKER" vertex="1">
+          <mxGeometry x="20" y="80" width="150" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Authenticate User" vertex="1">
-          <mxGeometry height="70" width="190" x="550" y="80" as="geometry" />
+        <mxCell id="EM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=12;" value="EMPLOYER" vertex="1">
+          <mxGeometry x="20" y="480" width="150" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="4" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.211;exitDx=0;exitDy=0;entryX=0.998;entryY=0.188;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="3" value="">
+        <mxCell id="AD" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=12;" value="ADMIN&#xa;(PESO Staff)" vertex="1">
+          <mxGeometry x="20" y="830" width="150" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             PROCESSES  (x=430, w=210, h=70, y-step=140)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="P1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Authenticate User" vertex="1">
+          <mxGeometry x="430" y="70" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P1n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="1" vertex="1">
+          <mxGeometry x="500" y="61" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Manage Jobseeker Profile" vertex="1">
+          <mxGeometry x="430" y="210" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P2n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="2" vertex="1">
+          <mxGeometry x="500" y="201" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Generate Job Recommendations" vertex="1">
+          <mxGeometry x="430" y="350" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P3n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="3" vertex="1">
+          <mxGeometry x="500" y="341" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Process Referral" vertex="1">
+          <mxGeometry x="430" y="490" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P4n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="4" vertex="1">
+          <mxGeometry x="500" y="481" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Manage Employer Portal" vertex="1">
+          <mxGeometry x="430" y="630" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P5n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="5" vertex="1">
+          <mxGeometry x="500" y="621" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Administer System" vertex="1">
+          <mxGeometry x="430" y="770" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P6n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="6" vertex="1">
+          <mxGeometry x="500" y="761" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Display Analytical Dashboard" vertex="1">
+          <mxGeometry x="430" y="910" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="P7n" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;" value="7" vertex="1">
+          <mxGeometry x="500" y="901" width="60" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             DATA STORES  (x=1060, w=185, h=35)
+             Positioned to align with their primary process:
+               T1 ↔ P1  |  T2 ↔ P2  |  T6 ↔ P3
+               T4 between P3/P4  |  T5 ↔ P4
+               T3 ↔ P5  |  T7 ↔ P6
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="DS1" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T1&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Users" vertex="1">
+          <mxGeometry x="1060" y="88" width="185" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="DS2" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T2&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Applicants" vertex="1">
+          <mxGeometry x="1060" y="228" width="185" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="DS6" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T6&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Recommendations" vertex="1">
+          <mxGeometry x="1060" y="368" width="185" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="DS4" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T4&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Job Vacancies" vertex="1">
+          <mxGeometry x="1060" y="450" width="185" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="DS5" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T5&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Referrals" vertex="1">
+          <mxGeometry x="1060" y="520" width="185" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="DS3" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T3&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Employers" vertex="1">
+          <mxGeometry x="1060" y="648" width="185" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="DS7" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T7&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Login Logs" vertex="1">
+          <mxGeometry x="1060" y="790" width="185" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             ENTITY → PROCESS  (left side)
+        ═══════════════════════════════════════════════════════ -->
+
+        <!-- Jobseeker ↔ P1 -->
+        <mxCell id="E01" edge="1" source="EJ" target="P1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;" value="Login Credentials">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=11;fontStyle=1;" value="1" vertex="1">
-          <mxGeometry height="30" width="60" x="615" y="71" as="geometry" />
-        </mxCell>
-        <mxCell id="6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Manage User Accounts" vertex="1">
-          <mxGeometry height="70" width="190" x="550" y="220" as="geometry" />
-        </mxCell>
-        <mxCell id="7" edge="1" parent="1" source="6" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.211;exitDx=0;exitDy=0;entryX=0.998;entryY=0.188;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="6" value="">
+        <mxCell id="E02" edge="1" source="P1" target="EJ" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" value="Authentication Status">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=11;fontStyle=1;" value="2" vertex="1">
-          <mxGeometry height="30" width="60" x="615" y="211" as="geometry" />
-        </mxCell>
-        <mxCell id="9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Manage Applicant Records" vertex="1">
-          <mxGeometry height="70" width="190" x="560" y="340" as="geometry" />
-        </mxCell>
-        <mxCell id="10" edge="1" parent="1" source="9" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.211;exitDx=0;exitDy=0;entryX=0.998;entryY=0.188;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="9" value="">
+
+        <!-- Jobseeker ↔ P2 -->
+        <mxCell id="E03" edge="1" source="EJ" target="P2" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" value="Profile Data">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=11;fontStyle=1;" value="3" vertex="1">
-          <mxGeometry height="30" width="60" x="625" y="331" as="geometry" />
-        </mxCell>
-        <mxCell id="12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Manage Job Vacancies" vertex="1">
-          <mxGeometry height="70" width="190" x="560" y="456" as="geometry" />
-        </mxCell>
-        <mxCell id="13" edge="1" parent="1" source="12" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.211;exitDx=0;exitDy=0;entryX=0.998;entryY=0.188;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="12" value="">
+        <mxCell id="E04" edge="1" source="P2" target="EJ" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.6;entryDx=0;entryDy=0;" value="Profile Confirmation">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=11;fontStyle=1;" value="4" vertex="1">
-          <mxGeometry height="30" width="60" x="625" y="447" as="geometry" />
-        </mxCell>
-        <mxCell id="15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Generate Job Recommendations" vertex="1">
-          <mxGeometry height="70" width="190" x="560" y="560" as="geometry" />
-        </mxCell>
-        <mxCell id="16" edge="1" parent="1" source="15" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.211;exitDx=0;exitDy=0;entryX=0.998;entryY=0.188;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="15" value="">
+
+        <!-- Jobseeker ↔ P3 -->
+        <mxCell id="E05" edge="1" source="EJ" target="P3" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" value="Recommendation Request">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=11;fontStyle=1;" value="5" vertex="1">
-          <mxGeometry height="30" width="60" x="625" y="551" as="geometry" />
-        </mxCell>
-        <mxCell id="21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;verticalAlign=bottom;spacingBottom=8;" value="Display Analytics Dashboard" vertex="1">
-          <mxGeometry height="70" width="190" x="560" y="685" as="geometry" />
-        </mxCell>
-        <mxCell id="22" edge="1" parent="1" source="21" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.211;exitDx=0;exitDy=0;entryX=0.998;entryY=0.188;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="21" value="">
+        <mxCell id="E06" edge="1" source="P3" target="EJ" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.9;entryDx=0;entryDy=0;" value="Ranked Job List">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="23" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=11;fontStyle=1;" value="6" vertex="1">
-          <mxGeometry height="30" width="60" x="625" y="678" as="geometry" />
-        </mxCell>
-        <mxCell id="24" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T1&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;   Users" vertex="1">
-          <mxGeometry height="35" width="185" x="1100" y="150" as="geometry" />
-        </mxCell>
-        <mxCell id="25" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T4&amp;nbsp;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;  Login Logs" vertex="1">
-          <mxGeometry height="35" width="185" x="1100" y="535" as="geometry" />
-        </mxCell>
-        <mxCell id="27" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T2&amp;nbsp; &lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;Applicants" vertex="1">
-          <mxGeometry height="35" width="185" x="1100" y="280" as="geometry" />
-        </mxCell>
-        <mxCell id="28" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T3&amp;nbsp; &amp;nbsp; &amp;nbsp; &lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;Job Vacancies" vertex="1">
-          <mxGeometry height="35" width="185" x="1100" y="412" as="geometry" />
-        </mxCell>
-        <mxCell id="29" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=mxgraph.dfd.dataStoreID;align=left;spacingLeft=3;points=[[0,0],[0.5,0],[1,0],[0,0.5],[1,0.5],[0,1],[0.5,1],[1,1]];fontSize=11;" value="T5 &lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;  Recommendations" vertex="1">
-          <mxGeometry height="35" width="185" x="1100" y="650" as="geometry" />
-        </mxCell>
-        <mxCell id="31" edge="1" parent="1" source="2" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="3" value="Login Credentials">
-          <mxGeometry relative="1" x="0.4945" y="11" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="58" y="370" />
-              <mxPoint x="58" y="370" />
-              <mxPoint x="58" y="101" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="32" edge="1" parent="1" source="3" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0;exitY=0.7;exitDx=0;exitDy=0;" value="Authentication Status">
-          <mxGeometry relative="1" x="-0.4552" y="-9" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="90" y="129" />
-              <mxPoint x="90" y="440" />
-            </Array>
-            <mxPoint x="90" y="440" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="33" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.095;exitY=-0.001;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;" target="3" value="User Account Data">
-          <mxGeometry relative="1" x="0.4666" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="1118" y="115" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="34" edge="1" parent="1" source="3" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=1;exitY=0.7;exitDx=0;exitDy=0;" value="Login Record">
-          <mxGeometry relative="1" x="-0.8051" y="-1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="1080" y="129" />
-              <mxPoint x="1080" y="540" />
-              <mxPoint x="1099" y="540" />
-            </Array>
-            <mxPoint x="1099" y="540" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="35" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.541;exitY=0.008;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;exitPerimeter=0;" value="User Account Details">
-          <mxGeometry relative="1" x="0.355" y="1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="100" y="441" />
-              <mxPoint x="100" y="241" />
-            </Array>
-            <mxPoint x="101.14999999999998" y="441.03999999999996" as="sourcePoint" />
-            <mxPoint x="550" y="241" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="36" edge="1" parent="1" source="6" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.003;exitY=0.851;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;" target="2" value="Account Confirmation">
-          <mxGeometry relative="1" x="-0.2863" y="1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="133" y="280" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="37" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1.001;entryY=0.339;entryDx=0;entryDy=0;entryPerimeter=0;" target="6" value="User Account Data">
-          <mxGeometry relative="1" x="0.5459" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="1060" y="175" />
-              <mxPoint x="1060" y="244" />
-              <mxPoint x="740" y="244" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="38" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="24" value="User Account Record">
-          <mxGeometry relative="1" x="-0.4912" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="1050" y="230" />
-              <mxPoint x="1050" y="160" />
-            </Array>
-            <mxPoint x="741" y="230" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="39" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="9" value="Applicant Registration Data">
-          <mxGeometry relative="1" x="0.1075" y="11" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="146" y="361" />
-            </Array>
-            <mxPoint x="146" y="440" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="40" edge="1" parent="1" source="2" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.948;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;exitPerimeter=0;" target="9" value="PEIS Export File">
+
+        <!-- Jobseeker ↔ P4  (routed via left corridor x=360/340) -->
+        <mxCell id="E07" edge="1" source="EJ" target="P4" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" value="Referral Confirmation">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="162" y="382" />
+              <mxPoint x="360" y="180" />
+              <mxPoint x="360" y="511" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="41" edge="1" parent="1" source="9" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=1.001;entryY=0.048;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.002;exitY=0.803;exitDx=0;exitDy=0;exitPerimeter=0;" target="2" value="Registration Confirmation">
-          <mxGeometry relative="1" x="0.1815" y="-6" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="510" y="396" />
-              <mxPoint x="510" y="446" />
-            </Array>
-            <mxPoint x="560" y="390" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="42" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=0.001;entryY=0.131;entryDx=0;entryDy=0;entryPerimeter=0;" target="27" value="Applicant Record">
-          <mxGeometry relative="1" x="-0.2244" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="750" y="360" />
-              <mxPoint x="790" y="360" />
-              <mxPoint x="790" y="285" />
-              <mxPoint x="1100" y="285" />
-            </Array>
-            <mxPoint x="750" y="360" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="44" edge="1" parent="1" source="2" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=1.01;exitY=0.292;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;exitPerimeter=0;" target="12" value="Vacancy Details">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="45" edge="1" parent="1" source="12" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.001;exitY=0.57;exitDx=0;exitDy=0;entryX=1.007;entryY=0.428;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" target="2" value="Vacancy Confirmation">
-          <mxGeometry relative="1" x="0.0296" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="46" edge="1" parent="1" source="28" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.002;exitY=0.114;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;exitPerimeter=0;" target="12" value="Vacancy Data">
-          <mxGeometry relative="1" x="0.266" y="-6" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="790" y="416" />
-              <mxPoint x="790" y="477" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="47" edge="1" parent="1" source="12" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="28" value="Vacancy Record">
-          <mxGeometry relative="1" x="-0.6271" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="970" y="509" />
-              <mxPoint x="970" y="429" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="48" edge="1" parent="1" source="2" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" target="15" value="Recommendation Request">
-          <mxGeometry relative="1" x="-0.1234" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="510" y="538" />
-              <mxPoint x="510" y="581" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="49" edge="1" parent="1" source="15" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1.01;entryY=0.935;entryDx=0;entryDy=0;entryPerimeter=0;" target="2" value="Ranked Recommendation List">
-          <mxGeometry relative="1" x="0.1332" y="-2" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="500" y="609" />
-              <mxPoint x="500" y="562" />
-              <mxPoint x="171" y="562" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="50" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=1.004;entryY=0.201;entryDx=0;entryDy=0;entryPerimeter=0;" target="15" value="Applicant Profile">
-          <mxGeometry relative="1" x="0.747" y="-4" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="900" y="297" />
-              <mxPoint x="900" y="574" />
-            </Array>
-            <mxPoint x="1100" y="297" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="51" edge="1" parent="1" source="28" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;" target="15" value="Active Vacancy List">
-          <mxGeometry relative="1" x="0.6831" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="990" y="440" />
-              <mxPoint x="990" y="595" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="52" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=-0.001;entryY=0.593;entryDx=0;entryDy=0;entryPerimeter=0;" value="Recommendation Record">
-          <mxGeometry relative="1" x="-0.2771" y="1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="770" y="613.52" />
-              <mxPoint x="770" y="671" />
-              <mxPoint x="1099.81" y="671" />
-            </Array>
-            <mxPoint x="750" y="613.5" as="sourcePoint" />
-            <mxPoint x="1099.815" y="671.7550000000001" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="56" edge="1" parent="1" source="2" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0.464;exitY=1.009;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;exitPerimeter=0;" target="21" value="Dashboard Request">
-          <mxGeometry relative="1" x="0.4173" y="2" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="90" y="620" />
-              <mxPoint x="90" y="822" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="57" edge="1" parent="1" source="21" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0;exitY=0.7;exitDx=0;exitDy=0;" value="Dashboard Report">
-          <mxGeometry relative="1" x="-0.4651" y="-4" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="50" y="734" />
-            </Array>
-            <mxPoint x="50" y="571" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="58" edge="1" parent="1" source="27" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;exitX=0;exitY=0.9;exitDx=0;exitDy=0;entryX=1.004;entryY=0.164;entryDx=0;entryDy=0;entryPerimeter=0;" target="21" value="Applicant Summary Data">
-          <mxGeometry relative="1" x="0.7569" y="-6" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="950" y="311.52" />
-              <mxPoint x="950" y="696.48" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="lg_read" edge="1" parent="1" source="25" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=1.007;entryY=0.632;entryDx=0;entryDy=0;entryPerimeter=0;" target="6" value="Login History">
-          <mxGeometry relative="1" x="0.7259" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="1040" y="553" />
-              <mxPoint x="1040" y="264" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="lg_view" edge="1" parent="1" source="6" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;labelBorderColor=none;entryX=0.667;entryY=-0.002;entryDx=0;entryDy=0;entryPerimeter=0;" target="2" value="Login History">
-          <mxGeometry relative="1" x="-0.3111" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="120" y="260" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="7chU0242kDbhXluVz_bx-58" edge="1" parent="1" source="29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.629;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.008;exitY=0.171;exitDx=0;exitDy=0;exitPerimeter=0;" target="15">
+        <mxCell id="E08" edge="1" source="P4" target="EJ" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" value="Referral Slip">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="790" y="656" />
-              <mxPoint x="790" y="604" />
+              <mxPoint x="340" y="539" />
+              <mxPoint x="340" y="180" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="7chU0242kDbhXluVz_bx-59" connectable="0" parent="7chU0242kDbhXluVz_bx-58" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;Recommendation History&lt;/font&gt;" vertex="1">
-          <mxGeometry relative="1" x="-0.6405" as="geometry">
-            <mxPoint x="-177" y="-16" as="offset" />
+
+        <!-- Employer ↔ P1  (routed via left corridor x=230/210) -->
+        <mxCell id="E09" edge="1" source="EM" target="P1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" value="Login Credentials">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="232" y="500" />
+              <mxPoint x="232" y="126" />
+            </Array>
           </mxGeometry>
         </mxCell>
+        <mxCell id="E10" edge="1" source="P1" target="EM" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.9;exitDx=0;exitDy=0;entryX=1;entryY=0.1;entryDx=0;entryDy=0;" value="Authentication Status">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="212" y="133" />
+              <mxPoint x="212" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Employer ↔ P5 -->
+        <mxCell id="E11a" edge="1" source="EM" target="P5" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" value="Company Profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E11b" edge="1" source="EM" target="P5" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.65;exitDx=0;exitDy=0;entryX=0;entryY=0.55;entryDx=0;entryDy=0;" value="Vacancy Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E12" edge="1" source="P5" target="EM" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.8;entryDx=0;entryDy=0;" value="Portal Confirmation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Admin ↔ P1  (routed via left corridor x=252/242) -->
+        <mxCell id="E13" edge="1" source="AD" target="P1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.1;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" value="Login Credentials">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="841" />
+              <mxPoint x="255" y="140" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E14" edge="1" source="P1" target="AD" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.05;entryDx=0;entryDy=0;" value="Authentication Status">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="242" y="140" />
+              <mxPoint x="242" y="836" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Admin ↔ P6 -->
+        <mxCell id="E15" edge="1" source="AD" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" value="Management Actions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E16" edge="1" source="P6" target="AD" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.65;entryDx=0;entryDy=0;" value="System Report">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Admin ↔ P7 -->
+        <mxCell id="E17" edge="1" source="AD" target="P7" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" value="Dashboard Request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E18" edge="1" source="P7" target="AD" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" value="Dashboard Report">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P1 ↔ T1 (HORIZONTAL — same row)
+             P1 → T7 (right corridor x=1310)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E19" edge="1" source="DS1" target="P1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.2;entryDx=0;entryDy=0;" value="User Account Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E20" edge="1" source="P1" target="DS1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" value="User Registration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E21" edge="1" source="P1" target="DS7" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="Login Record">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1310" y="140" />
+              <mxPoint x="1310" y="807" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             T1 → P2  (mid corridor x=950, small drop)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E44" edge="1" source="DS1" target="P2" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="User Account Link">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="950" y="105" />
+              <mxPoint x="950" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P2 ↔ T2 (HORIZONTAL — same row)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E22" edge="1" source="DS2" target="P2" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.35;entryDx=0;entryDy=0;" value="Applicant Profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E23" edge="1" source="P2" target="DS2" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" value="Updated Profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P3 ↔ T6 (HORIZONTAL — same row, direct)
+             T2 → P3  (mid corridor x=900, drop)
+             T4 → P3  (mid corridor x=780, rise)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E26" edge="1" source="P3" target="DS6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="Recommendation Record">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E24" edge="1" source="DS2" target="P3" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.9;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" value="Applicant Profile">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="900" y="259" />
+              <mxPoint x="900" y="371" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E25" edge="1" source="DS4" target="P3" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.6;entryDx=0;entryDy=0;" value="Vacancy List">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="460" />
+              <mxPoint x="780" y="392" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P4 → T5 (HORIZONTAL — same row, direct)
+             T2 → P4  (mid corridor x=920, drop)
+             T4 → P4  (mid corridor x=800, small drop)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E29" edge="1" source="P4" target="DS5" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;" value="Referral Record">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E27" edge="1" source="DS2" target="P4" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" value="Applicant Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="263" />
+              <mxPoint x="920" y="511" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E28" edge="1" source="DS4" target="P4" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.4;entryDx=0;entryDy=0;" value="Vacancy Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="474" />
+              <mxPoint x="800" y="518" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P5 ↔ T3 (HORIZONTAL — same row)
+             T4 ↔ P5  (mid corridor x=840/860, drop)
+             T5 → P5  (mid corridor x=870, drop)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E30" edge="1" source="DS3" target="P5" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;" value="Employer Profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E31" edge="1" source="P5" target="DS3" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" value="Updated Profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E32" edge="1" source="DS4" target="P5" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.6;exitDx=0;exitDy=0;entryX=1;entryY=0.2;entryDx=0;entryDy=0;" value="Vacancy Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="840" y="471" />
+              <mxPoint x="840" y="644" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E33" edge="1" source="P5" target="DS4" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" value="Vacancy Record">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="858" y="658" />
+              <mxPoint x="858" y="478" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E34" edge="1" source="DS5" target="P5" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="Referred Applicants">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="876" y="548" />
+              <mxPoint x="876" y="665" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P6 ↔ T3 (HORIZONTAL — same row, short)
+             T4 → P6  (mid corridor x=895, long drop)
+             T5 → P6  (mid corridor x="915, long drop)
+             T1 ↔ P6  (right corridor x=1295/1315, very long)
+             T2 → P6  (right corridor x=1275, very long)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E38" edge="1" source="DS3" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.2;entryDx=0;entryDy=0;" value="Employer Records">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="935" y="665" />
+              <mxPoint x="935" y="784" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E39" edge="1" source="P6" target="DS3" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" value="Approval Status">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="955" y="794" />
+              <mxPoint x="955" y="676" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E40" edge="1" source="DS4" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.45;entryDx=0;entryDy=0;" value="Vacancy Records">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="893" y="485" />
+              <mxPoint x="893" y="801" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E41" edge="1" source="DS5" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.6;entryDx=0;entryDy=0;" value="Referral Records">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="913" y="555" />
+              <mxPoint x="913" y="812" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E35" edge="1" source="DS1" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;" value="User Records">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1293" y="105" />
+              <mxPoint x="1293" y="829" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E36" edge="1" source="P6" target="DS1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.95;exitDx=0;exitDy=0;entryX=1;entryY=0.9;entryDx=0;entryDy=0;" value="Account Updates">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1313" y="836" />
+              <mxPoint x="1313" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E37" edge="1" source="DS2" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" value="Applicant Records">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1273" y="245" />
+              <mxPoint x="1273" y="819" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             T7 → P6  (Login History, short horizontal)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E45" edge="1" source="DS7" target="P6" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" value="Login History">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════════════════════════════════════════════
+             P7 reads T2 (right corridor x=1253, very long)
+        ═══════════════════════════════════════════════════════ -->
+        <mxCell id="E42" edge="1" source="DS2" target="P7" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="Applicant Summary">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1253" y="259" />
+              <mxPoint x="1253" y="945" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
       </root>
     </mxGraphModel>
   </diagram>

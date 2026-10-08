@@ -1229,12 +1229,6 @@ This chapter presents the conclusions drawn from the results of the study and th
 
 ---
 
-### Limitations
-
-Several limitations were noted in this study. The training data is limited to the placement records that PESO CSJDM has documented over the years, and these are concentrated in only a few occupational categories, which limits how well any algorithm can perform. The weakest area, which is between Warehouse and Logistics and Production and Manufacturing, is caused by the genuine similarity in how applicants in these two groups describe themselves, and it cannot be fully resolved without more data or additional profile details beyond text alone. The system also assigns suitability scores at the category level, meaning all vacancies within the same category get the same score for a given applicant. A way to rank within the same category is noted as a direction for future work. Lastly, the system is currently only accessible within the PESO office network, and the evaluation was conducted in a controlled setting rather than during actual daily operations.
-
----
-
 ### Recommendations
 
 **For Future Developers:**
@@ -1253,11 +1247,15 @@ Staff who are new to the system may benefit from a short orientation session, si
 
 Regular database backups are recommended since the system uses a file-based SQLite database. Backing up the database file before major changes, such as bulk imports or system updates, will protect against accidental data loss and allow recovery if needed.
 
+Once the system is ready for broader use, PESO CSJDM is encouraged to make it accessible beyond the office network so that jobseekers and employers can use it remotely. The current deployment on PythonAnywhere already supports public access, and ensuring that the URL is shared with walk-in clients would allow the system to be used outside of a controlled evaluation setting.
+
 **For Future Researchers:**
 
 This study compared three classifiers, namely Logistic Regression, Naïve Bayes, and Random Forest, on a dataset of 1,083 records from a single PESO office. Future researchers are encouraged to evaluate more advanced classifiers, such as Support Vector Machines, XGBoost, or transformer-based models, on a larger and more geographically diverse PESO dataset to determine whether a different algorithm produces meaningfully better results at scale. The current Macro F1-Score of 0.7370 leaves room for improvement, particularly for the two categories that share similar applicant profile language.
 
 The system was built for and evaluated within the context of PESO CSJDM only. Applying the same approach to other PESO offices across the country would test whether the occupational categories, profile features, and model performance generalize beyond a single office. A comparative study across multiple PESO offices would also provide more representative data for training a national-level classifier.
+
+The current recommendation engine assigns suitability scores at the occupational category level, meaning all vacancies within the same category receive the same score for a given applicant. Future researchers are encouraged to explore within-category ranking approaches, such as requirement-matching scoring or vacancy-specific similarity metrics, to provide finer-grained ordering of vacancies within each recommended category.
 
 Future researchers may also consider exploring collaborative filtering approaches as referral history accumulates in the system. The current model classifies applicants based on their profile text, but over time the system will generate referral outcome data that could be used to refine recommendations based on which profile-vacancy combinations led to actual placements, not just profile-based predictions. Longitudinal studies tracking placement outcomes after referral would provide the ground-truth feedback needed to evaluate and improve the system's real-world effectiveness.
 

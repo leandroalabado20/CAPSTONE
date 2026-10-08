@@ -654,57 +654,67 @@ Figure 17 shows the Home Dashboard, which is the first screen displayed after a 
 
 Figures 18 and 19 show the Job Recommendations page in the Jobseeker portal, which is the direct output of Objective 2. The page is accessible to registered jobseekers. Before recommendations can be generated, the jobseeker's profile must have three required fields completed: education level, preferred position, and skills. If any of these are missing, the system displays a prompt to complete the profile first.
 
-When the jobseeker clicks Generate Recommendations, the system takes their four profile fields — education level, preferred position, skills, and work experience — and processes them using the same text preparation steps applied during model training. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value to the profile, consistent with how the training data was prepared. The processed text is converted into a numerical vector using the saved TF-IDF vectorizer and passed through the trained Logistic Regression model, which returns a suitability score for each of the five occupational categories. The categories are displayed in order from highest to lowest score. The top-ranked category is highlighted as a hero card with the suitability percentage and a list of currently active vacancies in that category. The remaining four categories are listed below with their scores and available openings. If there are no active vacancies in a category, the system notifies the jobseeker that no openings are currently available. When recommendations are generated, the result is saved to the recommendations table with the applicant, vacancy, suitability score, and rank.
+When the jobseeker clicks Generate Recommendations, the system takes the jobseeker's profile fields — education level, preferred position, skills, and work experience — and processes them using the same text preparation steps applied during model training. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value to the profile, consistent with how the training data was prepared. The processed text is converted into a numerical vector using the saved TF-IDF vectorizer and passed through the trained Logistic Regression model, which returns a suitability score for each of the five occupational categories. The categories are displayed in order from highest to lowest score. The top-ranked category is highlighted as a hero card with the suitability percentage and a list of currently active vacancies in that category. The remaining four categories are listed below with their scores and available openings. If there are no active vacancies in a category, the system notifies the jobseeker that no openings are currently available. When recommendations are generated, the result is saved to the recommendations table with the applicant, vacancy, suitability score, and rank.
+
+---
+
+### Referral Generation
+
+*[Insert Figure 20: Referral Slip Generation]*
+
+**Figure 20.** Referral Slip Generation
+
+Figure 20 shows the referral generation step in the Jobseeker portal, which is the core output of the system and directly addresses the problem of jobseekers having to travel to the PESO office just to receive a referral. From the recommendation results page, the jobseeker can select any active vacancy and click Apply to initiate a referral. The system generates a referral slip with a unique RS-YYYY-NNNNN reference code that identifies the referral, records the jobseeker, the vacancy, the employer, the suitability score at the time of application, and the date. A jobseeker can hold only one active referral at a time. The generated referral slip can be presented to the employer directly, removing the need for the jobseeker to return to the PESO office to obtain a paper referral from staff.
 
 ---
 
 ### Analytical Dashboard Tab
 
-*[Insert Figure 20: Analytical Dashboard Tab]*
+*[Insert Figure 21: Analytical Dashboard Tab]*
 
-**Figure 20.** Analytical Dashboard Tab
+**Figure 21.** Analytical Dashboard Tab
 
-Figure 20 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by PEIS registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
+Figure 21 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by PEIS registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
 
 ---
 
 ### Applicant Management
 
-*[Insert Figure 21: Applicant List (Card View)]*
+*[Insert Figure 22: Applicant List (Card View)]*
 
-**Figure 21.** Applicant List (Card View)
+**Figure 22.** Applicant List (Card View)
 
-*[Insert Figure 22: Applicant Detail View]*
+*[Insert Figure 23: Applicant Detail View]*
 
-**Figure 22.** Applicant Detail View
+**Figure 23.** Applicant Detail View
 
-*[Insert Figure 23: Referral Management]*
+*[Insert Figure 24: Referral Management]*
 
-**Figure 23.** Referral Management
+**Figure 24.** Referral Management
 
-Figures 21 and 22 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 21, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 22 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Records can be archived to remove them from the active list without permanently deleting the data and can be restored if needed.
+Figures 22 and 22 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 21, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 23 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Records can be archived to remove them from the active list without permanently deleting the data and can be restored if needed.
 
-Figure 23 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique RS-YYYY-NNNNN reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
+Figure 24 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique RS-YYYY-NNNNN reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
 
 ---
 
 ### Job Vacancy Management
 
-*[Insert Figure 24: Job Vacancy List]*
+*[Insert Figure 25: Job Vacancy List]*
 
-**Figure 24.** Job Vacancy Management
+**Figure 25.** Job Vacancy Management
 
-Figure 24 shows the Job Vacancy Management module in the Admin panel, which gives admin full visibility over all vacancies posted in the system. Vacancies are created and edited by approved employers through the Employer portal. Admin can set any vacancy as active or inactive and permanently delete vacancies when needed. The recommendation engine only surfaces active vacancies in jobseeker results. Deactivated vacancies remain in the database for record-keeping but are excluded from recommendation outputs.
+Figure 25 shows the Job Vacancy Management module in the Admin panel, which gives admin full visibility over all vacancies posted in the system. Vacancies are created and edited by approved employers through the Employer portal. Admin can set any vacancy as active or inactive and permanently delete vacancies when needed. The recommendation engine only surfaces active vacancies in jobseeker results. Deactivated vacancies remain in the database for record-keeping but are excluded from recommendation outputs.
 
 ---
 
 ### Staff Account Management
 
-*[Insert Figure 25: User Account Management]*
+*[Insert Figure 26: User Account Management]*
 
-**Figure 25.** User Account Management
+**Figure 26.** User Account Management
 
-Figure 25 shows the User Account Management module, which allows admin to create, view, edit, and deactivate accounts across all user roles. Each account stores the user's full name, email address, role, active status, and account creation date. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the settings. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail for the admin.
+Figure 26 shows the User Account Management module, which allows admin to create, view, edit, and deactivate accounts across all user roles. Each account stores the user's full name, email address, role, active status, and account creation date. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the settings. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail for the admin.
 
 ---
 

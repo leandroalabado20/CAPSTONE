@@ -844,15 +844,15 @@ Functional Suitability evaluates whether the system provides all the functions i
 
 **Table 18.** Evaluation of Functional Suitability (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Functional Completeness* | | | | | | | | | | | | |
-| 1 | The system provides all necessary functions to support PESO staff in managing applicant profiles, job vacancies, and generating job recommendations. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Functional Correctness* | | | | | | | | | | | | |
-| 2 | The system produces accurate job recommendations and analytics results based on applicant profiles and available job vacancies. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Functional Appropriateness* | | | | | | | | | | | | |
-| 3 | The system's features appropriately support PESO staff in matching applicants to suitable job opportunities. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| | **Overall Mean** | | | | | | | | | | | **4.89** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Functional Completeness* | | | | | | | |
+| 1 | The system provides all necessary functions to support PESO staff in managing applicant profiles, job vacancies, and generating job recommendations. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Functional Correctness* | | | | | | | |
+| 2 | The system produces accurate job recommendations and analytics results based on applicant profiles and available job vacancies. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Functional Appropriateness* | | | | | | | |
+| 3 | The system's features appropriately support PESO staff in matching applicants to suitable job opportunities. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| | **Overall Mean** | | | | | | **4.89** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -866,15 +866,15 @@ Performance Efficiency evaluates how quickly the system responds to actions and 
 
 **Table 19.** Evaluation of Performance Efficiency (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Time Behaviour* | | | | | | | | | | | | |
-| 4 | The system responds promptly to user actions such as generating recommendations, searching records, and loading the analytics dashboard. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Resource Utilization* | | | | | | | | | | | | |
-| 5 | The system efficiently uses computing resources when processing applicant data and generating job recommendations. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Capacity* | | | | | | | | | | | | |
-| 6 | The system can handle the expected volume of applicant records and job vacancies without performance degradation. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| | **Overall Mean** | | | | | | | | | | | **5.00** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Time Behaviour* | | | | | | | |
+| 4 | The system responds promptly to user actions such as generating recommendations, searching records, and loading the analytics dashboard. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Resource Utilization* | | | | | | | |
+| 5 | The system efficiently uses computing resources when processing applicant data and generating job recommendations. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Capacity* | | | | | | | |
+| 6 | The system can handle the expected volume of applicant records and job vacancies without performance degradation. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| | **Overall Mean** | | | | | | **5.00** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -888,13 +888,13 @@ Compatibility evaluates whether the system can work alongside other tools and ac
 
 **Table 20.** Evaluation of Compatibility (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Co-existence* | | | | | | | | | | | | |
-| 7 | The system operates effectively alongside other tools or software used in the PESO office environment. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Interoperability* | | | | | | | | | | | | |
-| 8 | The system can work with external data sources and formats used in employment service operations. | 1 | 33.33 | 1 | 33.33 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 4.00 |
-| | **Overall Mean** | | | | | | | | | | | **4.50** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Co-existence* | | | | | | | |
+| 7 | The system operates effectively alongside other tools or software used in the PESO office environment. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Interoperability* | | | | | | | |
+| 8 | The system can work with external data sources and formats used in employment service operations. | 1 | 1 | 1 | 0 | 0 | 4.00 |
+| | **Overall Mean** | | | | | | **4.50** |
 
 *Verbal Interpretation: Acceptable*
 
@@ -908,25 +908,25 @@ Interaction Capability evaluates how easy it is for PESO staff to understand and
 
 **Table 21.** Evaluation of Interaction Capability (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Appropriateness Recognizability* | | | | | | | | | | | | |
-| 9 | Users can easily understand the purpose of the system and its job recommendation features upon first use. | 1 | 33.33 | 1 | 33.33 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 4.00 |
-| *Learnability* | | | | | | | | | | | | |
-| 10 | PESO staff can quickly learn to navigate and use the system's features without extensive training. | 1 | 33.33 | 0 | 0.00 | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 3.67 |
-| *Operability* | | | | | | | | | | | | |
-| 11 | The system's functions for managing applicants, vacancies, and recommendations are easy to operate and control. | 1 | 33.33 | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.33 |
-| *User Error Protection* | | | | | | | | | | | | |
-| 12 | The system prevents or minimizes data entry errors when managing applicant profiles and job vacancies. | 2 | 66.67 | 0 | 0.00 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 4.33 |
-| *User Engagement* | | | | | | | | | | | | |
-| 13 | The system's interface is well-designed and encourages PESO staff to use it consistently in daily operations. | 1 | 33.33 | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.33 |
-| *Inclusivity* | | | | | | | | | | | | |
-| 14 | The system is usable by PESO staff regardless of their level of technical proficiency. | 0 | 0.00 | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 3.67 |
-| *User Assistance* | | | | | | | | | | | | |
-| 15 | The system provides sufficient guidance to help users navigate and accomplish their tasks. | 1 | 33.33 | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.33 |
-| *Self-descriptiveness* | | | | | | | | | | | | |
-| 16 | The system's interface and features are clear and intuitive, allowing users to understand how to use them without needing additional documentation. | 1 | 33.33 | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.33 |
-| | **Overall Mean** | | | | | | | | | | | **4.12** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Appropriateness Recognizability* | | | | | | | |
+| 9 | Users can easily understand the purpose of the system and its job recommendation features upon first use. | 1 | 1 | 1 | 0 | 0 | 4.00 |
+| *Learnability* | | | | | | | |
+| 10 | PESO staff can quickly learn to navigate and use the system's features without extensive training. | 1 | 0 | 2 | 0 | 0 | 3.67 |
+| *Operability* | | | | | | | |
+| 11 | The system's functions for managing applicants, vacancies, and recommendations are easy to operate and control. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| *User Error Protection* | | | | | | | |
+| 12 | The system prevents or minimizes data entry errors when managing applicant profiles and job vacancies. | 2 | 0 | 1 | 0 | 0 | 4.33 |
+| *User Engagement* | | | | | | | |
+| 13 | The system's interface is well-designed and encourages PESO staff to use it consistently in daily operations. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| *Inclusivity* | | | | | | | |
+| 14 | The system is usable by PESO staff regardless of their level of technical proficiency. | 0 | 2 | 1 | 0 | 0 | 3.67 |
+| *User Assistance* | | | | | | | |
+| 15 | The system provides sufficient guidance to help users navigate and accomplish their tasks. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| *Self-descriptiveness* | | | | | | | |
+| 16 | The system's interface and features are clear and intuitive, allowing users to understand how to use them without needing additional documentation. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| | **Overall Mean** | | | | | | **4.12** |
 
 *Verbal Interpretation: Acceptable*
 
@@ -940,17 +940,17 @@ Reliability evaluates whether the system works consistently without errors durin
 
 **Table 22.** Evaluation of Reliability (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Faultlessness* | | | | | | | | | | | | |
-| 17 | The system consistently generates job recommendations and manages records without errors during normal operation. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| *Availability* | | | | | | | | | | | | |
-| 18 | The system is accessible and ready for use whenever PESO staff need it. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Fault Tolerance* | | | | | | | | | | | | |
-| 19 | The system continues to function normally even when encountering unexpected inputs or minor errors. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| *Recoverability* | | | | | | | | | | | | |
-| 20 | The system can recover applicant data and return to normal operation after an unexpected interruption or failure. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| | **Overall Mean** | | | | | | | | | | | **4.75** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Faultlessness* | | | | | | | |
+| 17 | The system consistently generates job recommendations and manages records without errors during normal operation. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| *Availability* | | | | | | | |
+| 18 | The system is accessible and ready for use whenever PESO staff need it. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Fault Tolerance* | | | | | | | |
+| 19 | The system continues to function normally even when encountering unexpected inputs or minor errors. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| *Recoverability* | | | | | | | |
+| 20 | The system can recover applicant data and return to normal operation after an unexpected interruption or failure. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| | **Overall Mean** | | | | | | **4.75** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -964,21 +964,21 @@ Security covers how well the system protects applicant information, staff accoun
 
 **Table 23.** Evaluation of Security (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Confidentiality* | | | | | | | | | | | | |
-| 21 | The system ensures that applicant information and employment data are accessible only to authorized PESO staff. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Integrity* | | | | | | | | | | | | |
-| 22 | The system protects applicant records and recommendation data from unauthorized modification or deletion. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Non-repudiation* | | | | | | | | | | | | |
-| 23 | The system maintains records of significant actions performed, ensuring they can be verified and cannot be denied later. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Accountability* | | | | | | | | | | | | |
-| 24 | The system logs and tracks user actions, allowing activities to be traced back to the responsible staff member. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Authenticity* | | | | | | | | | | | | |
-| 25 | The system verifies the identity of users before granting access to applicant data and system features. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Resistance* | | | | | | | | | | | | |
-| 26 | The system remains secure and functional even when subjected to unauthorized access attempts. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| | **Overall Mean** | | | | | | | | | | | **5.00** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Confidentiality* | | | | | | | |
+| 21 | The system ensures that applicant information and employment data are accessible only to authorized PESO staff. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Integrity* | | | | | | | |
+| 22 | The system protects applicant records and recommendation data from unauthorized modification or deletion. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Non-repudiation* | | | | | | | |
+| 23 | The system maintains records of significant actions performed, ensuring they can be verified and cannot be denied later. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Accountability* | | | | | | | |
+| 24 | The system logs and tracks user actions, allowing activities to be traced back to the responsible staff member. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Authenticity* | | | | | | | |
+| 25 | The system verifies the identity of users before granting access to applicant data and system features. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Resistance* | | | | | | | |
+| 26 | The system remains secure and functional even when subjected to unauthorized access attempts. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| | **Overall Mean** | | | | | | **5.00** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -992,19 +992,19 @@ Maintainability covers how easy it is to update or change the system, such as re
 
 **Table 24.** Evaluation of Maintainability (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Modularity* | | | | | | | | | | | | |
-| 27 | The system is structured so that updates or changes to one feature do not disrupt other functions. | 1 | 33.33 | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.33 |
-| *Reusability* | | | | | | | | | | | | |
-| 28 | Components or features of the system can be repurposed or extended to support future enhancements. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Analysability* | | | | | | | | | | | | |
-| 29 | Issues or defects in the system can be identified and diagnosed without difficulty. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| *Modifiability* | | | | | | | | | | | | |
-| 30 | The system can be updated or enhanced to accommodate changes in PESO's operational requirements without introducing new errors. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Testability* | | | | | | | | | | | | |
-| 31 | The system's features can be systematically tested to verify they meet the defined requirements. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| | **Overall Mean** | | | | | | | | | | | **4.80** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Modularity* | | | | | | | |
+| 27 | The system is structured so that updates or changes to one feature do not disrupt other functions. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| *Reusability* | | | | | | | |
+| 28 | Components or features of the system can be repurposed or extended to support future enhancements. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Analysability* | | | | | | | |
+| 29 | Issues or defects in the system can be identified and diagnosed without difficulty. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| *Modifiability* | | | | | | | |
+| 30 | The system can be updated or enhanced to accommodate changes in PESO's operational requirements without introducing new errors. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Testability* | | | | | | | |
+| 31 | The system's features can be systematically tested to verify they meet the defined requirements. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| | **Overall Mean** | | | | | | **4.80** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -1018,17 +1018,17 @@ Flexibility evaluates whether the system can be used on different devices and br
 
 **Table 25.** Evaluation of Flexibility (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Adaptability* | | | | | | | | | | | | |
-| 32 | The system can be deployed and operated in different environments or configurations as needed by PESO. | 2 | 66.67 | 0 | 0.00 | 0 | 0.00 | 1 | 33.33 | 0 | 0.00 | 4.00 |
-| *Scalability* | | | | | | | | | | | | |
-| 33 | The system can accommodate growth in the number of applicants, vacancies, or users without significant performance loss. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| *Installability* | | | | | | | | | | | | |
-| 34 | The system can be set up and deployed in PESO's operating environment with ease. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Replaceability* | | | | | | | | | | | | |
-| 35 | The system's components can be updated or replaced to meet evolving needs without disrupting overall operations. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| | **Overall Mean** | | | | | | | | | | | **4.67** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Adaptability* | | | | | | | |
+| 32 | The system can be deployed and operated in different environments or configurations as needed by PESO. | 2 | 0 | 0 | 1 | 0 | 4.00 |
+| *Scalability* | | | | | | | |
+| 33 | The system can accommodate growth in the number of applicants, vacancies, or users without significant performance loss. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| *Installability* | | | | | | | |
+| 34 | The system can be set up and deployed in PESO's operating environment with ease. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Replaceability* | | | | | | | |
+| 35 | The system's components can be updated or replaced to meet evolving needs without disrupting overall operations. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| | **Overall Mean** | | | | | | **4.67** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -1042,19 +1042,19 @@ Safety evaluates whether the system protects applicant data from risks such as u
 
 **Table 26.** Evaluation of Safety (n = 3)
 
-| No. | Parameter | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *Operational Constraint* | | | | | | | | | | | | |
-| 36 | The system operates within defined parameters to prevent unintended actions that could affect applicant data integrity. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Risk Identification* | | | | | | | | | | | | |
-| 37 | The system can identify and flag potentially problematic inputs or operations before they cause issues. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Fail Safe* | | | | | | | | | | | | |
-| 38 | The system defaults to a safe state when it encounters an error, preventing data loss or corruption. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| *Hazard Warning* | | | | | | | | | | | | |
-| 39 | The system alerts users to potential issues, such as incomplete applicant profiles or missing required data, before processing. | 2 | 66.67 | 1 | 33.33 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| *Safe Integration* | | | | | | | | | | | | |
-| 40 | The system maintains data integrity and safe operation when working with imported records or connected data sources. | 3 | 100.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 0 | 0.00 | 5.00 |
-| | **Overall Mean** | | | | | | | | | | | **4.93** |
+| No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| *Operational Constraint* | | | | | | | |
+| 36 | The system operates within defined parameters to prevent unintended actions that could affect applicant data integrity. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Risk Identification* | | | | | | | |
+| 37 | The system can identify and flag potentially problematic inputs or operations before they cause issues. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Fail Safe* | | | | | | | |
+| 38 | The system defaults to a safe state when it encounters an error, preventing data loss or corruption. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| *Hazard Warning* | | | | | | | |
+| 39 | The system alerts users to potential issues, such as incomplete applicant profiles or missing required data, before processing. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| *Safe Integration* | | | | | | | |
+| 40 | The system maintains data integrity and safe operation when working with imported records or connected data sources. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| | **Overall Mean** | | | | | | **4.93** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -1095,14 +1095,14 @@ Perceived Usefulness assesses whether respondents believe the system helps them 
 
 **Table 28.** Perceived Usefulness Evaluation (n = 27)
 
-| No. | Statement | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| PU1 | Using this system improves my performance in accomplishing job referral and applicant management tasks. | 19 | 70.37 | 7 | 25.93 | 1 | 3.70 | 0 | 0.00 | 0 | 0.00 | 4.67 |
-| PU2 | Using this system increases my productivity when working with job applicants and vacancies. | 16 | 59.26 | 9 | 33.33 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.52 |
-| PU3 | This system helps me identify suitable job category matches for applicants more quickly. | 21 | 77.78 | 4 | 14.81 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.70 |
-| PU4 | This system is useful for generating job category recommendations for applicants. | 20 | 74.07 | 6 | 22.22 | 1 | 3.70 | 0 | 0.00 | 0 | 0.00 | 4.70 |
-| PU5 | Overall, I find this system beneficial for job referral and employment matching purposes. | 17 | 62.96 | 8 | 29.63 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.56 |
-| | **Overall Mean** | | | | | | | | | | | **4.63** |
+| No. | Statement | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| PU1 | Using this system improves my performance in accomplishing job referral and applicant management tasks. | 19 | 7 | 1 | 0 | 0 | 4.67 |
+| PU2 | Using this system increases my productivity when working with job applicants and vacancies. | 16 | 9 | 2 | 0 | 0 | 4.52 |
+| PU3 | This system helps me identify suitable job category matches for applicants more quickly. | 21 | 4 | 2 | 0 | 0 | 4.70 |
+| PU4 | This system is useful for generating job category recommendations for applicants. | 20 | 6 | 1 | 0 | 0 | 4.70 |
+| PU5 | Overall, I find this system beneficial for job referral and employment matching purposes. | 17 | 8 | 2 | 0 | 0 | 4.56 |
+| | **Overall Mean** | | | | | | **4.63** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -1116,14 +1116,14 @@ Perceived Ease of Use assesses whether respondents find the system clear, easy t
 
 **Table 29.** Perceived Ease of Use Evaluation (n = 27)
 
-| No. | Statement | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| PEOU1 | Learning to use this system's features, such as registering applicants and generating job recommendations, was easy for me. | 18 | 66.67 | 7 | 25.93 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.59 |
-| PEOU2 | I find it easy to navigate the system and perform tasks such as managing applicant records or viewing job recommendations. | 18 | 66.67 | 7 | 25.93 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.59 |
-| PEOU3 | My interaction with the system, including its forms, navigation, and dashboard, is clear and understandable. | 19 | 70.37 | 6 | 22.22 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.63 |
-| PEOU4 | I find the system easy to use overall. | 17 | 62.96 | 7 | 25.93 | 3 | 11.11 | 0 | 0.00 | 0 | 0.00 | 4.52 |
-| PEOU5 | The system's interface (buttons, menus, navigation) is user-friendly. | 17 | 62.96 | 7 | 25.93 | 2 | 7.41 | 0 | 0.00 | 1 | 3.70 | 4.44 |
-| | **Overall Mean** | | | | | | | | | | | **4.56** |
+| No. | Statement | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| PEOU1 | Learning to use this system's features, such as registering applicants and generating job recommendations, was easy for me. | 18 | 7 | 2 | 0 | 0 | 4.59 |
+| PEOU2 | I find it easy to navigate the system and perform tasks such as managing applicant records or viewing job recommendations. | 18 | 7 | 2 | 0 | 0 | 4.59 |
+| PEOU3 | My interaction with the system, including its forms, navigation, and dashboard, is clear and understandable. | 19 | 6 | 2 | 0 | 0 | 4.63 |
+| PEOU4 | I find the system easy to use overall. | 17 | 7 | 3 | 0 | 0 | 4.52 |
+| PEOU5 | The system's interface (buttons, menus, navigation) is user-friendly. | 17 | 7 | 2 | 0 | 1 | 4.44 |
+| | **Overall Mean** | | | | | | **4.56** |
 
 *Verbal Interpretation: Highly Acceptable*
 
@@ -1137,13 +1137,13 @@ Behavioral Intention to Use assesses whether respondents plan to keep using the 
 
 **Table 30.** Behavioral Intention to Use Evaluation (n = 27)
 
-| No. | Statement | 5 | % | 4 | % | 3 | % | 2 | % | 1 | % | Mean |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| BI1 | I intend to use this system regularly if it is made available. | 17 | 62.96 | 7 | 25.93 | 3 | 11.11 | 0 | 0.00 | 0 | 0.00 | 4.52 |
-| BI2 | I would recommend this system to others who work with job applicants and employment referrals. | 18 | 66.67 | 5 | 18.52 | 4 | 14.81 | 0 | 0.00 | 0 | 0.00 | 4.52 |
-| BI3 | I plan to use this system regularly for applicant management and job matching if it becomes available. | 17 | 62.96 | 8 | 29.63 | 2 | 7.41 | 0 | 0.00 | 0 | 0.00 | 4.56 |
-| BI4 | Given the chance, I would prefer using this system over manual methods for managing applicants and generating job recommendations. | 20 | 74.07 | 3 | 11.11 | 4 | 14.81 | 0 | 0.00 | 0 | 0.00 | 4.59 |
-| | **Overall Mean** | | | | | | | | | | | **4.55** |
+| No. | Statement | 5 | 4 | 3 | 2 | 1 | Mean |
+|---|---|---|---|---|---|---|---|---|
+| BI1 | I intend to use this system regularly if it is made available. | 17 | 7 | 3 | 0 | 0 | 4.52 |
+| BI2 | I would recommend this system to others who work with job applicants and employment referrals. | 18 | 5 | 4 | 0 | 0 | 4.52 |
+| BI3 | I plan to use this system regularly for applicant management and job matching if it becomes available. | 17 | 8 | 2 | 0 | 0 | 4.56 |
+| BI4 | Given the chance, I would prefer using this system over manual methods for managing applicants and generating job recommendations. | 20 | 3 | 4 | 0 | 0 | 4.59 |
+| | **Overall Mean** | | | | | | **4.55** |
 
 *Verbal Interpretation: Highly Acceptable*
 

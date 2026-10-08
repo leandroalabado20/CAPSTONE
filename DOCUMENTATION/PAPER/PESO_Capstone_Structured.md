@@ -1212,36 +1212,6 @@ All thirty-one test cases passed with actual results matching the expected ones.
 
 ---
 
-## Discussion of Findings
-
-This section summarizes how the results address each of the three specific objectives and resolve the problems identified in Chapter I. It also compares the findings with related studies from Chapter II and notes the limitations encountered during the study.
-
-### Objective 1: System Development
-
-The developed system directly addresses the two operational problems found during the interview at PESO CSJDM. The first problem was the slow and repetitive process of manually matching applicant profiles with job vacancies. This is addressed by the Job Recommendation tab, which replaces the manual approach with a ranked list of the five occupational categories and their available vacancies, each showing a suitability score based on the trained model. On a typical referral day, staff can select an applicant and get a complete ranked recommendation in under two seconds, which is significantly faster than the previous manual process.
-
-The second problem was the lack of a single view of the applicant pool for reporting purposes. This is addressed by the Analytical Dashboard, which brings together all the key figures needed for the office's quarterly reports. These include total registrants, sex breakdown, youth and senior citizen counts, PWD count, educational attainment breakdown, employment status distribution, and barangay-level breakdown by district. The date range filter also allows staff to produce figures for a specific period without manually sorting through records.
-
-### Objective 2: Algorithm Selection
-
-The comparison of Logistic Regression, Random Forest, and Naïve Bayes on the PESO CSJDM dataset produced a clear ranking, which is consistent with what the literature says about algorithm performance varying depending on the dataset used. Logistic Regression achieved the highest Macro F1-Score of 0.7370, outperforming Naïve Bayes (0.7098) and Random Forest (0.6679). This agrees with the findings of Chihab et al. (2025), where Logistic Regression (94.68% F1) also outperformed both Random Forest (89.57%) and Naïve Bayes (80.96%) on a different job-related dataset, suggesting a pattern where Logistic Regression tends to perform well on text-based occupational classification tasks. The result also agrees with Tiwari and Upadhyay (2024), where Logistic Regression (0.79 F1) outperformed Naïve Bayes (0.74 F1). The score of 0.7370 in this study is somewhat lower, which is expected given the smaller dataset size and greater imbalance in the PESO CSJDM data.
-
-On the other hand, this finding is different from what Darma et al. (2026) and Betrand et al. (2025) found, where Naïve Bayes and Random Forest respectively performed best on their datasets. It is also different from Heakl et al. (2024), where Naïve Bayes achieved the highest Macro F1 at 82.8% on a large resume classification dataset, outperforming both Logistic Regression and Random Forest. These differences across studies confirm the reason for running an independent comparison on the actual PESO CSJDM dataset: no single algorithm is always the best choice, and testing on the actual target data is necessary to find the most suitable one for a given problem. This study also provides the first recorded comparison of these algorithms on actual Philippine PESO placement records, giving future researchers a reference point to build on.
-
-The result is also consistent with the observation of Adillah et al. (2026), whose study on civil servant recruitment confirmed that classifier families produce clearly distinct and interpretable results when trained on a government agency's own operational records, validating the decision in this study to compare three classifiers on PESO CSJDM's historical placement data rather than adopting a ranking from the literature without verification.
-
-Random Forest ranked last despite being a more complex method. One known reason for this is that it works less effectively when dealing with text features represented as numbers, since each tree in the group only looks at a random portion of the available terms during training. In a set of 356 terms where the most meaningful occupational words are uncommon, this random selection often misses the most useful signals. Logistic Regression, on the other hand, looks at all 356 terms at once and gives more weight to rare but important words, which is why it consistently performed better in this type of task.
-
-### Objective 3: System Evaluation
-
-The ISO/IEC 25010:2023 evaluation by three IT professionals produced an overall mean of 4.70 (Highly Acceptable), which met the study's target threshold of 3.51 (Acceptable) across all nine quality characteristics. The TAM evaluation by twenty-seven respondents produced an overall mean of 4.58 (Highly Acceptable), also meeting the target threshold for all three constructs. Together, these results confirm that the system meets software quality standards and that users are ready to adopt it for regular use.
-
-### Limitations
-
-Several limitations were noted in this study. The training data is limited to the placement records that PESO CSJDM has documented over the years, and these are concentrated in only a few occupational categories, which limits how well any algorithm can perform. The weakest area, which is between Warehouse and Logistics and Production and Manufacturing, is caused by the genuine similarity in how applicants in these two groups describe themselves, and it cannot be fully resolved without more data or additional profile details beyond text alone. The system also assigns suitability scores at the category level, meaning all vacancies within the same category get the same score for a given applicant. A way to rank within the same category is noted as a direction for future work. Lastly, the system is currently only accessible within the PESO office network, and the evaluation was conducted in a controlled setting rather than during actual daily operations.
-
----
-
 # CHAPTER V
 ## CONCLUSIONS AND RECOMMENDATIONS
 
@@ -1256,6 +1226,12 @@ This chapter presents the conclusions drawn from the results of the study and th
 **Objective 2.** Among the three classifiers evaluated on the PESO CSJDM placement dataset, Logistic Regression performed best and was selected as the recommendation engine for the deployed system. It achieved a Macro F1-Score of 0.7370, which was higher than Naïve Bayes at 0.7098 and Random Forest at 0.6679. The use of Macro F1-Score as the primary selection criterion, rather than accuracy, was appropriate given the unequal distribution of the five occupational categories in the dataset, which ranged from 13.8 to 29.3 percent. This result is consistent with related studies that found Logistic Regression to be a reliable classifier for text-based occupational categorization tasks. The trained model is stored as a pre-trained pipeline artifact and loaded once at application startup, so it can generate ranked category recommendations from any complete applicant profile in under two seconds during normal use.
 
 **Objective 3.** The system met the target evaluation threshold of 3.51 (Acceptable) for both instruments. The ISO/IEC 25010:2023 evaluation conducted by three IT professionals yielded an overall weighted mean of 4.70, interpreted as Highly Acceptable, with all nine quality characteristics receiving scores at or above the threshold. Performance Efficiency and Security received the highest rating of 5.00, while Interaction Capability received the lowest at 4.12, reflecting that learnability and inclusivity are areas where further improvement could benefit first-time users. The TAM evaluation conducted by twenty-seven respondents yielded an overall mean of 4.58, also interpreted as Highly Acceptable, with Perceived Usefulness receiving the highest construct mean of 4.63, followed by Perceived Ease of Use at 4.56 and Behavioral Intention to Use at 4.55. These results confirm that the system meets recognized software quality standards and that users are prepared to adopt it for regular use in place of the current manual referral process.
+
+---
+
+### Limitations
+
+Several limitations were noted in this study. The training data is limited to the placement records that PESO CSJDM has documented over the years, and these are concentrated in only a few occupational categories, which limits how well any algorithm can perform. The weakest area, which is between Warehouse and Logistics and Production and Manufacturing, is caused by the genuine similarity in how applicants in these two groups describe themselves, and it cannot be fully resolved without more data or additional profile details beyond text alone. The system also assigns suitability scores at the category level, meaning all vacancies within the same category get the same score for a given applicant. A way to rank within the same category is noted as a direction for future work. Lastly, the system is currently only accessible within the PESO office network, and the evaluation was conducted in a controlled setting rather than during actual daily operations.
 
 ---
 

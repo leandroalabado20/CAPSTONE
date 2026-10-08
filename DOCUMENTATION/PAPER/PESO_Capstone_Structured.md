@@ -620,7 +620,7 @@ This chapter presents the results of the study based on the specific objectives 
 
 ## Results for Specific Objective 1: Develop a web-based data-driven job recommendation system with dashboard for PESO CSJDM.
 
-The web-based data-driven job recommendation system with dashboard for PESO CSJDM was successfully developed and deployed. The system was built using Python and Flask as the backend framework, SQLite as the database, Bootstrap via CoreUI 5 for the frontend, and scikit-learn for the machine learning component. It runs through a responsive web interface that can be accessed on both desktop and mobile browsers. The system is organized into two main analytics modules, namely the Job Recommendation tab and the Analytical Dashboard tab, alongside Applicant Management, Job Vacancy Management, and Staff Account Management. The following sections describe each module as implemented.
+The web-based data-driven job recommendation system with dashboard for PESO CSJDM was successfully developed and deployed. The system was built using Python and Flask as the backend framework, SQLite as the database, Bootstrap via CoreUI 5 for the frontend, and scikit-learn for the machine learning component. It runs through a responsive web interface that can be accessed on both desktop and mobile browsers. The system is organized into three role-based portals: the Jobseeker portal, the Employer portal, and the Admin panel. The Jobseeker portal provides self-service access to profile management, ML-powered job recommendations, job browsing, and referral generation. The Employer portal allows registered and approved employers to manage vacancies and view the profiles of jobseekers referred to their postings. The Admin panel provides tools for applicant oversight, vacancy monitoring, referral management, employer approval, user account management, and the Analytical Dashboard. The following sections describe the key modules as implemented.
 
 ### Login Page
 
@@ -628,7 +628,7 @@ The web-based data-driven job recommendation system with dashboard for PESO CSJD
 
 **Figure 16.** Login Page
 
-Figure 16 shows the Login Page, which is the entry point of the system. PESO staff must provide a valid username and password to gain access. Passwords are stored in encrypted form to keep them secure. Every login attempt, whether it was successful, failed, or denied because of an inactive account, is recorded along with the user, timestamp, IP address, and outcome. This gives staff an audit trail they can check through the Login History page. Anyone who tries to open a protected page without logging in is automatically redirected to the login screen.
+Figure 16 shows the Login Page, which is the entry point of the system for all user roles. Users must provide a valid email address and password to gain access. Passwords are stored in encrypted form to keep them secure. Every login attempt, whether it was successful, failed, or denied because of an inactive account, is recorded along with the user, timestamp, IP address, and outcome. This gives admin an audit trail accessible through the Login History page. Anyone who tries to open a protected page without logging in is automatically redirected to the login screen.
 
 ---
 
@@ -638,7 +638,7 @@ Figure 16 shows the Login Page, which is the entry point of the system. PESO sta
 
 **Figure 17.** Home Dashboard
 
-Figure 17 shows the Home Dashboard, which is the first screen displayed after a successful login. It provides a quick overview of the system's current state through four summary counts: total registered applicants, number of active job vacancies, number of distinct employers, and total recommendation runs generated. It also shows the staff member's last login time, displayed in Philippine Time, and two activity feeds showing the five most recently registered applicants and the five most recently generated recommendations. This gives staff a quick view of recent activity without needing to go to another page.
+Figure 17 shows the Home Dashboard, which is the first screen displayed after a successful admin login. It provides a quick overview of the system's current state through five summary counts: total registered applicants, number of active job vacancies, number of approved employers, total referrals submitted, and total recommendation runs generated. It also shows the admin's last login time, displayed in Philippine Time, and three activity feeds showing the five most recently registered applicants, the five most recently submitted referrals, and the five most recently generated recommendations. This gives admin a quick view of recent activity without needing to navigate to another page.
 
 ---
 
@@ -652,9 +652,9 @@ Figure 17 shows the Home Dashboard, which is the first screen displayed after a 
 
 **Figure 19.** Job Recommendation Tab (Results Displayed)
 
-Figures 18 and 19 show the Job Recommendation tab, which is the main analytics module of the system and the direct output of Objective 2. The tab has two input options that staff can switch between: Registered Applicant mode, which lets staff select a stored applicant from a searchable list, and Quick Entry mode, which lets staff type in a profile manually without saving it to the database. When an applicant is selected in Registered Applicant mode, a small profile card appears showing the applicant's education level, skills, and work experience, along with a warning if any required fields are missing.
+Figures 18 and 19 show the Job Recommendations page in the Jobseeker portal, which is the direct output of Objective 2. The page is accessible to registered jobseekers. Before recommendations can be generated, the jobseeker's profile must have three required fields completed: education level, preferred position, and skills. If any of these are missing, the system displays a prompt to complete the profile first.
 
-When staff click Generate Recommendations, the system takes the applicant's four profile fields, which are education level, preferred position, skills, and work experience, and processes them using the same text preparation steps used when the model was trained. Education level, preferred position, and skills are required for the recommendation to proceed. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value to the profile, consistent with how it was handled during model training. The processed text is then converted into a numerical format using the saved TF-IDF converter and passed through the trained Logistic Regression model, which produces a suitability score for each of the five occupational categories. The categories are then shown in order from highest to lowest score. The top-ranked category is highlighted as a hero card with a green design, a trophy icon, the suitability percentage, and a list of currently active job vacancies in that category. The remaining four categories are listed below with their scores and available openings. If there are no active vacancies in a category, the system shows "No active openings in this category currently." When a recommendation is generated for a stored applicant, the result is saved in the recommendations table along with the applicant, vacancy, suitability score, rank, and the staff member who generated it.
+When the jobseeker clicks Generate Recommendations, the system takes their four profile fields — education level, preferred position, skills, and work experience — and processes them using the same text preparation steps applied during model training. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value to the profile, consistent with how the training data was prepared. The processed text is converted into a numerical vector using the saved TF-IDF vectorizer and passed through the trained Logistic Regression model, which returns a suitability score for each of the five occupational categories. The categories are displayed in order from highest to lowest score. The top-ranked category is highlighted as a hero card with the suitability percentage and a list of currently active vacancies in that category. The remaining four categories are listed below with their scores and available openings. If there are no active vacancies in a category, the system notifies the jobseeker that no openings are currently available. When recommendations are generated, the result is saved to the recommendations table with the applicant, vacancy, suitability score, and rank.
 
 ---
 
@@ -674,15 +674,17 @@ Figure 20 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarte
 
 **Figure 21.** Applicant List (Card View)
 
-*[Insert Figure 22: Applicant Registration Form]*
+*[Insert Figure 22: Applicant Detail View]*
 
-**Figure 22.** Applicant Registration Form
+**Figure 22.** Applicant Detail View
 
-*[Insert Figure 23: PEIS Batch Upload Page]*
+*[Insert Figure 23: Referral Management]*
 
-**Figure 23.** PEIS Batch Upload Page
+**Figure 23.** Referral Management
 
-Figures 21 through 23 show the Applicant Management module, which provides two ways to add applicant records. Staff can register applicants one by one through the form in Figure 22, which collects the four fields needed for the recommendation model, which are education level, preferred position, skills, and work experience, as well as the demographic fields used by the Analytical Dashboard such as sex, age, barangay, district, employment status, PWD status, and PEIS registration date. Alternatively, staff can upload a PEIS-exported Excel file through the batch upload page shown in Figure 23. The upload process converts raw PEIS column names and field values, including education level entries, barangay names, age formats, and employment status, into the system's standard format. It imports only the twelve fields the system needs and ignores any other columns that are already managed in PEIS. After uploading, a summary shows how many records were imported, how many blank rows were skipped, and how many records were saved with an incomplete profile that needs follow-up. The applicant list in Figure 21 supports card and table views, search by name or skills, filtering by district and employment status, and an incomplete filter that shows records with missing fields needed for the recommendation. Records can be archived to remove them from the active list without permanently deleting the data, and they can be restored if needed.
+Figures 21 and 22 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 21, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 22 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Records can be archived to remove them from the active list without permanently deleting the data and can be restored if needed.
+
+Figure 23 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique RS-YYYY-NNNNN reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
 
 ---
 
@@ -692,21 +694,21 @@ Figures 21 through 23 show the Applicant Management module, which provides two w
 
 **Figure 24.** Job Vacancy Management
 
-Figure 24 shows the Job Vacancy Management module, which is where staff record and manage the job openings from the PESO CSJDM labor market information list. Each vacancy stores the employer's company name, the job title, and the occupational category, which are the three fields the recommendation model needs. Staff can add new vacancies, edit existing ones, and set each vacancy as active or inactive. The recommendation engine only uses active vacancies when generating a ranked list. Deactivated vacancies stay in the database for record-keeping but are not shown in recommendation results.
+Figure 24 shows the Job Vacancy Management module in the Admin panel, which gives admin full visibility over all vacancies posted in the system. Vacancies are created and edited by approved employers through the Employer portal. Admin can set any vacancy as active or inactive and permanently delete vacancies when needed. The recommendation engine only surfaces active vacancies in jobseeker results. Deactivated vacancies remain in the database for record-keeping but are excluded from recommendation outputs.
 
 ---
 
 ### Staff Account Management
 
-*[Insert Figure 25: Staff Account List]*
+*[Insert Figure 25: User Account Management]*
 
-**Figure 25.** Staff Account Management
+**Figure 25.** User Account Management
 
-Figure 25 shows the Staff Account Management module, which allows authorized staff to create, view, edit, and deactivate staff accounts. Each account stores the staff member's full name, username, email address, active status, and date the account was created. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the sidebar. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail.
+Figure 25 shows the User Account Management module, which allows admin to create, view, edit, and deactivate accounts across all user roles. Each account stores the user's full name, email address, role, active status, and account creation date. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the settings. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail for the admin.
 
 ---
 
-The successful development and deployment of all six modules, which are User Authentication, User Account Management, Applicant Management, Job Vacancy Management, Job Recommendation, and Analytical Dashboard, confirms that the system meets all functional requirements established in Chapter III and fulfills the first specific objective of the study.
+The successful development and deployment of the system across three role-based portals — the Jobseeker portal covering self-service profile management, ML-powered recommendations, job browsing, and referral generation; the Employer portal covering vacancy management and referred applicant monitoring; and the Admin panel covering applicant oversight, referral management, employer approval, user account management, and the Analytical Dashboard — confirms that the system meets all functional requirements established in Chapter III and fulfills the first specific objective of the study.
 
 ---
 

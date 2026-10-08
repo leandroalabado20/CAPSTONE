@@ -570,29 +570,17 @@ For this system, a mean of 4.51–5.00 (Highly Acceptable) indicates that the ev
 
 ##### C. Statistical Treatment of Data
 
-The **Arithmetic Mean (AM)** will be used to summarize Likert-scale responses:
+**Frequency** is used to count how many respondents chose each rating per item.
 
-> AM = Σ(wᵢfᵢ) / n
+**Weighted Mean (WM)** is the main tool for interpreting the evaluation results. It is computed per questionnaire item, per ISO/IEC 25010:2023 quality characteristic, per TAM construct, and for the overall score of each instrument using the formula:
+
+> WM = Σ(wᵢfᵢ) / n
 
 Where:
-- AM = Arithmetic Mean
+- WM = Weighted Mean
 - wᵢ = Likert scale weight (5, 4, 3, 2, 1)
 - fᵢ = Frequency of responses for each weight
 - n = Total number of respondents
-
-AM will be computed per questionnaire item, per ISO/IEC 25010:2023 quality characteristic, per TAM construct, and for the overall score of each instrument.
-
-##### D. Statistical Tools Used
-
-**Frequency** is used to count how many respondents chose each rating per item.
-
-**Percentage** is used to express the proportion of responses per rating:
-
-> P = (F × 100) / N
-
-Where: P = Percentage, F = Frequency of a particular rating, N = Total respondents.
-
-**Weighted Mean** corresponds directly to the Arithmetic Mean formula above and is the main tool for interpreting the evaluation results in Chapter IV.
 
 ##### E. Algorithm Performance Metrics
 

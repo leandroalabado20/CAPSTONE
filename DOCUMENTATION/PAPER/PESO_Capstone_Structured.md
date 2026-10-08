@@ -692,7 +692,7 @@ Figure 21 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarte
 
 **Figure 24.** Referral Management
 
-Figures 22 and 23 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 22, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 23 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Records can be archived to remove them from the active list without permanently deleting the data and can be restored if needed.
+Figures 22 and 23 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 22, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 23 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Admin can permanently delete an applicant record, which also removes the linked jobseeker account and all associated referral and recommendation records from the database.
 
 Figure 24 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
 
@@ -718,7 +718,35 @@ Figure 26 shows the User Account Management module, which allows admin to create
 
 ---
 
-The successful development and deployment of the system across three role-based portals — the Jobseeker portal covering self-service profile management, ML-powered recommendations, job browsing, and referral generation; the Employer portal covering vacancy management and referred applicant monitoring; and the Admin panel covering applicant oversight, referral management, employer approval, user account management, and the Analytical Dashboard — confirms that the system meets all functional requirements established in Chapter III and fulfills the first specific objective of the study.
+### Employer Portal
+
+*[Insert Figure 27: Employer Company Profile and Vacancy Management]*
+
+**Figure 27.** Employer Company Profile and Vacancy Management
+
+*[Insert Figure 28: Employer Referred Applicants]*
+
+**Figure 28.** Employer Referred Applicants
+
+Employers register through the same registration page as jobseekers by selecting Employer as their role. After registering, they are directed to complete a company profile before they can post vacancies. The company profile includes the company name, contact person, address, industry, and contact details. After completing the profile, the employer submits a request for admin approval. Until approved, the employer can log in and update their profile but cannot post vacancies.
+
+Figure 27 shows the Employer portal's Company Profile and Vacancy Management pages. Once approved by admin, employers can add job vacancies by specifying the job title, occupational category, required education level, age range, preferred gender, minimum work experience, required skills, salary range, application deadline, and number of slots. Posted vacancies can be toggled between active and inactive. Only active vacancies within their application deadline appear in jobseeker recommendation results. Employers can edit their posted vacancies or deactivate them at any time.
+
+Figure 28 shows the Referred Applicants page in the Employer portal. When a jobseeker applies for one of the employer's vacancies, the referral appears in this list showing the jobseeker's name, the vacancy applied for, the referral date, and the referral status. The employer can click any entry to view the jobseeker's full profile and the ML suitability score captured at the time of application, giving the employer a basis for assessing whether the applicant meets the vacancy requirements.
+
+---
+
+### Employer Approvals
+
+*[Insert Figure 29: Employer Approvals]*
+
+**Figure 29.** Employer Approvals
+
+Figure 29 shows the Employer Approvals module in the Admin panel, which controls which employers are permitted to post job vacancies in the system. When an employer submits their completed company profile for review, their entry appears in the Pending tab and a badge count is shown on the admin sidebar as a notification. Admin can review the employer's company details and either approve or reject the request. Approval activates the employer account and grants full vacancy posting access. Rejection sends the employer back to revise their company profile and request approval again. Admin can also deactivate an already-approved employer, which blocks them from posting new vacancies until reactivated. An employer account cannot be approved if the company profile is incomplete, which prevents employers from bypassing the profile requirement. This moderation step ensures that only verified employers can advertise positions through the system.
+
+---
+
+The successful development and deployment of the system across three role-based portals — the Jobseeker portal covering self-service profile management, ML-powered recommendations, job browsing, and referral generation; the Employer portal covering company profile management, vacancy posting, and referred applicant monitoring; and the Admin panel covering applicant oversight, referral management, employer approval, vacancy monitoring, user account management, and the Analytical Dashboard — confirms that the system meets all functional requirements established in Chapter III and fulfills the first specific objective of the study.
 
 ---
 

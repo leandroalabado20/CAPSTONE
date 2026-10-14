@@ -562,7 +562,7 @@ Responses from both evaluator groups will be collected using a 5-point Likert sc
 | 1.51 – 2.50 | Slightly Acceptable |
 | 1.00 – 1.50 | Not Acceptable |
 
-For this system, a mean of 4.51–5.00 (Highly Acceptable) indicates that the evaluated characteristic (for example, the accuracy of the recommendation workflow or the clarity of the referral generation interface) fully meets the criterion with no significant areas for improvement. A mean of 3.51–4.50 (Acceptable) indicates the criterion is satisfied with only minor refinements needed. A mean of 2.51–3.50 (Moderately Acceptable) indicates the system partially satisfies the criterion and requires targeted improvement before regular operational use at PESO CSJDM. A mean of 1.51–2.50 (Slightly Acceptable) indicates substantial revision is required, and 1.00–1.50 (Not Acceptable) indicates the criterion is not met and fundamental redesign is needed. Consistent with Objective 3, the study's target threshold for each evaluation dimension is a weighted mean of at least 3.51 ("Acceptable").
+A mean of 4.51–5.00 (Highly Acceptable) indicates the criterion is fully met with no significant areas for improvement. A mean of 3.51–4.50 (Acceptable) indicates the criterion is satisfied with only minor refinements needed. A mean of 2.51–3.50 (Moderately Acceptable) indicates the system partially satisfies the criterion and requires targeted improvement. A mean of 1.51–2.50 (Slightly Acceptable) indicates substantial revision is required, and 1.00–1.50 (Not Acceptable) indicates the criterion is not met and fundamental redesign is needed.
 
 ##### C. Statistical Treatment of Data
 

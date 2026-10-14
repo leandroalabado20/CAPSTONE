@@ -376,7 +376,7 @@ Figure 6 presents the ERD. The database has seven tables corresponding to the da
 
 *Figure 7. System Architecture Diagram*
 
-Figure 7 presents the three-tier architecture of the system. All three user types — Jobseeker, Employer, and Admin (PESO Staff) — access the system through a web browser over HTTPS. The **Presentation Tier** (Frontend) consists of three functional components rendered as HTML, CSS, and JavaScript: the **Web UI**, which provides the Jobseeker portal, Employer portal, and Admin panel including the Analytical Dashboard; the **Data Management** component, which provides forms for Applicant, Vacancy, and User Account operations; and the **Visualization** component, which renders analytical charts using Chart.js. The Presentation Tier communicates with the Application Tier via HTTP request and JSON response. The **Application Tier** (Backend) is a single Flask and Jinja2 process containing three sub-components: the **Web Layer**, which handles routing, authentication, sessions, and CSRF protection; the **Controllers**, which implement business logic for Users, Applicants, Vacancies, Recommendations, and the Analytics API; and the **ML Inference Engine**, which runs in-process and applies a TF-IDF vectorizer followed by the best-trained classifier (Logistic Regression, Random Forest, or Naïve Bayes) to produce suitability scores. The Controllers invoke the ML Inference Engine with an applicant profile and receive suitability scores in return. The Application Tier communicates with the Data Tier via SQL read and write operations. The **Data Tier** consists of two persistent storage components: the **SQLite database** (peso_csjdm.db), which stores the seven core tables — users, applicants, employers, job_vacancies, referrals, recommendations, and login_logs; and the **model artifact**, the pre-trained model file that the ML Inference Engine loads into memory at application startup.
+Figure 7 shows the three-tier architecture of the system. Users access the system through a web browser over HTTPS. The Presentation Tier handles the three portals, data entry forms, and Chart.js visualizations using HTML, CSS, and JavaScript. The Application Tier is a Flask backend that manages routing, authentication, and business logic through its Web Layer and Controllers; it also contains the ML Inference Engine, which applies TF-IDF and the best-trained classifier to produce suitability scores when called by the Controllers. The Data Tier stores all records in a SQLite database and holds the pre-trained model file loaded by the ML Inference Engine at startup.
 
 #### Flowcharts
 
@@ -434,27 +434,6 @@ No resampling or class weighting was applied to any classifier during training. 
 
 After training, each classifier predicts the occupational category for the 217 held-out test profiles. Five metrics are computed for each classifier: Accuracy, Precision, Recall, F1-Score, and Macro F1-Score. A confusion matrix is generated as output for each classifier to show the per-category classification results. A fixed random seed (random_state = 42) was applied to the train/test split and to both Logistic Regression and Random Forest to ensure full reproducibility of the results. The Macro F1-Scores of all three classifiers are then compared. If no classifier produces an acceptable result, the pipeline loops back to Figure 9 to revisit the data preprocessing decisions before retraining. When the best result is deemed acceptable, the classifier with the highest Macro F1-Score is selected, and the fitted TF-IDF vectorizer and best model are saved together to disk as a single pipeline file (recommendation_pipeline.pkl), which the Flask application loads at startup to serve job recommendations without retraining.
 
-#### Mockups
-
-*[Insert Figure 11: Login and Registration Page Mockup]*
-
-*Figure 11. Login and Registration Page*
-
-*[Insert Figure 12: Jobseeker Profile Form Mockup]*
-
-*Figure 12. Jobseeker Profile Form*
-
-*[Insert Figure 13: Job Recommendations Page: Jobseeker View Mockup]*
-
-*Figure 13. Job Recommendations Page (Jobseeker View)*
-
-*[Insert Figure 14: Employer Profile and Vacancy Management Mockup]*
-
-*Figure 14. Employer Profile and Vacancy Management*
-
-*[Insert Figure 15: Admin Dashboard and Analytical Dashboard Mockup]*
-
-*Figure 15. Admin Dashboard and Analytical Dashboard*
 
 ### Tools, Technologies, and Development Environment
 

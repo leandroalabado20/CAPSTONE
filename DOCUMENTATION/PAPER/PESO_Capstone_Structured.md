@@ -496,7 +496,7 @@ Table 9 presents the total estimated development cost of ₱202,760.00, covering
 
 ### Evaluation Methods
 
-This section describes how the system will be evaluated following implementation. The objective of the evaluation is to assess the **technical quality** of the system and its **acceptability to users**. Two established evaluation models will be used: the ISO/IEC 25010:2023 Software Product Quality Model and the Technology Acceptance Model (TAM).
+This section describes how the system will be evaluated following implementation. The objective of the evaluation is to assess the technical quality of the system and its acceptability to users. Two established evaluation models will be used: the ISO/IEC 25010:2023 Software Product Quality Model and the Technology Acceptance Model (TAM).
 
 #### Evaluation Using ISO/IEC 25010:2023
 
@@ -514,7 +514,7 @@ This section describes how the system will be evaluated following implementation
 8. **Flexibility** evaluates whether the system operates across different browsers and devices without loss of function, and whether it can be adapted to different deployment environments.
 9. **Safety** evaluates whether the system prevents unacceptable risk to applicant data, including enforcement of authentication controls that restrict access to authorized users only and input validation that protects stored records from unauthorized modification.
 
-**Evaluators.** At least three (3) IT professionals with expertise in web development, database management, or machine learning systems will be invited as evaluators, selected through purposive sampling.
+**Evaluators.** Three (3) IT professionals with expertise in web development, database management, or machine learning systems served as evaluators, selected through purposive sampling.
 
 **Instrument.** A structured evaluation form based on the nine ISO/IEC 25010:2023 quality characteristics will be prepared, with each item rated on a 5-point Likert scale (5 = Strongly Agree to 1 = Strongly Disagree).
 
@@ -538,13 +538,13 @@ This section describes how the system will be evaluated following implementation
 
 ##### A. Respondents and Population Description
 
-The total evaluation population is thirty (30) respondents, broken down into two evaluator groups selected through purposive sampling. Table 10 summarizes the respondent groups.
+The total evaluation population is thirty (30) respondents, broken down into two groups selected through purposive sampling. Table 10 summarizes the respondent groups.
 
 **Table 10. Respondent Groups**
 
 | Respondent Group | Evaluation Framework | Sampling Method | n |
 |---|---|---|---|
-| Respondents (jobseekers, employers, PESO staff, and general users who interacted with the system) | TAM | Purposive | 27 |
+| Respondents (jobseekers, employers, and PESO staff who interacted with the system) | TAM | Purposive | 27 |
 | IT professionals (web development, database management, or ML systems expertise) | ISO/IEC 25010:2023 | Purposive | 3 |
 | **Total** | | | **30** |
 

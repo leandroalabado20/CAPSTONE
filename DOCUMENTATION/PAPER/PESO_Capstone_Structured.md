@@ -470,7 +470,7 @@ Table 9 presents the estimated breakdown of the cost of building the system.
 
 | Category | Item | Description | Estimated Cost |
 |---|---|---|---|
-| **Material Costing** | Laptop/PC | Coding, testing, ML training | ₱32,000.00 |
+| **Material Costing** | Laptop/PC (1 unit) | Coding, testing, ML training | ₱32,000.00 |
 | | External Storage | Backup and system files | ₱2,000.00 |
 | | Miscellaneous Supplies | Printing, documentation, etc. | ₱2,000.00 |
 | | Networking Equipment | | ₱3,000.00 |
@@ -484,8 +484,8 @@ Table 9 presents the estimated breakdown of the cost of building the system.
 | **Software** | Web Hosting Platform | Free tier (PythonAnywhere) | ₱0.00 |
 | | Domain Name | Free subdomain (PythonAnywhere) | ₱0.00 |
 | | **Subtotal** | | **₱0.00** |
-| **Utilities** | Electricity | | ₱1,000.00 |
-| | Internet | | ₱1,500.00 |
+| **Utilities** | Electricity | Per month | ₱1,000.00 |
+| | Internet | Per month | ₱1,500.00 |
 | | **Subtotal** | | **₱2,500.00** |
 | **Maintenance** | System Maintenance | Weekly check-ups and remote support | ₱6,000.00 |
 | | Technical Support | | ₱22,000.00 |

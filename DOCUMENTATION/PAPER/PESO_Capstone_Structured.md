@@ -620,35 +620,35 @@ The web-based data-driven job recommendation system with dashboard for PESO CSJD
 
 ### Login Page
 
-*[Insert Figure 16: Login Page]*
+*[Insert Figure 11: Login Page]*
 
-**Figure 16.** Login Page
+**Figure 11.** Login Page
 
-Figure 16 shows the Login Page, which is the entry point of the system for all user roles. Users must provide a valid email address and password to gain access. Passwords are stored in encrypted form to keep them secure. Every login attempt, whether it was successful, failed, or denied because of an inactive account, is recorded along with the user, timestamp, IP address, and outcome. This gives admin an audit trail accessible through the Login History page. Anyone who tries to open a protected page without logging in is automatically redirected to the login screen.
+Figure 11 shows the Login Page, which is the entry point of the system for all user roles. Users must provide a valid email address and password to gain access. Passwords are stored in encrypted form to keep them secure. Every login attempt, whether it was successful, failed, or denied because of an inactive account, is recorded along with the user, timestamp, IP address, and outcome. This gives admin an audit trail accessible through the Login History page. Anyone who tries to open a protected page without logging in is automatically redirected to the login screen.
 
 ---
 
 ### Home Dashboard
 
-*[Insert Figure 17: Home Dashboard]*
+*[Insert Figure 12: Home Dashboard]*
 
-**Figure 17.** Home Dashboard
+**Figure 12.** Home Dashboard
 
-Figure 17 shows the Home Dashboard, which is the first screen displayed after a successful admin login. It provides a quick overview of the system's current state through five summary counts: total registered applicants, number of active job vacancies, number of approved employers, total referrals submitted, and total recommendation runs generated. It also shows the admin's last login time, displayed in Philippine Time, and three activity feeds showing the five most recently registered applicants, the five most recently submitted referrals, and the five most recently generated recommendations. This gives admin a quick view of recent activity without needing to navigate to another page.
+Figure 12 shows the Home Dashboard, which is the first screen displayed after a successful admin login. It provides a quick overview of the system's current state through five summary counts: total registered applicants, number of active job vacancies, number of approved employers, total referrals submitted, and total recommendation runs generated. It also shows the admin's last login time, displayed in Philippine Time, and three activity feeds showing the five most recently registered applicants, the five most recently submitted referrals, and the five most recently generated recommendations. This gives admin a quick view of recent activity without needing to navigate to another page.
 
 ---
 
 ### Job Recommendation Tab
 
-*[Insert Figure 18: Job Recommendation Tab: Empty State]*
+*[Insert Figure 13: Job Recommendation Tab: Empty State]*
 
-**Figure 18.** Job Recommendation Tab (No Recommendation Generated Yet)
+**Figure 13.** Job Recommendation Tab (No Recommendation Generated Yet)
 
-*[Insert Figure 19: Job Recommendation Tab: Recommendation Results]*
+*[Insert Figure 14: Job Recommendation Tab: Recommendation Results]*
 
-**Figure 19.** Job Recommendation Tab (Results Displayed)
+**Figure 14.** Job Recommendation Tab (Results Displayed)
 
-Figures 18 and 19 show the Job Recommendations page in the Jobseeker portal, which is the direct output of Objective 2. The page is accessible to registered jobseekers. Before recommendations can be generated, the jobseeker's profile must have three required fields completed: education level, preferred position, and skills. If any of these are missing, the system displays a prompt to complete the profile first.
+Figures 13 and 14 show the Job Recommendations page in the Jobseeker portal, which is the direct output of Objective 2. The page is accessible to registered jobseekers. Before recommendations can be generated, the jobseeker's profile must have three required fields completed: education level, preferred position, and skills. If any of these are missing, the system displays a prompt to complete the profile first.
 
 When the jobseeker clicks Generate Recommendations, the system takes the jobseeker's profile fields — education level, preferred position, skills, and work experience — and processes them using the same text preparation steps applied during model training. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value to the profile, consistent with how the training data was prepared. The processed text is converted into a numerical vector using the saved TF-IDF vectorizer and passed through the trained Logistic Regression model, which returns a suitability score for each of the five occupational categories. The categories are displayed in order from highest to lowest score. The top-ranked category is highlighted as a hero card with the suitability percentage and a list of currently active vacancies in that category. The remaining four categories are listed below with their scores and available openings. If there are no active vacancies in a category, the system notifies the jobseeker that no openings are currently available. When recommendations are generated, the result is saved to the recommendations table with the applicant, vacancy, suitability score, and rank.
 
@@ -656,89 +656,89 @@ When the jobseeker clicks Generate Recommendations, the system takes the jobseek
 
 ### Referral Generation
 
-*[Insert Figure 20: Referral Slip Generation]*
+*[Insert Figure 15: Referral Slip Generation]*
 
-**Figure 20.** Referral Slip Generation
+**Figure 15.** Referral Slip Generation
 
-Figure 20 shows the referral generation step in the Jobseeker portal, which is the core output of the system and directly addresses the problem of jobseekers having to travel to the PESO office just to receive a referral. From the recommendation results page, the jobseeker can select any active vacancy and click Apply to initiate a referral. The system generates a referral slip with a unique system-generated reference code that identifies the referral, records the jobseeker, the vacancy, the employer, the suitability score at the time of application, and the date. A jobseeker can hold only one active referral at a time. The generated referral slip can be presented to the employer directly, removing the need for the jobseeker to return to the PESO office to obtain a paper referral from staff.
+Figure 15 shows the referral generation step in the Jobseeker portal, which is the core output of the system and directly addresses the problem of jobseekers having to travel to the PESO office just to receive a referral. From the recommendation results page, the jobseeker can select any active vacancy and click Apply to initiate a referral. The system generates a referral slip with a unique system-generated reference code that identifies the referral, records the jobseeker, the vacancy, the employer, the suitability score at the time of application, and the date. A jobseeker can hold only one active referral at a time. The generated referral slip can be presented to the employer directly, removing the need for the jobseeker to return to the PESO office to obtain a paper referral from staff.
 
 ---
 
 ### Analytical Dashboard Tab
 
-*[Insert Figure 21: Analytical Dashboard Tab]*
+*[Insert Figure 16: Analytical Dashboard Tab]*
 
-**Figure 21.** Analytical Dashboard Tab
+**Figure 16.** Analytical Dashboard Tab
 
-Figure 21 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
+Figure 16 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
 
 ---
 
 ### Applicant Management
 
-*[Insert Figure 22: Applicant List (Card View)]*
+*[Insert Figure 17: Applicant List (Card View)]*
 
-**Figure 22.** Applicant List (Card View)
+**Figure 17.** Applicant List (Card View)
 
-*[Insert Figure 23: Applicant Detail View]*
+*[Insert Figure 18: Applicant Detail View]*
 
-**Figure 23.** Applicant Detail View
+**Figure 18.** Applicant Detail View
 
-*[Insert Figure 24: Referral Management]*
+*[Insert Figure 19: Referral Management]*
 
-**Figure 24.** Referral Management
+**Figure 19.** Referral Management
 
-Figures 22 and 23 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 22, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 23 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Admin can permanently delete an applicant record, which also removes the linked jobseeker account and all associated referral and recommendation records from the database.
+Figures 17 and 18 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 17, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 18 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Admin can permanently delete an applicant record, which also removes the linked jobseeker account and all associated referral and recommendation records from the database.
 
-Figure 24 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
+Figure 19 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
 
 ---
 
 ### Job Vacancy Management
 
-*[Insert Figure 25: Job Vacancy List]*
+*[Insert Figure 20: Job Vacancy List]*
 
-**Figure 25.** Job Vacancy Management
+**Figure 20.** Job Vacancy Management
 
-Figure 25 shows the Job Vacancy Management module in the Admin panel, which gives admin full visibility over all vacancies posted in the system. Vacancies are created and edited by approved employers through the Employer portal. Admin can set any vacancy as active or inactive and permanently delete vacancies when needed. The recommendation engine only surfaces active vacancies in jobseeker results. Deactivated vacancies remain in the database for record-keeping but are excluded from recommendation outputs.
+Figure 20 shows the Job Vacancy Management module in the Admin panel, which gives admin full visibility over all vacancies posted in the system. Vacancies are created and edited by approved employers through the Employer portal. Admin can set any vacancy as active or inactive and permanently delete vacancies when needed. The recommendation engine only surfaces active vacancies in jobseeker results. Deactivated vacancies remain in the database for record-keeping but are excluded from recommendation outputs.
 
 ---
 
 ### Staff Account Management
 
-*[Insert Figure 26: User Account Management]*
+*[Insert Figure 21: User Account Management]*
 
-**Figure 26.** User Account Management
+**Figure 21.** User Account Management
 
-Figure 26 shows the User Account Management module, which allows admin to create, view, edit, and deactivate accounts across all user roles. Each account stores the user's full name, email address, role, active status, and account creation date. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the settings. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail for the admin.
+Figure 21 shows the User Account Management module, which allows admin to create, view, edit, and deactivate accounts across all user roles. Each account stores the user's full name, email address, role, active status, and account creation date. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the settings. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail for the admin.
 
 ---
 
 ### Employer Portal
 
-*[Insert Figure 27: Employer Company Profile and Vacancy Management]*
+*[Insert Figure 22: Employer Company Profile and Vacancy Management]*
 
-**Figure 27.** Employer Company Profile and Vacancy Management
+**Figure 22.** Employer Company Profile and Vacancy Management
 
-*[Insert Figure 28: Employer Referred Applicants]*
+*[Insert Figure 23: Employer Referred Applicants]*
 
-**Figure 28.** Employer Referred Applicants
+**Figure 23.** Employer Referred Applicants
 
 Employers register through the same registration page as jobseekers by selecting Employer as their role. After registering, they are directed to complete a company profile before they can post vacancies. The company profile includes the company name, contact person, address, industry, and contact details. After completing the profile, the employer submits a request for admin approval. Until approved, the employer can log in and update their profile but cannot post vacancies.
 
-Figure 27 shows the Employer portal's Company Profile and Vacancy Management pages. Once approved by admin, employers can add job vacancies by specifying the job title, occupational category, required education level, age range, preferred gender, minimum work experience, required skills, salary range, application deadline, and number of slots. Posted vacancies can be toggled between active and inactive. Only active vacancies within their application deadline appear in jobseeker recommendation results. Employers can edit their posted vacancies or deactivate them at any time.
+Figure 22 shows the Employer portal's Company Profile and Vacancy Management pages. Once approved by admin, employers can add job vacancies by specifying the job title, occupational category, required education level, age range, preferred gender, minimum work experience, required skills, salary range, application deadline, and number of slots. Posted vacancies can be toggled between active and inactive. Only active vacancies within their application deadline appear in jobseeker recommendation results. Employers can edit their posted vacancies or deactivate them at any time.
 
-Figure 28 shows the Referred Applicants page in the Employer portal. When a jobseeker applies for one of the employer's vacancies, the referral appears in this list showing the jobseeker's name, the vacancy applied for, the referral date, and the referral status. The employer can click any entry to view the jobseeker's full profile and the ML suitability score captured at the time of application, giving the employer a basis for assessing whether the applicant meets the vacancy requirements.
+Figure 23 shows the Referred Applicants page in the Employer portal. When a jobseeker applies for one of the employer's vacancies, the referral appears in this list showing the jobseeker's name, the vacancy applied for, the referral date, and the referral status. The employer can click any entry to view the jobseeker's full profile and the ML suitability score captured at the time of application, giving the employer a basis for assessing whether the applicant meets the vacancy requirements.
 
 ---
 
 ### Employer Approvals
 
-*[Insert Figure 29: Employer Approvals]*
+*[Insert Figure 24: Employer Approvals]*
 
-**Figure 29.** Employer Approvals
+**Figure 24.** Employer Approvals
 
-Figure 29 shows the Employer Approvals module in the Admin panel, which controls which employers are permitted to post job vacancies in the system. When an employer submits their completed company profile for review, their entry appears in the Pending tab and a badge count is shown on the admin sidebar as a notification. Admin can review the employer's company details and either approve or reject the request. Approval activates the employer account and grants full vacancy posting access. Rejection sends the employer back to revise their company profile and request approval again. Admin can also deactivate an already-approved employer, which blocks them from posting new vacancies until reactivated. An employer account cannot be approved if the company profile is incomplete, which prevents employers from bypassing the profile requirement. This moderation step ensures that only verified employers can advertise positions through the system.
+Figure 24 shows the Employer Approvals module in the Admin panel, which controls which employers are permitted to post job vacancies in the system. When an employer submits their completed company profile for review, their entry appears in the Pending tab and a badge count is shown on the admin sidebar as a notification. Admin can review the employer's company details and either approve or reject the request. Approval activates the employer account and grants full vacancy posting access. Rejection sends the employer back to revise their company profile and request approval again. Admin can also deactivate an already-approved employer, which blocks them from posting new vacancies until reactivated. An employer account cannot be approved if the company profile is incomplete, which prevents employers from bypassing the profile requirement. This moderation step ensures that only verified employers can advertise positions through the system.
 
 ---
 

@@ -76,9 +76,9 @@ The recommendation engine is trained on 1,083 historical placement records from 
 
 The system is accessible through a responsive web interface on both desktop and mobile browsers, deployed on a cloud hosting platform, and operates in English only. Development follows the Rapid Application Development methodology combined with CRISP-DM for the machine learning pipeline. The study is conducted within the operational context of the City of San Jose del Monte, Bulacan, using PESO CSJDM records only. System quality is evaluated using ISO/IEC 25010:2023 assessed by three IT experts, and user acceptance is evaluated using the Technology Acceptance Model assessed by respondents.
 
-**Delimitations.** The system's scope ends at the point of referral. It does not track what happens after a referral slip is generated, including whether the jobseeker was interviewed, hired, or placed. The system is standalone and operates independently from PEIS. It does not integrate with PEIS through any API or real-time data connection, and does not import jobseeker records from PEIS. All jobseeker data in the system is entered directly by jobseekers through the self-registration portal. Notifications of any kind, including email, SMS, and in-app alerts, are not supported. The recommendation model is trained offline by the research team before deployment and cannot be retrained from within the web interface. The recommendation engine covers only the five occupational categories derived from PESO CSJDM's historical placement records, which reflect the blue-collar and entry-level positions the office historically places. Vacancies that fall outside these categories, such as professional or highly skilled positions, are not well-served by the current recommendation model and should not be posted under an unrelated category. A jobseeker can hold only one active referral at a time, and a new referral can only be requested after the current one is cancelled. Employer accounts must be approved by the admin before any vacancy posting features become accessible. The system is designed specifically for PESO CSJDM and is not intended for direct deployment at other PESO offices without retraining the model on that office's own placement data. It does not support multiple office branches. Advanced classification approaches including gradient boosting, deep learning, and large language model-based matching are outside the scope of this study.
+**Delimitations.** The system's scope ends at the point of referral. It does not track what happens after a referral slip is generated, including whether the jobseeker was interviewed, hired, or placed. The system is standalone and operates independently from PEIS. It does not integrate with PEIS through any API or real-time data connection, and does not import jobseeker records from PEIS. All jobseeker data in the system is entered directly by jobseekers through the self-registration portal. Notifications of any kind, including email, SMS, and in-app alerts, are not supported. Self-service password recovery is not implemented; a user who forgets their password must contact the system administrator to have it reset. The recommendation model is trained offline by the research team before deployment and cannot be retrained from within the web interface. The recommendation engine covers only the five occupational categories derived from PESO CSJDM's historical placement records, which reflect the blue-collar and entry-level positions the office historically places. Vacancies that fall outside these categories, such as professional or highly skilled positions, are not well-served by the current recommendation model and should not be posted under an unrelated category. A jobseeker can hold only one active referral at a time, and a new referral can only be requested after the current one is cancelled. Employer accounts must be approved by the admin before any vacancy posting features become accessible. The system is designed specifically for PESO CSJDM and is not intended for direct deployment at other PESO offices without retraining the model on that office's own placement data. It does not support multiple office branches. Advanced classification approaches including gradient boosting, deep learning, and large language model-based matching are outside the scope of this study.
 
-**Limitations.** The training dataset consists of 1,083 placement records from PESO CSJDM, with distribution concentrated in a small number of occupational categories. This class imbalance sets a ceiling on the classification performance any of the three algorithms can achieve, particularly for the less-represented categories. Recommendations are ranked at the occupational category level first, meaning all vacancies within the same predicted category start with the same base suitability score and are differentiated only by requirement fit and location preference.
+**Limitations.** The training dataset consists of 1,083 placement records from PESO CSJDM, with distribution concentrated in a small number of occupational categories. This class imbalance sets a ceiling on the classification performance any of the three algorithms can achieve, particularly for the less-represented categories. The classification model and category definitions are based on PESO CSJDM records only and may not generalize to other PESO offices with different local labor market conditions or a different occupational distribution. Recommendations are ranked at the occupational category level first, meaning all vacancies within the same predicted category start with the same base suitability score and are differentiated only by requirement fit and location preference. The system evaluation was conducted in a controlled demonstration setting using pre-loaded test data, and results reflect perceived quality and acceptance under those conditions, which may differ from findings in a full production environment over extended use.
 
 ### Definition of Terms
 
@@ -218,7 +218,7 @@ I-Recruiter is an intelligent decision support system for HR professionals and r
 | Srihari et al. (2025) | Career assistance on government employment portal | RAG + LLM embeddings (voice-enabled, multilingual) | LLM-based; no classifier comparison | N/A; single architecture (68% precision@10) | Punjab PGRKAM portal listings | Consumer GPU (NVIDIA RTX 3050) | Rural job seekers (English/Hindi/Punjabi) |
 | Darma et al. (2026) | Student career path recommendation | Questionnaire + ML classification | KNN, Naïve Bayes | Naïve Bayes (97% accuracy, 93% F1) | 300 student questionnaires (Battuta University) | Not specified | CS students |
 | Najjar et al. (2021) | Resume screening and applicant ranking | NLP + word embeddings + cosine similarity | N/A; single approach | N/A; cosine similarity scoring | Labeled resume dataset | Decision support system | HR professionals and recruiters |
-| **Proposed System** | **Self-service job recommendation, referral, and analytics system for PESO CSJDM** | **TF-IDF + supervised ML classification** | **LR, RF, NB** | **To be evaluated** | **PESO CSJDM historical placement records** | **Flask web application** | **Jobseekers, Employers, and PESO Admin Staff** |
+| **Proposed System** | **Self-service job recommendation, referral, and analytics system for PESO CSJDM** | **TF-IDF + supervised ML classification** | **LR, RF, NB** | **Logistic Regression (Macro F1 0.7370)** | **PESO CSJDM historical placement records** | **Flask web application** | **Jobseekers, Employers, and PESO Admin Staff** |
 
 ---
 
@@ -230,7 +230,7 @@ Three recurring patterns are evident across the six systems. First, all systems 
 
 The proposed system is designed to address these constraints directly. It adopts the same TF-IDF vectorization and multi-classifier comparison pipeline established by Tiwari & Upadhyay (2024) and validated by Betrand et al. (2025) and Darma et al. (2026), but grounds the comparison in actual PESO CSJDM placement data rather than in a transferred benchmark. It replaces cosine similarity ranking with predict_proba probability outputs from the deployed classifier, enabling vacancy ranking without requiring descriptive text on the vacancy side, as Najjar et al. (2021) required. It operates entirely within a standard Flask and scikit-learn stack, without the GPU infrastructure or LLM services that Srihari et al. (2025) and Heakl et al. (2024) depend on, making the system maintainable by a municipal government office. No related system examined was built on government-collected operational placement records from a Philippine PESO office; the present study is the first to do so, establishing an empirical baseline that other PESO offices can reference directly.
 
-Unlike the related systems reviewed, which were built on general-purpose datasets such as scraped resumes (Heakl et al., 2024; Chihab et al., 2025), publicly available job postings (Tiwari & Upadhyay, 2024), or purpose-built questionnaire instruments (Darma et al., 2026), the proposed system is trained exclusively on PESO CSJDM's own operational placement records, making it the first system in the reviewed literature to use Philippine PESO data. Where systems such as Tiwari and Upadhyay (2024), Najjar et al. (2021), and Winardi et al. (2025) rank matches through cosine similarity, a method that requires rich descriptive text on the vacancy side, the proposed system uses predict_proba probability outputs from the trained classifier because PESO vacancy records contain only employer name, job title, and occupational category, which is insufficient for cosine-based matching. The system also operates without the GPU infrastructure that Srihari et al. (2025) and Heakl et al. (2024) depend on, runs on a standard Flask and scikit-learn stack suitable for a municipal government office, and directs its outputs directly to jobseekers through a self-service portal, a user orientation not present in any of the six related systems reviewed. In addition, none of the related systems include an analytical dashboard; the proposed system integrates one to support the office's quarterly job seeker reporting requirements.
+Unlike the related systems reviewed, which were built on general-purpose datasets such as scraped resumes (Heakl et al., 2024), publicly available job postings (Tiwari & Upadhyay, 2024), or purpose-built questionnaire instruments (Darma et al., 2026), the proposed system is trained exclusively on PESO CSJDM's own operational placement records, making it the first system in the reviewed literature to use Philippine PESO data. Where systems such as Tiwari and Upadhyay (2024), Najjar et al. (2021), and Winardi et al. (2025) rank matches through cosine similarity, a method that requires rich descriptive text on the vacancy side, the proposed system uses predict_proba probability outputs from the trained classifier because PESO vacancy records contain only employer name, job title, and occupational category, which is insufficient for cosine-based matching. The system also operates without the GPU infrastructure that Srihari et al. (2025) and Heakl et al. (2024) depend on, runs on a standard Flask and scikit-learn stack suitable for a municipal government office, and directs its outputs directly to jobseekers through a self-service portal, a user orientation not present in any of the six related systems reviewed. In addition, none of the related systems include an analytical dashboard; the proposed system integrates one to support the office's quarterly job seeker reporting requirements.
 
 ---
 
@@ -568,12 +568,21 @@ A mean of 4.51–5.00 (Highly Acceptable) indicates the criterion is fully met w
 
 **Frequency** is used to count how many respondents chose each rating per item.
 
-**Weighted Mean (WM)** is the main tool for interpreting the evaluation results. It is computed per questionnaire item, per ISO/IEC 25010:2023 quality characteristic, per TAM construct, and for the overall score of each instrument using the formula:
+**Percentage (P)** is used to express the proportion of respondents who selected each rating relative to the total number of respondents, using the formula:
 
-> WM = Σ(wᵢfᵢ) / n
+> P = (F × 100) / N
 
 Where:
-- WM = Weighted Mean
+- P = Percentage
+- F = Frequency of responses for a given rating
+- N = Total number of respondents
+
+**Arithmetic Mean (AM)** is the main tool for interpreting the evaluation results. It is computed per questionnaire item, per ISO/IEC 25010:2023 quality characteristic, per TAM construct, and for the overall score of each instrument using the formula:
+
+> AM = Σ(wᵢfᵢ) / n
+
+Where:
+- AM = Arithmetic Mean
 - wᵢ = Likert scale weight (5, 4, 3, 2, 1)
 - fᵢ = Frequency of responses for each weight
 - n = Total number of respondents
@@ -616,9 +625,9 @@ This chapter presents the results of the study based on the specific objectives 
 
 ## Results for Specific Objective 1: Develop a Web-Based Job Recommendation and Referral System with Analytical Dashboard for PESO CSJDM.
 
-The web-based data-driven job recommendation system with dashboard for PESO CSJDM was successfully developed and deployed. The system was built using Python and Flask as the backend framework, SQLite as the database, Bootstrap via CoreUI 5 for the frontend, and scikit-learn for the machine learning component. It runs through a responsive web interface that can be accessed on both desktop and mobile browsers. The system is organized into three role-based portals: the Jobseeker portal, the Employer portal, and the Admin panel. The Jobseeker portal provides self-service access to profile management, ML-powered job recommendations, job browsing, and referral generation. The Employer portal allows registered and approved employers to manage vacancies and view the profiles of jobseekers referred to their postings. The Admin panel provides tools for applicant oversight, vacancy monitoring, referral management, employer approval, user account management, and the Analytical Dashboard. The following sections describe the key modules as implemented.
+The Web-Based Job Recommendation and Referral System with Analytical Dashboard for PESO CSJDM was successfully developed and deployed. The system is built using Python and Flask, SQLite, Bootstrap via CoreUI 5, and scikit-learn, accessible through a responsive web interface on both desktop and mobile browsers. The following sections present the seven core modules aligned with the processes defined in the Data Flow Diagram Level 1.
 
-### Login Page
+### P1: Authenticate User
 
 *[Insert Figure 11: Login Page]*
 
@@ -628,17 +637,17 @@ Figure 11 shows the Login Page, which is the entry point of the system for all u
 
 ---
 
-### Home Dashboard
+### P2: Manage Jobseeker Profile
 
-*[Insert Figure 12: Home Dashboard]*
+*[Insert Figure 12: Jobseeker Profile Form]*
 
-**Figure 12.** Home Dashboard
+**Figure 12.** Jobseeker Profile Form
 
-Figure 12 shows the Home Dashboard, which is the first screen displayed after a successful admin login. It provides a quick overview of the system's current state through five summary counts: total registered applicants, number of active job vacancies, number of approved employers, total referrals submitted, and total recommendation runs generated. It also shows the admin's last login time, displayed in Philippine Time, and three activity feeds showing the five most recently registered applicants, the five most recently submitted referrals, and the five most recently generated recommendations. This gives admin a quick view of recent activity without needing to navigate to another page.
+Figure 12 shows the Jobseeker Profile Form, where registered jobseekers complete their personal information, educational background, work history, skills, and employment preferences. The form follows the PhilJobNet/NSRP structure and stores repeatable sections such as education, trainings, work history, and eligibilities as JSON. Four fields are required by the recommendation engine: education level, preferred position, skills, and work experience. A jobseeker cannot generate recommendations until these fields are filled in.
 
 ---
 
-### Job Recommendation Tab
+### P3: Generate Job Recommendations
 
 *[Insert Figure 13: Job Recommendation Tab: Empty State]*
 
@@ -648,101 +657,61 @@ Figure 12 shows the Home Dashboard, which is the first screen displayed after a 
 
 **Figure 14.** Job Recommendation Tab (Results Displayed)
 
-Figures 13 and 14 show the Job Recommendations page in the Jobseeker portal, which is the direct output of Objective 2. The page is accessible to registered jobseekers. Before recommendations can be generated, the jobseeker's profile must have three required fields completed: education level, preferred position, and skills. If any of these are missing, the system displays a prompt to complete the profile first.
+Figures 13 and 14 show the Job Recommendations page in the Jobseeker portal. Before recommendations can be generated, the jobseeker's profile must have three required fields completed: education level, preferred position, and skills. If any of these are missing, the system displays a prompt to complete the profile first.
 
-When the jobseeker clicks Generate Recommendations, the system takes the jobseeker's profile fields — education level, preferred position, skills, and work experience — and processes them using the same text preparation steps applied during model training. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value to the profile, consistent with how the training data was prepared. The processed text is converted into a numerical vector using the saved TF-IDF vectorizer and passed through the trained Logistic Regression model, which returns a suitability score for each of the five occupational categories. The categories are displayed in order from highest to lowest score. The top-ranked category is highlighted as a hero card with the suitability percentage and a list of currently active vacancies in that category. The remaining four categories are listed below with their scores and available openings. If there are no active vacancies in a category, the system notifies the jobseeker that no openings are currently available. When recommendations are generated, the result is saved to the recommendations table with the applicant, vacancy, suitability score, and rank.
+When the jobseeker clicks Generate Recommendations, the system processes the profile fields using the same text preparation steps applied during model training. Work experience is optional; if left blank, the system substitutes "NO EXPERIENCE" so the field still contributes a meaningful value. The processed text is converted into a numerical vector using the saved TF-IDF vectorizer and passed through the trained Logistic Regression model, which returns a suitability score for each of the five occupational categories. The categories are displayed in order from highest to lowest score. The top-ranked category is highlighted as a hero card with the suitability percentage and a list of currently active vacancies in that category. The remaining four categories are listed below with their scores and available openings. When recommendations are generated, the result is saved to the recommendations table with the applicant, vacancy, suitability score, and rank.
 
 ---
 
-### Referral Generation
+### P4: Process Referral
 
 *[Insert Figure 15: Referral Slip Generation]*
 
 **Figure 15.** Referral Slip Generation
 
-Figure 15 shows the referral generation step in the Jobseeker portal, which is the core output of the system and directly addresses the problem of jobseekers having to travel to the PESO office just to receive a referral. From the recommendation results page, the jobseeker can select any active vacancy and click Apply to initiate a referral. The system generates a referral slip with a unique system-generated reference code that identifies the referral, records the jobseeker, the vacancy, the employer, the suitability score at the time of application, and the date. A jobseeker can hold only one active referral at a time. The generated referral slip can be presented to the employer directly, removing the need for the jobseeker to return to the PESO office to obtain a paper referral from staff.
+Figure 15 shows the referral generation step in the Jobseeker portal, which is the core output of the system and directly addresses the problem of jobseekers having to travel to the PESO office just to receive a referral. From the recommendation results page, the jobseeker can select any active vacancy and click Apply to initiate a referral. The system generates a referral slip with a unique reference code that records the jobseeker, vacancy, employer, suitability score, and date. A jobseeker can hold only one active referral at a time. The generated referral slip can be presented to the employer directly, removing the need for a paper referral from the PESO office.
 
 ---
 
-### Analytical Dashboard Tab
+### P5: Manage Employer Portal
 
-*[Insert Figure 16: Analytical Dashboard Tab]*
+*[Insert Figure 16: Employer Company Profile and Vacancy Management]*
 
-**Figure 16.** Analytical Dashboard Tab
+**Figure 16.** Employer Company Profile and Vacancy Management
 
-Figure 16 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
+*[Insert Figure 17: Employer Referred Applicants]*
 
----
+**Figure 17.** Employer Referred Applicants
 
-### Applicant Management
+Employers register by selecting Employer as their role and must complete a company profile before posting vacancies. After completing the profile, the employer submits a request for admin approval. Until approved, the employer can log in and update their profile but cannot post vacancies.
 
-*[Insert Figure 17: Applicant List (Card View)]*
+Figure 16 shows the Employer portal's Company Profile and Vacancy Management pages. Once approved, employers can post job vacancies by specifying the job title, occupational category, required education level, age range, preferred gender, minimum work experience, required skills, salary range, application deadline, and number of slots. Only active vacancies within their application deadline appear in jobseeker recommendation results.
 
-**Figure 17.** Applicant List (Card View)
-
-*[Insert Figure 18: Applicant Detail View]*
-
-**Figure 18.** Applicant Detail View
-
-*[Insert Figure 19: Referral Management]*
-
-**Figure 19.** Referral Management
-
-Figures 17 and 18 show the Applicant Management module in the Admin panel. Applicant records are created by jobseekers themselves through the Jobseeker portal's self-registration and profile form. Admin can view all registered applicants through the list in Figure 17, which supports card and table views, search by name or skills, and filtering by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Figure 18 shows the full applicant detail view, which gives admin visibility over a jobseeker's complete profile including personal information, educational background, work history, skills, and employment preferences. Admin can permanently delete an applicant record, which also removes the linked jobseeker account and all associated referral and recommendation records from the database.
-
-Figure 19 shows the Referral Management page, where admin can monitor all referrals submitted through the system. Each entry shows the referral date, applicant name, job title, employer, and referral status. Admin can open any referral slip to view its unique reference code and the complete referral details. This page gives admin full visibility over referral activity across all users.
+Figure 17 shows the Referred Applicants page in the Employer portal. When a jobseeker applies for a vacancy, the referral appears in this list. The employer can view the jobseeker's full profile and the ML suitability score captured at the time of application, giving the employer a basis for assessing whether the applicant meets the vacancy requirements.
 
 ---
 
-### Job Vacancy Management
+### P6: Administer System
 
-*[Insert Figure 20: Job Vacancy List]*
+*[Insert Figure 18: Applicant Management]*
 
-**Figure 20.** Job Vacancy Management
+**Figure 18.** Applicant Management
 
-Figure 20 shows the Job Vacancy Management module in the Admin panel, which gives admin full visibility over all vacancies posted in the system. Vacancies are created and edited by approved employers through the Employer portal. Admin can set any vacancy as active or inactive and permanently delete vacancies when needed. The recommendation engine only surfaces active vacancies in jobseeker results. Deactivated vacancies remain in the database for record-keeping but are excluded from recommendation outputs.
-
----
-
-### Staff Account Management
-
-*[Insert Figure 21: User Account Management]*
-
-**Figure 21.** User Account Management
-
-Figure 21 shows the User Account Management module, which allows admin to create, view, edit, and deactivate accounts across all user roles. Each account stores the user's full name, email address, role, active status, and account creation date. Passwords are stored in encrypted form and can be changed by the account holder through the Change Password option in the settings. Deactivated accounts keep their records and login history but are blocked from accessing the system until reactivated. The Login History page shows the last 200 login events across all accounts, including the user, timestamp, IP address, and whether the attempt was successful, failed, or denied, which serves as a security audit trail for the admin.
+Figure 18 shows the Applicant Management module in the Admin panel. Admin can view all registered applicants with card and table views, search by name or skills, and filter by district and employment status. An incomplete filter highlights records with missing profile fields needed for the recommendation engine. Admin can view a jobseeker's complete profile, monitor all submitted referrals, manage job vacancies, approve employer accounts, and manage user accounts across all roles, providing full oversight of all records and workflows in the system.
 
 ---
 
-### Employer Portal
+### P7: Display Analytical Dashboard
 
-*[Insert Figure 22: Employer Company Profile and Vacancy Management]*
+*[Insert Figure 19: Analytical Dashboard]*
 
-**Figure 22.** Employer Company Profile and Vacancy Management
+**Figure 19.** Analytical Dashboard
 
-*[Insert Figure 23: Employer Referred Applicants]*
-
-**Figure 23.** Employer Referred Applicants
-
-Employers register through the same registration page as jobseekers by selecting Employer as their role. After registering, they are directed to complete a company profile before they can post vacancies. The company profile includes the company name, contact person, address, industry, and contact details. After completing the profile, the employer submits a request for admin approval. Until approved, the employer can log in and update their profile but cannot post vacancies.
-
-Figure 22 shows the Employer portal's Company Profile and Vacancy Management pages. Once approved by admin, employers can add job vacancies by specifying the job title, occupational category, required education level, age range, preferred gender, minimum work experience, required skills, salary range, application deadline, and number of slots. Posted vacancies can be toggled between active and inactive. Only active vacancies within their application deadline appear in jobseeker recommendation results. Employers can edit their posted vacancies or deactivate them at any time.
-
-Figure 23 shows the Referred Applicants page in the Employer portal. When a jobseeker applies for one of the employer's vacancies, the referral appears in this list showing the jobseeker's name, the vacancy applied for, the referral date, and the referral status. The employer can click any entry to view the jobseeker's full profile and the ML suitability score captured at the time of application, giving the employer a basis for assessing whether the applicant meets the vacancy requirements.
+Figure 19 shows the Analytical Dashboard, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). The distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart. The barangay-level distribution separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard supports date range filtering by registration date so staff can view data for a specific period.
 
 ---
 
-### Employer Approvals
-
-*[Insert Figure 24: Employer Approvals]*
-
-**Figure 24.** Employer Approvals
-
-Figure 24 shows the Employer Approvals module in the Admin panel, which controls which employers are permitted to post job vacancies in the system. When an employer submits their completed company profile for review, their entry appears in the Pending tab and a badge count is shown on the admin sidebar as a notification. Admin can review the employer's company details and either approve or reject the request. Approval activates the employer account and grants full vacancy posting access. Rejection sends the employer back to revise their company profile and request approval again. Admin can also deactivate an already-approved employer, which blocks them from posting new vacancies until reactivated. An employer account cannot be approved if the company profile is incomplete, which prevents employers from bypassing the profile requirement. This moderation step ensures that only verified employers can advertise positions through the system.
-
----
-
-The successful development and deployment of the system across three role-based portals — the Jobseeker portal covering self-service profile management, ML-powered recommendations, job browsing, and referral generation; the Employer portal covering company profile management, vacancy posting, and referred applicant monitoring; and the Admin panel covering applicant oversight, referral management, employer approval, vacancy monitoring, user account management, and the Analytical Dashboard — confirms that the system meets all functional requirements established in Chapter III and fulfills the first specific objective of the study.
+The successful development and deployment of the system across its seven core processes — user authentication, jobseeker profile management, ML-powered job recommendations, referral generation, employer portal management, system administration, and the analytical dashboard — confirms that the system meets all functional requirements established in Chapter III and fulfills the first specific objective of the study.
 
 ---
 
@@ -1090,7 +1059,7 @@ Table 27 presents the summary of overall means and verbal interpretations for al
 
 **Table 27.** Overall ISO/IEC 25010:2023 Evaluation Summary (n = 3)
 
-| Quality Characteristic | Weighted Mean | Verbal Interpretation |
+| Quality Characteristic | Arithmetic Mean | Verbal Interpretation |
 |---|---|---|
 | A. Functional Suitability | 4.89 | Highly Acceptable |
 | B. Performance Efficiency | 5.00 | Highly Acceptable |
@@ -1179,7 +1148,7 @@ Table 31 presents the summary of overall means and verbal interpretations for al
 
 **Table 31.** Overall TAM Evaluation Summary (n = 27)
 
-| TAM Construct | Weighted Mean | Verbal Interpretation |
+| TAM Construct | Arithmetic Mean | Verbal Interpretation |
 |---|---|---|
 | A. Perceived Usefulness (PU) | 4.63 | Highly Acceptable |
 | B. Perceived Ease of Use (PEOU) | 4.56 | Highly Acceptable |
@@ -1252,7 +1221,7 @@ This chapter presents the conclusions drawn from the results of the study and th
 
 The five occupational categories used in this study were defined based on the 1,083 clean records available from PESO CSJDM at the time of development. As the office accumulates more placement records over time, future developers are encouraged to retrain the model with a larger and more balanced dataset and to consider expanding the number of categories if the data supports a finer-grained classification. The weakest category boundary in the current model, which falls between Warehouse and Logistics and Production and Manufacturing, is mainly a data volume problem and is expected to improve with additional records.
 
-Future developers are also encouraged to address the responsive layout issues observed during evaluation, particularly for small screens and dark mode displays, to improve the system's scores under Compatibility and Flexibility. Additionally, implementing an email-based or OTP-based password recovery feature would address the usability gap noted by evaluators and respondents alike, since the current system requires administrator intervention to reset a forgotten password.
+Future developers are also encouraged to implement an email-based or OTP-based password recovery feature. The current system has no self-service account recovery option; a user who forgets their password must contact the administrator to regain access. Adding a password reset flow tied to the registered email address would remove this dependency and reduce the administrative overhead of managing forgotten credentials. Future developers are additionally encouraged to address the responsive layout issues observed during evaluation, particularly for small screens and dark mode displays, to improve the system's scores under Compatibility and Flexibility.
 
 **For PESO CSJDM (Client Institution):**
 

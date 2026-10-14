@@ -209,7 +209,7 @@ def find_duplicate_applicant(db, first_name, last_name, birthdate, exclude_id=No
     '''
     params = [first_name, last_name, birthdate]
     if exclude_id is not None:
-        q += ' AND id != ?'
+        q += ' AND applicant_id != ?'
         params.append(exclude_id)
     return db.execute(q, params).fetchone()
 
@@ -232,7 +232,7 @@ def init_db():
     db.row_factory = sqlite3.Row
     db.executescript('''
         CREATE TABLE IF NOT EXISTS users (
-            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id       INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name     TEXT    NOT NULL,
             email         TEXT    UNIQUE NOT NULL,
             password_hash TEXT    NOT NULL,
@@ -241,7 +241,7 @@ def init_db():
             created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS applicants (
-            id                 INTEGER  PRIMARY KEY AUTOINCREMENT,
+            applicant_id       INTEGER  PRIMARY KEY AUTOINCREMENT,
             first_name         TEXT     NOT NULL,
             last_name          TEXT     NOT NULL,
             sex                TEXT,
@@ -256,22 +256,22 @@ def init_db():
             work_experience    TEXT,
             birthdate          DATE,
             contact_number     TEXT,
-            user_id            INTEGER  REFERENCES users(id),
+            user_id            INTEGER  REFERENCES users(user_id),
             created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
             is_archived        INTEGER  DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS job_vacancies (
-            id                    INTEGER  PRIMARY KEY AUTOINCREMENT,
+            vacancy_id            INTEGER  PRIMARY KEY AUTOINCREMENT,
             employer_name         TEXT     NOT NULL,
             job_title             TEXT     NOT NULL,
             occupational_category TEXT     NOT NULL,
             is_local              INTEGER  DEFAULT 1,
             is_active             INTEGER  DEFAULT 1,
-            employer_id           INTEGER  REFERENCES users(id),
+            employer_id           INTEGER  REFERENCES users(user_id),
             created_at            DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS employers (
-            id             INTEGER  PRIMARY KEY AUTOINCREMENT,
+            employer_id    INTEGER  PRIMARY KEY AUTOINCREMENT,
             user_id        INTEGER  UNIQUE NOT NULL,
             company_name   TEXT     NOT NULL,
             contact_person TEXT     NOT NULL,
@@ -279,23 +279,20 @@ def init_db():
             address        TEXT,
             is_approved    INTEGER  DEFAULT 0,
             created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
         );
         CREATE TABLE IF NOT EXISTS recommendations (
-            id               INTEGER  PRIMARY KEY AUTOINCREMENT,
-            applicant_id     INTEGER  NOT NULL,
-            vacancy_id       INTEGER  NOT NULL,
-            suitability_score REAL    NOT NULL,
-            rank             INTEGER,
-            recommended_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-            generated_by     INTEGER,
-            status           TEXT     DEFAULT 'pending',
-            FOREIGN KEY (applicant_id) REFERENCES applicants(id),
-            FOREIGN KEY (vacancy_id)   REFERENCES job_vacancies(id),
-            FOREIGN KEY (generated_by) REFERENCES users(id)
+            recommendation_id INTEGER  PRIMARY KEY AUTOINCREMENT,
+            applicant_id      INTEGER  NOT NULL,
+            vacancy_id        INTEGER  NOT NULL,
+            suitability_score REAL     NOT NULL,
+            rank              INTEGER,
+            recommended_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (applicant_id) REFERENCES applicants(applicant_id),
+            FOREIGN KEY (vacancy_id)   REFERENCES job_vacancies(vacancy_id)
         );
         CREATE TABLE IF NOT EXISTS referrals (
-            id           INTEGER  PRIMARY KEY AUTOINCREMENT,
+            referral_id  INTEGER  PRIMARY KEY AUTOINCREMENT,
             applicant_id INTEGER  NOT NULL,
             vacancy_id   INTEGER  NOT NULL,
             referred_by  INTEGER  NOT NULL,
@@ -303,12 +300,12 @@ def init_db():
             status       TEXT     DEFAULT 'referred',
             suitability_score REAL,
             notes        TEXT,
-            FOREIGN KEY (applicant_id) REFERENCES applicants(id),
-            FOREIGN KEY (vacancy_id)   REFERENCES job_vacancies(id),
-            FOREIGN KEY (referred_by)  REFERENCES users(id)
+            FOREIGN KEY (applicant_id) REFERENCES applicants(applicant_id),
+            FOREIGN KEY (vacancy_id)   REFERENCES job_vacancies(vacancy_id),
+            FOREIGN KEY (referred_by)  REFERENCES users(user_id)
         );
         CREATE TABLE IF NOT EXISTS login_logs (
-            id         INTEGER  PRIMARY KEY AUTOINCREMENT,
+            log_id     INTEGER  PRIMARY KEY AUTOINCREMENT,
             user_id    INTEGER,
             username   TEXT,
             timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -317,12 +314,26 @@ def init_db():
         );
     ''')
 
+    # ── Rename PKs to table-specific names ────────────────────────────────────
+    for tbl, old, new in [
+        ('users',           'id', 'user_id'),
+        ('applicants',      'id', 'applicant_id'),
+        ('employers',       'id', 'employer_id'),
+        ('job_vacancies',   'id', 'vacancy_id'),
+        ('referrals',       'id', 'referral_id'),
+        ('recommendations', 'id', 'recommendation_id'),
+        ('login_logs',      'id', 'log_id'),
+    ]:
+        cols = [r[1] for r in db.execute(f'PRAGMA table_info({tbl})').fetchall()]
+        if old in cols and new not in cols:
+            db.execute(f'ALTER TABLE {tbl} RENAME COLUMN {old} TO {new}')
+
     # ── Migrate older applicants table ─────────────────────────────────────────
     acols = [r[1] for r in db.execute("PRAGMA table_info(applicants)").fetchall()]
     if 'age' not in acols:
         db.executescript('''
             CREATE TABLE applicants_new (
-                id                 INTEGER  PRIMARY KEY AUTOINCREMENT,
+                applicant_id       INTEGER  PRIMARY KEY AUTOINCREMENT,
                 first_name         TEXT     NOT NULL,
                 last_name          TEXT     NOT NULL,
                 sex                TEXT,
@@ -335,15 +346,15 @@ def init_db():
                 preferred_position TEXT     NOT NULL,
                 skills             TEXT     NOT NULL,
                 work_experience    TEXT,
-                user_id            INTEGER  REFERENCES users(id),
+                user_id            INTEGER  REFERENCES users(user_id),
                 created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
                 is_archived        INTEGER  DEFAULT 0
             );
             INSERT INTO applicants_new
-                (id, first_name, last_name, sex, barangay, district,
+                (applicant_id, first_name, last_name, sex, barangay, district,
                  employment_status, is_pwd, educ_level, preferred_position,
                  skills, work_experience, created_at, is_archived)
-            SELECT id, first_name, last_name, sex, barangay, district,
+            SELECT applicant_id, first_name, last_name, sex, barangay, district,
                  employment_status, is_pwd, educ_level, preferred_position,
                  skills, work_experience, created_at, is_archived
             FROM applicants;
@@ -354,7 +365,7 @@ def init_db():
     # ── Column-level migrations ────────────────────────────────────────────────
     acols = [r[1] for r in db.execute("PRAGMA table_info(applicants)").fetchall()]
     if 'user_id' not in acols:
-        db.execute('ALTER TABLE applicants ADD COLUMN user_id INTEGER REFERENCES users(id)')
+        db.execute('ALTER TABLE applicants ADD COLUMN user_id INTEGER REFERENCES users(user_id)')
     if 'birthdate' not in acols:
         db.execute('ALTER TABLE applicants ADD COLUMN birthdate DATE')
     if 'contact_number' not in acols:
@@ -384,7 +395,7 @@ def init_db():
 
     vcols = [r[1] for r in db.execute("PRAGMA table_info(job_vacancies)").fetchall()]
     if 'employer_id' not in vcols:
-        db.execute('ALTER TABLE job_vacancies ADD COLUMN employer_id INTEGER REFERENCES users(id)')
+        db.execute('ALTER TABLE job_vacancies ADD COLUMN employer_id INTEGER REFERENCES users(user_id)')
     for col, ddl in [
         ('application_deadline', 'DATE'),
         ('req_gender',           "TEXT DEFAULT 'Any'"),
@@ -412,6 +423,14 @@ def init_db():
     rcols = [r[1] for r in db.execute("PRAGMA table_info(referrals)").fetchall()]
     if 'suitability_score' not in rcols:
         db.execute('ALTER TABLE referrals ADD COLUMN suitability_score REAL')
+
+    rccols = [r[1] for r in db.execute("PRAGMA table_info(recommendations)").fetchall()]
+    for dead_col in ('status', 'generated_by'):
+        if dead_col in rccols:
+            try:
+                db.execute(f'ALTER TABLE recommendations DROP COLUMN {dead_col}')
+            except sqlite3.OperationalError:
+                pass
 
     ecols = [r[1] for r in db.execute("PRAGMA table_info(employers)").fetchall()]
     for col, ddl in [
@@ -450,7 +469,7 @@ def init_db():
         db.executescript('''
             PRAGMA foreign_keys=OFF;
             CREATE TABLE users_new (
-                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id       INTEGER PRIMARY KEY AUTOINCREMENT,
                 full_name     TEXT    NOT NULL,
                 email         TEXT    UNIQUE NOT NULL,
                 password_hash TEXT    NOT NULL,
@@ -458,8 +477,8 @@ def init_db():
                 is_active     INTEGER DEFAULT 1,
                 created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
             );
-            INSERT INTO users_new (id, full_name, email, password_hash, role, is_active, created_at)
-                SELECT id, full_name, email, password_hash, role, is_active, created_at FROM users;
+            INSERT INTO users_new (user_id, full_name, email, password_hash, role, is_active, created_at)
+                SELECT user_id, full_name, email, password_hash, role, is_active, created_at FROM users;
             DROP TABLE users;
             ALTER TABLE users_new RENAME TO users;
             PRAGMA foreign_keys=ON;
@@ -477,9 +496,9 @@ def init_db():
         # If no admin exists at all, promote the first user to admin
         has_admin = db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]
         if not has_admin:
-            first = db.execute("SELECT id FROM users ORDER BY id LIMIT 1").fetchone()
+            first = db.execute("SELECT user_id FROM users ORDER BY user_id LIMIT 1").fetchone()
             if first:
-                db.execute("UPDATE users SET role='admin' WHERE id=?", (first['id'],))
+                db.execute("UPDATE users SET role='admin' WHERE user_id=?", (first['user_id'],))
 
     db.commit()
     db.close()
@@ -721,7 +740,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     for v in vacancies:
         unmet = len(req_warnings(v, applicant)) if applicant is not None else 0
         vac_by_cat.setdefault(v['occupational_category'], []).append({
-            'id':         v['id'],
+            'id':         v['vacancy_id'],
             'title':      v['job_title'],
             'employer':   v['employer_name'],
             'info':       v,
@@ -786,7 +805,7 @@ def _role_home():
 
 def current_user():
     if 'user_id' in session:
-        return get_db().execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        return get_db().execute('SELECT * FROM users WHERE user_id = ?', (session['user_id'],)).fetchone()
     return None
 
 # ── CONTEXT PROCESSOR ─────────────────────────────────────────────────────────
@@ -891,7 +910,7 @@ def public_job_detail(vid):
                e.address_line, e.barangay, e.city, e.province
         FROM job_vacancies jv
         LEFT JOIN employers e ON e.user_id = jv.employer_id
-        WHERE jv.id=?
+        WHERE jv.vacancy_id=?
     ''', (vid,)).fetchone()
     if not v or not v['is_active']:
         flash('That job is no longer available.', 'danger')
@@ -904,7 +923,7 @@ def public_job_detail(vid):
             profile_ok = bool(ap['educ_level'] and ap['preferred_position'] and ap['skills'])
             applied = bool(db.execute(
                 "SELECT 1 FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status!='cancelled'",
-                (ap['id'], vid)).fetchone())
+                (ap['applicant_id'], vid)).fetchone())
     # Back link reflects where the visitor came from
     src = request.args.get('src', '')
     if is_jobseeker and src == 'rec':
@@ -932,26 +951,26 @@ def login():
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
-                           (user['id'], log_name, ip, 'denied_inactive'))
+                           (user['user_id'], log_name, ip, 'denied_inactive'))
                 db.commit()
                 flash('Your account is deactivated. Contact an administrator.', 'danger')
             else:
                 session.clear()
-                session['user_id']   = user['id']
+                session['user_id']   = user['user_id']
                 session['full_name'] = user['full_name']
                 session['role']      = user['role'] or ROLE_ADMIN
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
-                           (user['id'], log_name, ip, 'success'))
+                           (user['user_id'], log_name, ip, 'success'))
                 db.commit()
                 # Employer must be approved before accessing portal
                 if session['role'] == ROLE_EMPLOYER:
                     emp = db.execute('SELECT is_approved FROM employers WHERE user_id=?',
-                                     (user['id'],)).fetchone()
+                                     (user['user_id'],)).fetchone()
                     if not emp or not emp['is_approved']:
                         return redirect(url_for('employer_profile'))
                 return redirect(_role_home())
         else:
-            uid = user['id'] if user else None
+            uid = user['user_id'] if user else None
             db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
                        (uid, log_name, ip, 'failed'))
             db.commit()
@@ -1046,8 +1065,8 @@ def change_password():
         elif len(new) < 8:
             flash('Password must be at least 8 characters.', 'danger')
         else:
-            get_db().execute('UPDATE users SET password_hash = ? WHERE id = ?',
-                             (generate_password_hash(new), user['id']))
+            get_db().execute('UPDATE users SET password_hash = ? WHERE user_id = ?',
+                             (generate_password_hash(new), user['user_id']))
             get_db().commit()
             flash('Password changed successfully.', 'success')
             return redirect(_role_home())
@@ -1064,8 +1083,8 @@ def _active_referral(applicant_id):
     """The applicant's current active (not-withdrawn) referral, if any.
     An applicant may hold only one active referral at a time."""
     return get_db().execute(
-        "SELECT r.id, r.vacancy_id, jv.job_title "
-        "FROM referrals r JOIN job_vacancies jv ON r.vacancy_id = jv.id "
+        "SELECT r.referral_id, r.vacancy_id, jv.job_title "
+        "FROM referrals r JOIN job_vacancies jv ON r.vacancy_id = jv.vacancy_id "
         "WHERE r.applicant_id=? AND r.status != 'cancelled' "
         "ORDER BY r.referred_at DESC LIMIT 1", (applicant_id,)
     ).fetchone()
@@ -1081,14 +1100,14 @@ def jobseeker_dashboard():
         referrals = db.execute('''
             SELECT r.*, jv.job_title, jv.employer_name, jv.occupational_category
             FROM referrals r
-            JOIN job_vacancies jv ON r.vacancy_id = jv.id
+            JOIN job_vacancies jv ON r.vacancy_id = jv.vacancy_id
             WHERE r.applicant_id = ?
             ORDER BY r.referred_at DESC LIMIT 5
-        ''', (ap['id'],)).fetchall()
+        ''', (ap['applicant_id'],)).fetchall()
 
         if pipeline and ap['educ_level'] and ap['preferred_position'] and ap['skills']:
             vacancies = db.execute(
-                'SELECT id, employer_name, job_title, occupational_category '
+                'SELECT vacancy_id, employer_name, job_title, occupational_category '
                 f'FROM job_vacancies WHERE {OPEN_VACANCY_SQL}'
             ).fetchall()
             recs = get_recommendations(
@@ -1188,7 +1207,7 @@ def jobseeker_profile():
             languages=?, education=?, trainings=?, eligibilities=?, work_history=?, other_skills=?,
             educ_level=?, skills=?, work_experience=?,
             certified=?, certified_at=CURRENT_TIMESTAMP
-            WHERE id=?''', (
+            WHERE applicant_id=?''', (
             f.get('first_name', '').strip(), f.get('middle_name', '').strip(),
             f.get('last_name', '').strip(), f.get('suffix', '').strip(),
             f.get('sex', ''), age, bd, f.get('civil_status', '').strip(),
@@ -1212,7 +1231,7 @@ def jobseeker_profile():
             json.dumps(eligibils), json.dumps(work_hist), json.dumps(other_skills),
             ml_educ, ml_skills, ml_workx,
             1 if f.get('certify') else 0,
-            ap['id'],
+            ap['applicant_id'],
         ))
         db.commit()
         flash('Profile saved.', 'success')
@@ -1251,8 +1270,8 @@ def jobseeker_account():
             flash('Please enter a valid email address.', 'danger')
         else:
             try:
-                db.execute('UPDATE users SET full_name=?, email=? WHERE id=?',
-                           (name, mail, user['id']))
+                db.execute('UPDATE users SET full_name=?, email=? WHERE user_id=?',
+                           (name, mail, user['user_id']))
                 db.commit()
                 session['full_name'] = name
                 flash('Account updated.', 'success')
@@ -1269,11 +1288,11 @@ def jobseeker_account_delete():
     uid = session['user_id']
     ap  = _get_my_applicant()
     if ap:
-        db.execute('DELETE FROM referrals WHERE applicant_id=?', (ap['id'],))
-        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['id'],))
-        db.execute('DELETE FROM applicants WHERE id=?', (ap['id'],))
+        db.execute('DELETE FROM referrals WHERE applicant_id=?', (ap['applicant_id'],))
+        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['applicant_id'],))
+        db.execute('DELETE FROM applicants WHERE applicant_id=?', (ap['applicant_id'],))
     db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
-    db.execute("DELETE FROM users WHERE id=? AND role='jobseeker'", (uid,))
+    db.execute("DELETE FROM users WHERE user_id=? AND role='jobseeker'", (uid,))
     db.commit()
     session.clear()
     flash('Your account has been permanently deleted.', 'success')
@@ -1300,13 +1319,13 @@ def jobseeker_recommendations():
         )
         generated = True
         # Keep only the latest generated set for this applicant
-        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['id'],))
+        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['applicant_id'],))
         for cat in results:
             for vac in cat['vacancies']:
                 db.execute(
                     'INSERT INTO recommendations '
-                    '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
-                    (ap['id'], vac['id'], cat['suitability_score'], cat['rank'], session['user_id'])
+                    '(applicant_id,vacancy_id,suitability_score,rank) VALUES (?,?,?,?)',
+                    (ap['applicant_id'], vac['id'], cat['suitability_score'], cat['rank'])
                 )
         db.commit()
     applied_ids = set()
@@ -1314,9 +1333,9 @@ def jobseeker_recommendations():
     if ap:
         applied_ids = {r['vacancy_id'] for r in db.execute(
             "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
-            (ap['id'],)
+            (ap['applicant_id'],)
         ).fetchall()}
-        active = _active_referral(ap['id'])
+        active = _active_referral(ap['applicant_id'])
     return render_template('jobseeker/recommendations.html',
                            ap=ap, results=results, generated=generated,
                            profile_ok=profile_ok, applied_ids=applied_ids,
@@ -1333,10 +1352,10 @@ def jobseeker_referrals():
         my_referrals = db.execute('''
             SELECT r.*, jv.job_title, jv.employer_name, jv.occupational_category
             FROM referrals r
-            JOIN job_vacancies jv ON r.vacancy_id = jv.id
+            JOIN job_vacancies jv ON r.vacancy_id = jv.vacancy_id
             WHERE r.applicant_id = ?
             ORDER BY r.referred_at DESC
-        ''', (ap['id'],)).fetchall()
+        ''', (ap['applicant_id'],)).fetchall()
     return render_template('jobseeker/referrals.html', ap=ap, my_referrals=my_referrals)
 
 @app.route('/jobseeker/jobs')
@@ -1361,7 +1380,7 @@ def jobseeker_jobs():
     if ap:
         applied_ids = {r['vacancy_id'] for r in db.execute(
             "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
-            (ap['id'],)
+            (ap['applicant_id'],)
         ).fetchall()}
     profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
     return render_template('jobseeker/jobs.html', ap=ap, vacancies=vacancies,
@@ -1380,19 +1399,19 @@ def jobseeker_apply_confirm(vid):
         flash('Please complete your profile before applying.', 'warning')
         return redirect(url_for('jobseeker_profile'))
     jv = db.execute(
-        f'SELECT * FROM job_vacancies WHERE id=? AND {OPEN_VACANCY_SQL}', (vid,)
+        f'SELECT * FROM job_vacancies WHERE vacancy_id=? AND {OPEN_VACANCY_SQL}', (vid,)
     ).fetchone()
     if not jv:
         flash('That job is no longer available or its deadline has passed.', 'danger')
         return redirect(url_for('jobseeker_recommendations') + '?generate=1')
     existing = db.execute(
-        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status != 'cancelled'",
-        (ap['id'], vid)
+        "SELECT referral_id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status != 'cancelled'",
+        (ap['applicant_id'], vid)
     ).fetchone()
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
-        return redirect(url_for('referral_slip', rid=existing['id']))
-    active = _active_referral(ap['id'])
+        return redirect(url_for('referral_slip', rid=existing['referral_id']))
+    active = _active_referral(ap['applicant_id'])
     if active:
         flash(f'You already have an active referral for "{active["job_title"]}". '
               'Withdraw it from My Applications before applying to another job.', 'warning')
@@ -1423,7 +1442,7 @@ def jobseeker_apply():
     db = get_db()
     vacancy_id = request.form.get('vacancy_id', type=int)
     jv = db.execute(
-        f'SELECT * FROM job_vacancies WHERE id=? AND {OPEN_VACANCY_SQL}',
+        f'SELECT * FROM job_vacancies WHERE vacancy_id=? AND {OPEN_VACANCY_SQL}',
         (vacancy_id,)
     ).fetchone() if vacancy_id else None
     back = url_for('jobseeker_recommendations') + '?generate=1'
@@ -1431,13 +1450,13 @@ def jobseeker_apply():
         flash('That job is no longer available or its deadline has passed.', 'danger')
         return redirect(back)
     existing = db.execute(
-        "SELECT id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status != 'cancelled'",
-        (ap['id'], vacancy_id)
+        "SELECT referral_id FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status != 'cancelled'",
+        (ap['applicant_id'], vacancy_id)
     ).fetchone()
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
-        return redirect(url_for('referral_slip', rid=existing['id']))
-    active = _active_referral(ap['id'])
+        return redirect(url_for('referral_slip', rid=existing['referral_id']))
+    active = _active_referral(ap['applicant_id'])
     if active:
         flash(f'You already have an active referral for "{active["job_title"]}". '
               'Withdraw it from My Applications before applying to another job.', 'warning')
@@ -1456,7 +1475,7 @@ def jobseeker_apply():
     cur = db.execute(
         'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, status, suitability_score) '
         'VALUES (?,?,?,?,?)',
-        (ap['id'], vacancy_id, session['user_id'], 'referred', score)
+        (ap['applicant_id'], vacancy_id, session['user_id'], 'referred', score)
     )
     db.commit()
     rid = cur.lastrowid
@@ -1473,9 +1492,9 @@ def jobseeker_cancel_referral(rid):
         return redirect(url_for('jobseeker_dashboard'))
     r = db.execute(
         'SELECT r.status, jv.job_title FROM referrals r '
-        'JOIN job_vacancies jv ON r.vacancy_id = jv.id '
-        'WHERE r.id=? AND r.applicant_id=?',
-        (rid, ap['id'])
+        'JOIN job_vacancies jv ON r.vacancy_id = jv.vacancy_id '
+        'WHERE r.referral_id=? AND r.applicant_id=?',
+        (rid, ap['applicant_id'])
     ).fetchone()
     if not r:
         flash('Application not found.', 'danger')
@@ -1483,7 +1502,7 @@ def jobseeker_cancel_referral(rid):
     if r['status'] == 'cancelled':
         flash('That application is already cancelled.', 'info')
         return redirect(url_for('jobseeker_referrals'))
-    db.execute("UPDATE referrals SET status='cancelled' WHERE id=?", (rid,))
+    db.execute("UPDATE referrals SET status='cancelled' WHERE referral_id=?", (rid,))
     db.commit()
     flash(f'Application for "{r["job_title"]}" has been withdrawn.', 'success')
     return redirect(url_for('jobseeker_referrals'))
@@ -1562,14 +1581,14 @@ def employer_profile():
               address_line=?, barangay=?, city=?, province=?,
               contact_person=?, position=?, telephone=?, mobile=?, fax=?, profile_email=?,
               certified=1, certified_at=CURRENT_TIMESTAMP, profile_completed=1
-            WHERE id=?
+            WHERE employer_id=?
         ''', (
             required['TIN'], required['Business name'], f.get('trade_name', '').strip(),
             required['Location type'], sector, emp_type, required['Total work force'],
             required['Line of business/industry'], required['Address'], required['Barangay'],
             required['City/Municipality'], required['Province'], required['Contact person'],
             required['Position'], f.get('telephone', '').strip(), required['Mobile no.'],
-            f.get('fax', '').strip(), mail, emp['id'],
+            f.get('fax', '').strip(), mail, emp['employer_id'],
         ))
         db.commit()
         flash('Company profile saved.', 'success')
@@ -1589,7 +1608,7 @@ def employer_request_approval():
     if not emp['profile_completed']:
         flash('Please complete all company profile fields before requesting approval.', 'warning')
         return redirect(url_for('employer_profile'))
-    db.execute('UPDATE employers SET approval_requested=1 WHERE id=?', (emp['id'],))
+    db.execute('UPDATE employers SET approval_requested=1 WHERE employer_id=?', (emp['employer_id'],))
     db.commit()
     flash('Approval request sent. PESO admin will review your company profile.', 'success')
     return redirect(url_for('employer_profile'))
@@ -1611,8 +1630,8 @@ def employer_account():
             flash('Please enter a valid email address.', 'danger')
         else:
             try:
-                db.execute('UPDATE users SET full_name=?, email=? WHERE id=?',
-                           (name, mail, user['id']))
+                db.execute('UPDATE users SET full_name=?, email=? WHERE user_id=?',
+                           (name, mail, user['user_id']))
                 db.commit()
                 session['full_name'] = name
                 flash('Account updated.', 'success')
@@ -1627,15 +1646,15 @@ def employer_account():
 def employer_account_delete():
     db  = get_db()
     uid = session['user_id']
-    vac_ids = [r['id'] for r in db.execute(
-        'SELECT id FROM job_vacancies WHERE employer_id=?', (uid,)).fetchall()]
+    vac_ids = [r['vacancy_id'] for r in db.execute(
+        'SELECT vacancy_id FROM job_vacancies WHERE employer_id=?', (uid,)).fetchall()]
     for vid in vac_ids:
         db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
         db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
     db.execute('DELETE FROM job_vacancies WHERE employer_id=?', (uid,))
     db.execute('DELETE FROM employers WHERE user_id=?', (uid,))
     db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
-    db.execute("DELETE FROM users WHERE id=? AND role='employer'", (uid,))
+    db.execute("DELETE FROM users WHERE user_id=? AND role='employer'", (uid,))
     db.commit()
     session.clear()
     flash('Your employer account has been permanently deleted.', 'success')
@@ -1657,26 +1676,26 @@ def employer_dashboard():
         f'SELECT COUNT(*) FROM job_vacancies WHERE employer_id=? AND is_active=1 AND {EXPIRED_SQL}', (uid,)
     ).fetchone()[0]
     total_referred = db.execute(
-        'SELECT COUNT(*) FROM referrals r JOIN job_vacancies jv ON r.vacancy_id=jv.id '
+        'SELECT COUNT(*) FROM referrals r JOIN job_vacancies jv ON r.vacancy_id=jv.vacancy_id '
         "WHERE jv.employer_id=? AND r.status!='cancelled'", (uid,)
     ).fetchone()[0]
     new_this_week = db.execute(
-        'SELECT COUNT(*) FROM referrals r JOIN job_vacancies jv ON r.vacancy_id=jv.id '
+        'SELECT COUNT(*) FROM referrals r JOIN job_vacancies jv ON r.vacancy_id=jv.vacancy_id '
         "WHERE jv.employer_id=? AND r.status!='cancelled' "
         "AND date(r.referred_at) >= date('now','+8 hours','-7 days')", (uid,)
     ).fetchone()[0]
     recent_referrals = db.execute('''
-        SELECT r.id, r.status, r.referred_at, r.suitability_score,
+        SELECT r.referral_id, r.status, r.referred_at, r.suitability_score,
                a.first_name, a.last_name, jv.job_title
         FROM referrals r
-        JOIN applicants a ON r.applicant_id=a.id
-        JOIN job_vacancies jv ON r.vacancy_id=jv.id
+        JOIN applicants a ON r.applicant_id=a.applicant_id
+        JOIN job_vacancies jv ON r.vacancy_id=jv.vacancy_id
         WHERE jv.employer_id=?
         ORDER BY r.referred_at DESC LIMIT 5
     ''', (uid,)).fetchall()
     # Vacancies expiring tomorrow (one-day warning to renew the deadline)
     expiring_soon = db.execute('''
-        SELECT jv.id, jv.job_title, jv.application_deadline
+        SELECT jv.vacancy_id, jv.job_title, jv.application_deadline
         FROM job_vacancies jv
         WHERE jv.employer_id=? AND jv.is_active=1
           AND jv.application_deadline = date('now','+8 hours','+1 day')
@@ -1753,7 +1772,7 @@ def employer_vacancy_edit(vid):
         return redirect(url_for('employer_profile'))
     db = get_db()
     v  = db.execute(
-        'SELECT * FROM job_vacancies WHERE id=? AND employer_id=?',
+        'SELECT * FROM job_vacancies WHERE vacancy_id=? AND employer_id=?',
         (vid, session['user_id'])
     ).fetchone()
     if not v:
@@ -1773,7 +1792,7 @@ def employer_vacancy_edit(vid):
                                    salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
         db.execute(
             'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, ' +
-            ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE id=?',
+            ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE vacancy_id=?',
             (f.get('job_title', '').strip(), f.get('occupational_category', ''),
              1 if f.get('is_local', '1') == '1' else 0, *[req[c] for c in REQ_COLS], vid)
         )
@@ -1790,11 +1809,11 @@ def employer_vacancy_edit(vid):
 def employer_vacancy_toggle(vid):
     db = get_db()
     v  = db.execute(
-        'SELECT is_active FROM job_vacancies WHERE id=? AND employer_id=?',
+        'SELECT is_active FROM job_vacancies WHERE vacancy_id=? AND employer_id=?',
         (vid, session['user_id'])
     ).fetchone()
     if v:
-        db.execute('UPDATE job_vacancies SET is_active=? WHERE id=?',
+        db.execute('UPDATE job_vacancies SET is_active=? WHERE vacancy_id=?',
                    (0 if v['is_active'] else 1, vid))
         db.commit()
         flash('Vacancy status updated.', 'success')
@@ -1816,8 +1835,8 @@ def employer_referred():
     referrals = db.execute(f'''
         SELECT r.*, a.first_name, a.last_name, jv.job_title
         FROM referrals r
-        JOIN applicants a ON r.applicant_id=a.id
-        JOIN job_vacancies jv ON r.vacancy_id=jv.id
+        JOIN applicants a ON r.applicant_id=a.applicant_id
+        JOIN job_vacancies jv ON r.vacancy_id=jv.vacancy_id
         WHERE {" AND ".join(conds)}
         ORDER BY r.referred_at DESC
     ''', params).fetchall()
@@ -1832,7 +1851,7 @@ def employer_referred_detail(rid):
         return redirect(url_for('employer_profile'))
     db = get_db()
     r = db.execute('''
-        SELECT r.id AS referral_id, r.suitability_score AS score,
+        SELECT r.referral_id, r.suitability_score AS score,
                r.status AS ref_status, r.referred_at AS ref_at,
                a.first_name, a.last_name, a.sex, a.age, a.barangay, a.district,
                a.employment_status, a.is_pwd, a.educ_level, a.preferred_position,
@@ -1842,10 +1861,10 @@ def employer_referred_detail(rid):
                jv.req_experience_months,
                u.email AS applicant_email
         FROM referrals r
-        JOIN applicants a     ON r.applicant_id = a.id
-        JOIN job_vacancies jv ON r.vacancy_id   = jv.id
-        LEFT JOIN users u     ON a.user_id       = u.id
-        WHERE r.id=? AND jv.employer_id=?
+        JOIN applicants a     ON r.applicant_id = a.applicant_id
+        JOIN job_vacancies jv ON r.vacancy_id   = jv.vacancy_id
+        LEFT JOIN users u     ON a.user_id       = u.user_id
+        WHERE r.referral_id=? AND jv.employer_id=?
     ''', (rid, session['user_id'])).fetchone()
     if not r:
         flash('Referred applicant not found.', 'danger')
@@ -1884,17 +1903,17 @@ def home():
     ).fetchone()
     last_login = last_login_row['timestamp'] if last_login_row else None
     recent_applicants = db.execute(
-        'SELECT id, first_name, last_name, preferred_position, created_at '
+        'SELECT applicant_id, first_name, last_name, preferred_position, created_at '
         'FROM applicants WHERE is_archived=0 '
-        'ORDER BY created_at DESC, id DESC LIMIT 5'
+        'ORDER BY created_at DESC, applicant_id DESC LIMIT 5'
     ).fetchall()
     recent_referrals_rows = db.execute('''
         SELECT r.referred_at, r.status,
                a.first_name, a.last_name,
                jv.job_title, jv.employer_name
         FROM referrals r
-        JOIN applicants a ON r.applicant_id=a.id
-        JOIN job_vacancies jv ON r.vacancy_id=jv.id
+        JOIN applicants a ON r.applicant_id=a.applicant_id
+        JOIN job_vacancies jv ON r.vacancy_id=jv.vacancy_id
         ORDER BY r.referred_at DESC LIMIT 5
     ''').fetchall()
     recent_recs = db.execute('''
@@ -1902,9 +1921,9 @@ def home():
                jv.job_title, jv.employer_name,
                rec.suitability_score
         FROM recommendations rec
-        JOIN applicants a     ON rec.applicant_id = a.id
-        JOIN job_vacancies jv ON rec.vacancy_id   = jv.id
-        ORDER BY rec.recommended_at DESC, rec.id DESC LIMIT 5
+        JOIN applicants a     ON rec.applicant_id = a.applicant_id
+        JOIN job_vacancies jv ON rec.vacancy_id   = jv.vacancy_id
+        ORDER BY rec.recommended_at DESC, rec.recommendation_id DESC LIMIT 5
     ''').fetchall()
     return render_template('home.html',
                            total_applicants=total_applicants,
@@ -2028,8 +2047,8 @@ def applicants_list():
 def applicant_view(aid):
     ap = get_db().execute('''
         SELECT a.*, u.email
-        FROM applicants a LEFT JOIN users u ON a.user_id = u.id
-        WHERE a.id = ?
+        FROM applicants a LEFT JOIN users u ON a.user_id = u.user_id
+        WHERE a.applicant_id = ?
     ''', (aid,)).fetchone()
     if not ap:
         flash('Applicant not found.', 'danger')
@@ -2048,17 +2067,17 @@ def applicant_view(aid):
 @admin_required
 def applicant_delete(aid):
     db = get_db()
-    ap = db.execute('SELECT first_name, last_name, user_id FROM applicants WHERE id=?', (aid,)).fetchone()
+    ap = db.execute('SELECT first_name, last_name, user_id FROM applicants WHERE applicant_id=?', (aid,)).fetchone()
     if not ap:
         flash('Applicant not found.', 'danger')
         return redirect(url_for('applicants_list'))
     db.execute('DELETE FROM recommendations WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM referrals WHERE applicant_id=?', (aid,))
-    db.execute('DELETE FROM applicants WHERE id=?', (aid,))
+    db.execute('DELETE FROM applicants WHERE applicant_id=?', (aid,))
     # Remove the linked jobseeker login account, if any, so no orphan user remains
     if ap['user_id']:
         db.execute('DELETE FROM login_logs WHERE user_id=?', (ap['user_id'],))
-        db.execute("DELETE FROM users WHERE id=? AND role='jobseeker'", (ap['user_id'],))
+        db.execute("DELETE FROM users WHERE user_id=? AND role='jobseeker'", (ap['user_id'],))
     db.commit()
     flash(f'Applicant {ap["first_name"]} {ap["last_name"]} has been permanently deleted.', 'success')
     return redirect(url_for('applicants_list'))
@@ -2079,8 +2098,8 @@ def referrals_list():
         like = f'%{search}%'
         params += [like, like, like]
     where = ('WHERE ' + ' AND '.join(conds)) if conds else ''
-    joins = ('FROM referrals r JOIN applicants a ON r.applicant_id=a.id '
-             'JOIN job_vacancies jv ON r.vacancy_id=jv.id')
+    joins = ('FROM referrals r JOIN applicants a ON r.applicant_id=a.applicant_id '
+             'JOIN job_vacancies jv ON r.vacancy_id=jv.vacancy_id')
     total = db.execute(f'SELECT COUNT(*) {joins} {where}', params).fetchone()[0]
     page  = max(1, request.args.get('page', 1, type=int))
     pages = max(1, (total + LIST_PER_PAGE - 1) // LIST_PER_PAGE)
@@ -2091,7 +2110,7 @@ def referrals_list():
                jv.job_title, jv.employer_name, jv.occupational_category,
                u.full_name as referred_by_name
         {joins}
-        LEFT JOIN users u     ON r.referred_by  = u.id
+        LEFT JOIN users u     ON r.referred_by  = u.user_id
         {where}
         ORDER BY r.referred_at DESC
         LIMIT ? OFFSET ?
@@ -2113,11 +2132,11 @@ def referral_slip(rid):
                u.full_name AS accepted_by_name,
                e.contact_person AS e_contact, e.company_name AS e_company
         FROM referrals r
-        JOIN applicants a     ON r.applicant_id = a.id
-        JOIN job_vacancies jv ON r.vacancy_id   = jv.id
-        JOIN users u          ON r.referred_by  = u.id
+        JOIN applicants a     ON r.applicant_id = a.applicant_id
+        JOIN job_vacancies jv ON r.vacancy_id   = jv.vacancy_id
+        JOIN users u          ON r.referred_by  = u.user_id
         LEFT JOIN employers e ON e.user_id       = jv.employer_id
-        WHERE r.id=?
+        WHERE r.referral_id=?
     ''', (rid,)).fetchone()
     role = session.get('role')
     allowed = bool(r) and (
@@ -2171,9 +2190,9 @@ def vacancies_list():
 @admin_required
 def vacancy_toggle(vid):
     db = get_db()
-    v  = db.execute('SELECT is_active FROM job_vacancies WHERE id=?', (vid,)).fetchone()
+    v  = db.execute('SELECT is_active FROM job_vacancies WHERE vacancy_id=?', (vid,)).fetchone()
     if v:
-        db.execute('UPDATE job_vacancies SET is_active=? WHERE id=?',
+        db.execute('UPDATE job_vacancies SET is_active=? WHERE vacancy_id=?',
                    (0 if v['is_active'] else 1, vid))
         db.commit()
         flash('Vacancy status updated.', 'success')
@@ -2183,13 +2202,13 @@ def vacancy_toggle(vid):
 @admin_required
 def vacancy_delete(vid):
     db = get_db()
-    v  = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE id=?', (vid,)).fetchone()
+    v  = db.execute('SELECT job_title, employer_name FROM job_vacancies WHERE vacancy_id=?', (vid,)).fetchone()
     if not v:
         flash('Vacancy not found.', 'danger')
         return redirect(url_for('vacancies_list'))
     db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
     db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
-    db.execute('DELETE FROM job_vacancies WHERE id=?', (vid,))
+    db.execute('DELETE FROM job_vacancies WHERE vacancy_id=?', (vid,))
     db.commit()
     flash(f'Vacancy "{v["job_title"]}" ({v["employer_name"]}) has been permanently deleted.', 'success')
     return redirect(url_for('vacancies_list'))
@@ -2246,7 +2265,7 @@ def user_add():
 @admin_required
 def user_edit(uid):
     db = get_db()
-    u  = db.execute('SELECT * FROM users WHERE id=?', (uid,)).fetchone()
+    u  = db.execute('SELECT * FROM users WHERE user_id=?', (uid,)).fetchone()
     if not u:
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
@@ -2269,10 +2288,10 @@ def user_edit(uid):
                 if len(pw) < 8:
                     flash('Password must be at least 8 characters.', 'danger')
                     return render_template('users/form.html', user=dict(u), action='edit')
-                db.execute('UPDATE users SET full_name=?,email=?,password_hash=?,role=? WHERE id=?',
+                db.execute('UPDATE users SET full_name=?,email=?,password_hash=?,role=? WHERE user_id=?',
                            (name, mail, generate_password_hash(pw), new_role, uid))
             else:
-                db.execute('UPDATE users SET full_name=?,email=?,role=? WHERE id=?',
+                db.execute('UPDATE users SET full_name=?,email=?,role=? WHERE user_id=?',
                            (name, mail, new_role, uid))
             db.commit()
             flash('User updated.', 'success')
@@ -2288,12 +2307,12 @@ def user_delete(uid):
         flash('You cannot delete your own account.', 'danger')
         return redirect(url_for('users_list'))
     db = get_db()
-    u  = db.execute('SELECT full_name, email FROM users WHERE id=?', (uid,)).fetchone()
+    u  = db.execute('SELECT full_name, email FROM users WHERE user_id=?', (uid,)).fetchone()
     if not u:
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
     db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
-    db.execute('DELETE FROM users WHERE id=?', (uid,))
+    db.execute('DELETE FROM users WHERE user_id=?', (uid,))
     db.commit()
     flash(f'Account for {u["full_name"]} ({u["email"]}) has been permanently deleted.', 'success')
     return redirect(url_for('users_list'))
@@ -2304,7 +2323,7 @@ def user_delete(uid):
 def login_history():
     logs = get_db().execute(
         'SELECT ll.*, u.full_name FROM login_logs ll '
-        'LEFT JOIN users u ON ll.user_id=u.id '
+        'LEFT JOIN users u ON ll.user_id=u.user_id '
         'ORDER BY ll.timestamp DESC LIMIT 200'
     ).fetchall()
     return render_template('users/login_history.html', logs=logs)
@@ -2318,19 +2337,19 @@ def admin_employers():
     if status == 'pending':
         rows = db.execute(
             'SELECT e.*, u.email, u.is_active '
-            'FROM employers e JOIN users u ON e.user_id=u.id '
+            'FROM employers e JOIN users u ON e.user_id=u.user_id '
             'WHERE e.is_approved=0 AND e.approval_requested=1 ORDER BY e.created_at DESC'
         ).fetchall()
     elif status == 'approved':
         rows = db.execute(
             'SELECT e.*, u.email, u.is_active '
-            'FROM employers e JOIN users u ON e.user_id=u.id '
+            'FROM employers e JOIN users u ON e.user_id=u.user_id '
             'WHERE e.is_approved=1 ORDER BY e.created_at DESC'
         ).fetchall()
     else:
         rows = db.execute(
             'SELECT e.*, u.email, u.is_active '
-            'FROM employers e JOIN users u ON e.user_id=u.id '
+            'FROM employers e JOIN users u ON e.user_id=u.user_id '
             'ORDER BY e.created_at DESC'
         ).fetchall()
     pending_count = db.execute(
@@ -2343,15 +2362,15 @@ def admin_employers():
 @admin_required
 def admin_employer_approve(eid):
     db  = get_db()
-    emp = db.execute('SELECT * FROM employers WHERE id=?', (eid,)).fetchone()
+    emp = db.execute('SELECT * FROM employers WHERE employer_id=?', (eid,)).fetchone()
     if not emp:
         flash('Employer not found.', 'danger')
         return redirect(url_for('admin_employers'))
     if not emp['profile_completed']:
         flash('Cannot approve — this employer has not completed their company profile yet.', 'warning')
         return redirect(url_for('admin_employers'))
-    db.execute('UPDATE employers SET is_approved=1 WHERE id=?', (eid,))
-    db.execute('UPDATE users SET is_active=1 WHERE id=?', (emp['user_id'],))
+    db.execute('UPDATE employers SET is_approved=1 WHERE employer_id=?', (eid,))
+    db.execute('UPDATE users SET is_active=1 WHERE user_id=?', (emp['user_id'],))
     db.commit()
     flash(f'Employer "{emp["company_name"]}" approved. They can now post job vacancies.', 'success')
     return redirect(url_for('admin_employers'))
@@ -2360,18 +2379,18 @@ def admin_employer_approve(eid):
 @admin_required
 def admin_employer_reject(eid):
     db  = get_db()
-    emp = db.execute('SELECT * FROM employers WHERE id=?', (eid,)).fetchone()
+    emp = db.execute('SELECT * FROM employers WHERE employer_id=?', (eid,)).fetchone()
     if not emp:
         flash('Employer not found.', 'danger')
         return redirect(url_for('admin_employers'))
     if emp['is_approved']:
         # Deactivate an already-approved employer
-        db.execute('UPDATE employers SET is_approved=0, approval_requested=0 WHERE id=?', (eid,))
-        db.execute('UPDATE users SET is_active=0 WHERE id=?', (emp['user_id'],))
+        db.execute('UPDATE employers SET is_approved=0, approval_requested=0 WHERE employer_id=?', (eid,))
+        db.execute('UPDATE users SET is_active=0 WHERE user_id=?', (emp['user_id'],))
         flash(f'Employer "{emp["company_name"]}" deactivated.', 'warning')
     else:
         # Reject a pending request — let them revise their profile and request again
-        db.execute('UPDATE employers SET approval_requested=0 WHERE id=?', (eid,))
+        db.execute('UPDATE employers SET approval_requested=0 WHERE employer_id=?', (eid,))
         flash(f'Approval request for "{emp["company_name"]}" rejected. '
               'They can revise their company profile and request approval again.', 'warning')
     db.commit()
@@ -2381,22 +2400,22 @@ def admin_employer_reject(eid):
 @admin_required
 def admin_employer_delete(eid):
     db  = get_db()
-    emp = db.execute('SELECT * FROM employers WHERE id=?', (eid,)).fetchone()
+    emp = db.execute('SELECT * FROM employers WHERE employer_id=?', (eid,)).fetchone()
     if not emp:
         flash('Employer not found.', 'danger')
         return redirect(url_for('admin_employers'))
     uid = emp['user_id']
     # Remove the employer's vacancies and everything linked to them
-    vac_ids = [r['id'] for r in db.execute(
-        'SELECT id FROM job_vacancies WHERE employer_id=?', (uid,)
+    vac_ids = [r['vacancy_id'] for r in db.execute(
+        'SELECT vacancy_id FROM job_vacancies WHERE employer_id=?', (uid,)
     ).fetchall()]
     for vid in vac_ids:
         db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
         db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
     db.execute('DELETE FROM job_vacancies WHERE employer_id=?', (uid,))
-    db.execute('DELETE FROM employers WHERE id=?', (eid,))
+    db.execute('DELETE FROM employers WHERE employer_id=?', (eid,))
     db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
-    db.execute("DELETE FROM users WHERE id=? AND role='employer'", (uid,))
+    db.execute("DELETE FROM users WHERE user_id=? AND role='employer'", (uid,))
     db.commit()
     flash(f'Employer "{emp["company_name"]}" and all their postings have been permanently deleted.', 'success')
     return redirect(url_for('admin_employers'))

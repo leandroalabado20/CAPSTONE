@@ -1,18 +1,13 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36">
   <diagram name="Entity Relationship Diagram" id="erdPesoV2">
-    <mxGraphModel dx="975" dy="512" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1724" dy="906" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-
-        <!-- ═══════════════════════════════════════════════════════
-             T1  users  (center hub)
-             * = ML input field
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="users" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="users" vertex="1">
-          <mxGeometry x="580" y="430" width="250" height="184" as="geometry" />
+          <mxGeometry height="184" width="250" x="500" y="493" as="geometry" />
         </mxCell>
-        <mxCell id="users__id" parent="users" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="users__id" parent="users" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;user_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="250" y="30" as="geometry" />
         </mxCell>
         <mxCell id="users__full_name" parent="users" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   full_name" vertex="1">
@@ -33,14 +28,10 @@
         <mxCell id="users__created_at" parent="users" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
           <mxGeometry height="22" width="250" y="162" as="geometry" />
         </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             T7  login_logs  (top center)
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="login_logs" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="login_logs" vertex="1">
-          <mxGeometry x="545" y="150" width="260" height="162" as="geometry" />
+          <mxGeometry height="162" width="260" x="810" y="762" as="geometry" />
         </mxCell>
-        <mxCell id="login_logs__id" parent="login_logs" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="login_logs__id" parent="login_logs" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;log_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="260" y="30" as="geometry" />
         </mxCell>
         <mxCell id="login_logs__user_id" parent="login_logs" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  user_id" vertex="1">
@@ -58,14 +49,10 @@
         <mxCell id="login_logs__outcome" parent="login_logs" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   outcome" vertex="1">
           <mxGeometry height="22" width="260" y="140" as="geometry" />
         </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             T2  applicants  (left)
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="applicants" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="applicants" vertex="1">
-          <mxGeometry x="50" y="80" width="280" height="514" as="geometry" />
+          <mxGeometry height="492" width="280" x="50" y="80" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__id" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="applicants__id" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;applicant_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="30" as="geometry" />
         </mxCell>
         <mxCell id="applicants__user_id" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  user_id" vertex="1">
@@ -95,47 +82,40 @@
         <mxCell id="applicants__is_pwd" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_pwd" vertex="1">
           <mxGeometry height="22" width="280" y="228" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__extended" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;fontStyle=2;" value="   ... (personal, OFW, programme flags, work preference)" vertex="1">
+        <mxCell id="applicants__educ_level" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   educ_level &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__educ_level" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   educ_level &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__preferred_position" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   preferred_position &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="272" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__preferred_position" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   preferred_position &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__skills" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   skills &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="294" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__skills" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   skills &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__work_experience" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   work_experience &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="316" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__work_experience" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   work_experience &lt;b&gt;*&lt;/b&gt;" vertex="1">
+        <mxCell id="applicants__education" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   education  (JSON)" vertex="1">
           <mxGeometry height="22" width="280" y="338" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__education" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   education  (JSON)" vertex="1">
+        <mxCell id="applicants__trainings" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   trainings  (JSON)" vertex="1">
           <mxGeometry height="22" width="280" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__trainings" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   trainings  (JSON)" vertex="1">
+        <mxCell id="applicants__work_history" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   work_history  (JSON)" vertex="1">
           <mxGeometry height="22" width="280" y="382" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__work_history" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   work_history  (JSON)" vertex="1">
+        <mxCell id="applicants__eligibilities" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   eligibilities  (JSON)" vertex="1">
           <mxGeometry height="22" width="280" y="404" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__eligibilities" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   eligibilities  (JSON)" vertex="1">
+        <mxCell id="applicants__is_archived" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_archived" vertex="1">
           <mxGeometry height="22" width="280" y="426" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__is_archived" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_archived" vertex="1">
+        <mxCell id="applicants__created_at" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
           <mxGeometry height="22" width="280" y="448" as="geometry" />
         </mxCell>
-        <mxCell id="applicants__created_at" parent="applicants" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
-          <mxGeometry height="22" width="280" y="470" as="geometry" />
-        </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             T3  employers  (bottom left)
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="employers" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="employers" vertex="1">
-          <mxGeometry x="50" y="640" width="280" height="294" as="geometry" />
+          <mxGeometry height="294" width="280" x="50" y="630" as="geometry" />
         </mxCell>
-        <mxCell id="employers__id" parent="employers" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="employers__id" parent="employers" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;employer_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="30" as="geometry" />
         </mxCell>
         <mxCell id="employers__user_id" parent="employers" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  user_id" vertex="1">
@@ -171,14 +151,10 @@
         <mxCell id="employers__created_at" parent="employers" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
           <mxGeometry height="22" width="280" y="272" as="geometry" />
         </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             T4  job_vacancies  (right)
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="job_vacancies" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="job_vacancies" vertex="1">
-          <mxGeometry x="1210" y="80" width="280" height="382" as="geometry" />
+          <mxGeometry height="382" width="280" x="950" y="320" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__id" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="job_vacancies__id" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;vacancy_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="30" as="geometry" />
         </mxCell>
         <mxCell id="job_vacancies__employer_id" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  employer_id" vertex="1">
@@ -226,14 +202,10 @@
         <mxCell id="job_vacancies__created_at" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
           <mxGeometry height="22" width="280" y="360" as="geometry" />
         </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             T5  referrals  (bottom center)
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="referrals" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="referrals" vertex="1">
-          <mxGeometry x="570" y="710" width="280" height="206" as="geometry" />
+          <mxGeometry height="206" width="280" x="485" y="170" as="geometry" />
         </mxCell>
-        <mxCell id="referrals__id" parent="referrals" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="referrals__id" parent="referrals" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;referral_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="30" as="geometry" />
         </mxCell>
         <mxCell id="referrals__applicant_id" parent="referrals" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  applicant_id" vertex="1">
@@ -257,14 +229,10 @@
         <mxCell id="referrals__notes" parent="referrals" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   notes" vertex="1">
           <mxGeometry height="22" width="280" y="184" as="geometry" />
         </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             T6  recommendations  (bottom right)
-        ═══════════════════════════════════════════════════════ -->
         <mxCell id="recommendations" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="recommendations" vertex="1">
-          <mxGeometry x="1170" y="540" width="300" height="206" as="geometry" />
+          <mxGeometry height="162" width="300" x="930" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="recommendations__id" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;id&lt;/u&gt;" vertex="1">
+        <mxCell id="recommendations__id" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;recommendation_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="300" y="30" as="geometry" />
         </mxCell>
         <mxCell id="recommendations__applicant_id" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  applicant_id" vertex="1">
@@ -273,77 +241,42 @@
         <mxCell id="recommendations__vacancy_id" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  vacancy_id" vertex="1">
           <mxGeometry height="22" width="300" y="74" as="geometry" />
         </mxCell>
-        <mxCell id="recommendations__generated_by" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;i&gt;FK&lt;/i&gt;  generated_by" vertex="1">
+        <mxCell id="recommendations__suitability_score" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   suitability_score" vertex="1">
           <mxGeometry height="22" width="300" y="96" as="geometry" />
         </mxCell>
-        <mxCell id="recommendations__suitability_score" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   suitability_score" vertex="1">
+        <mxCell id="recommendations__rank" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   rank" vertex="1">
           <mxGeometry height="22" width="300" y="118" as="geometry" />
         </mxCell>
-        <mxCell id="recommendations__rank" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   rank" vertex="1">
+        <mxCell id="recommendations__recommended_at" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   recommended_at" vertex="1">
           <mxGeometry height="22" width="300" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="recommendations__recommended_at" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   recommended_at" vertex="1">
-          <mxGeometry height="22" width="300" y="162" as="geometry" />
-        </mxCell>
-        <mxCell id="recommendations__status" parent="recommendations" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   status" vertex="1">
-          <mxGeometry height="22" width="300" y="184" as="geometry" />
-        </mxCell>
-
-        <!-- ═══════════════════════════════════════════════════════
-             RELATIONSHIPS  (ERone → ERmany)
-             Source = PK side (one),  Target = FK side (many)
-        ═══════════════════════════════════════════════════════ -->
-
-        <!-- users.id → login_logs.user_id -->
-        <mxCell id="rel_u_ll" edge="1" parent="1" source="users__id" target="login_logs__user_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_u_ll" edge="1" parent="1" source="users__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="login_logs__user_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- users.id → applicants.user_id -->
-        <mxCell id="rel_u_ap" edge="1" parent="1" source="users__id" target="applicants__user_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_u_ap" edge="1" parent="1" source="users__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="applicants__user_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- users.id → employers.user_id -->
-        <mxCell id="rel_u_em" edge="1" parent="1" source="users__id" target="employers__user_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_u_em" edge="1" parent="1" source="users__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="employers__user_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- users.id → job_vacancies.employer_id -->
-        <mxCell id="rel_u_jv" edge="1" parent="1" source="users__id" target="job_vacancies__employer_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_u_jv" edge="1" parent="1" source="users__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="job_vacancies__employer_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- users.id → referrals.referred_by -->
-        <mxCell id="rel_u_rf" edge="1" parent="1" source="users__id" target="referrals__referred_by" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_u_rf" edge="1" parent="1" source="users__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="referrals__referred_by" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- users.id → recommendations.generated_by -->
-        <mxCell id="rel_u_rc" edge="1" parent="1" source="users__id" target="recommendations__generated_by" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_ap_rf" edge="1" parent="1" source="applicants__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="referrals__applicant_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- applicants.id → referrals.applicant_id -->
-        <mxCell id="rel_ap_rf" edge="1" parent="1" source="applicants__id" target="referrals__applicant_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_ap_rc" edge="1" parent="1" source="applicants__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="recommendations__applicant_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- applicants.id → recommendations.applicant_id -->
-        <mxCell id="rel_ap_rc" edge="1" parent="1" source="applicants__id" target="recommendations__applicant_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_jv_rf" edge="1" parent="1" source="job_vacancies__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="referrals__vacancy_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- job_vacancies.id → referrals.vacancy_id -->
-        <mxCell id="rel_jv_rf" edge="1" parent="1" source="job_vacancies__id" target="referrals__vacancy_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
+        <mxCell id="rel_jv_rc" edge="1" parent="1" source="job_vacancies__id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" target="recommendations__vacancy_id" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- job_vacancies.id → recommendations.vacancy_id -->
-        <mxCell id="rel_jv_rc" edge="1" parent="1" source="job_vacancies__id" target="recommendations__vacancy_id" style="edgeStyle=entityRelationEdgeStyle;fontSize=10;html=1;rounded=0;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
       </root>
     </mxGraphModel>
   </diagram>

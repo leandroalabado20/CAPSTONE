@@ -88,9 +88,6 @@ The following terms are defined operationally, as they are used in the present s
 
 **Applicant Profiling.** The process of organizing a jobseeker's competency profile, including skills, educational attainment, work experience, and preferred position, into a structured format for classification. The system uses this structured profile to rank suitable job openings by suitability score.
 
-**Decision Support System (DSS).** A computer-based system that helps users make informed decisions by processing and presenting relevant data in a structured format. In this study, the Analytical Dashboard serves as the decision support component for PESO staff, consolidating registrant data into summaries that support the office's monitoring and reporting tasks.
-
-
 **ISO/IEC 25010:2023.** An international standard for software product quality used in this study to evaluate the system across nine characteristics: functional suitability, performance efficiency, compatibility, interaction capability, reliability, security, maintainability, flexibility, and safety (Rojas et al., 2025).
 
 **Jobseeker.** The primary user of the system's public portal. A jobseeker is a person who registers an account, completes a profile, and uses the system to receive job recommendations and generate referral slips. The term is used throughout this study to refer to individuals who are actively seeking employment, and distinguishes them from applicants who have already been referred to a specific vacancy.
@@ -128,7 +125,7 @@ This chapter reviews literature and related systems that inform the design, algo
 
 A government employment platform operated by the state of Punjab in India integrated an AI-powered job recommendation system after an assessment confirmed that the existing portal imposed documented barriers that prevented effective vacancy matching: applicants encountered navigational complexity that deterred first-time users, were excluded by the absence of multilingual support, and were required to independently search the full inventory of posted vacancies without any personalized guidance, placing the entire burden of vacancy discovery on job seekers without any recommendation support. The resulting system served hundreds of thousands of registered job seekers in the state and integrated multilingual support in English, Hindi, and Punjabi alongside a profile-based recommendation engine that generated personalized ranked vacancy lists for each applicant, replacing the unassisted manual search process that had characterized the original platform. Assessed on the System Usability Scale and recommendation precision metrics, the deployment achieved a System Usability Scale score of 78.5 out of 100, a Precision@10 recommendation score of 68%, and a factual accuracy rate of 94%, collectively representing a 50% improvement in platform usability over the unaugmented baseline, results that demonstrate how integrating job recommendation into a government employment platform significantly improved the vacancy matching workflow by replacing unguided manual search with a structured, profile-driven recommendation process. This evidence directly establishes the viability of the same transformation for PESO CSJDM, where staff currently perform the functional equivalent of that unstructured process for every walk-in applicant, manually cross-referencing each applicant's profile against the full vacancy list without any recommendation tool, and where introducing a structured recommendation system represents a justified, evidence-backed improvement to the office's daily referral workflow (Srihari et al., 2025).
 
-A randomized controlled trial conducted with over 1,250 job seekers, in partnership with a public employment service, directly measured whether automated job recommendations integrated into an employment platform produce a measurable improvement in the employment office's core operational function: connecting job seekers to suitable positions. The trial evaluated two recommendation approaches under controlled conditions, one that aligned suggestions with each applicant's prior occupational history, and one that derived recommendations from an assessed skill profile rather than past employment, enabling matches beyond previously held job titles and accommodating applicants whose prior roles did not reflect their full competencies. Evaluated on job finding rates as the primary outcome measure, both recommendation types improved job finding rates on average, with profile-based recommendations producing the strongest gains for applicants with limited work experience or mismatch between prior employment and assessed skills, the population most commonly served by walk-in government employment offices. The trial result that automated, profile-based recommendations produced a measurable improvement in employment outcomes at a public employment service provides direct empirical evidence that structured job recommendation systems make a quantifiable, real-world difference in the effectiveness of government employment office workflow, not only in technical performance metrics but in the actual employment results delivered to job seekers. This finding directly supports the design and rationale of the proposed system at PESO CSJDM, where applicant profiles covering skills, education level, work experience, and preferred position are used to generate ranked vacancy recommendations for staff to use in referral decisions, addressing the same operational gap the trial identified: providing structured, profile-based matching to entry-level and first-time job seekers who constitute a significant share of the office's daily walk-in applicants (Bächli et al., 2025).
+A randomized controlled trial conducted with over 1,250 job seekers, in partnership with a public employment service, directly measured whether automated job recommendations integrated into an employment platform produce a measurable improvement in the employment office's core operational function: connecting job seekers to suitable positions. The trial evaluated two recommendation approaches under controlled conditions, one that aligned suggestions with each applicant's prior occupational history, and one that derived recommendations from an assessed skill profile rather than past employment, enabling matches beyond previously held job titles and accommodating applicants whose prior roles did not reflect their full competencies. Evaluated on job finding rates as the primary outcome measure, both recommendation types improved job finding rates on average, with profile-based recommendations producing the strongest gains for applicants with limited work experience or mismatch between prior employment and assessed skills, the population most commonly served by walk-in government employment offices. The trial result that automated, profile-based recommendations produced a measurable improvement in employment outcomes at a public employment service provides direct empirical evidence that structured job recommendation systems make a quantifiable, real-world difference in the effectiveness of government employment office workflow, not only in technical performance metrics but in the actual employment results delivered to job seekers. This finding directly supports the design and rationale of the proposed system at PESO CSJDM, where applicant profiles covering skills, education level, work experience, and preferred position are used to generate ranked vacancy recommendations delivered directly to jobseekers through the self-service portal, addressing the same operational gap the trial identified: providing structured, profile-based matching to entry-level and first-time job seekers who constitute a significant share of the office's daily walk-in applicants (Bächli et al., 2025).
 
 A field experiment conducted in partnership with a public employment service evaluated whether providing unemployed job seekers with structured occupational recommendations, specifically suggestions for suitable alternative occupations alongside comparative information about the employment prospects of those alternatives relative to each applicant's initial target occupation, produced measurable improvements in employment outcomes compared to job seekers who received no such recommendations. The intervention was directed at job seekers registered in occupations with limited vacancy availability, a circumstance in which the absence of recommendation support most directly constrains an applicant's ability to find suitable work, and the study found that the vast majority of treated job seekers engaged with the occupational recommendation messages they received. Evaluated at an 18-month follow-up, the experiment found that employment, hours of work, and labor income each improved by 5 to 6 percent among job seekers who received occupational recommendations relative to the untreated control group, a result that demonstrates that structured occupational recommendations provided through a public employment service produced a quantifiable, real-world improvement in the employment office's core function of connecting job seekers to suitable work. This finding reinforces the operational case for the proposed system at PESO CSJDM: staff currently match each walk-in applicant against available vacancies using only manual judgment without any recommendation tool to surface better-matched alternatives, and the 5 to 6 percent employment improvement measured in this trial establishes that replacing unstructured manual matching with structured occupational recommendations at a public employment service produces real, measurable gains in the outcomes that employment offices exist to deliver (Belot et al., 2025).
 
@@ -221,7 +218,7 @@ I-Recruiter is an intelligent decision support system for HR professionals and r
 | Srihari et al. (2025) | Career assistance on government employment portal | RAG + LLM embeddings (voice-enabled, multilingual) | LLM-based; no classifier comparison | N/A; single architecture (68% precision@10) | Punjab PGRKAM portal listings | Consumer GPU (NVIDIA RTX 3050) | Rural job seekers (English/Hindi/Punjabi) |
 | Darma et al. (2026) | Student career path recommendation | Questionnaire + ML classification | KNN, Naïve Bayes | Naïve Bayes (97% accuracy, 93% F1) | 300 student questionnaires (Battuta University) | Not specified | CS students |
 | Najjar et al. (2021) | Resume screening and applicant ranking | NLP + word embeddings + cosine similarity | N/A; single approach | N/A; cosine similarity scoring | Labeled resume dataset | Decision support system | HR professionals and recruiters |
-| **Proposed System** | **Applicant to active vacancy referral for PESO staff** | **TF-IDF + supervised ML classification** | **LR, RF, NB** | **To be evaluated** | **PESO CSJDM historical placement records** | **Flask web application** | **Jobseekers, Employers, and PESO Admin Staff** |
+| **Proposed System** | **Self-service job recommendation, referral, and analytics system for PESO CSJDM** | **TF-IDF + supervised ML classification** | **LR, RF, NB** | **To be evaluated** | **PESO CSJDM historical placement records** | **Flask web application** | **Jobseekers, Employers, and PESO Admin Staff** |
 
 ---
 
@@ -233,7 +230,7 @@ Three recurring patterns are evident across the six systems. First, all systems 
 
 The proposed system is designed to address these constraints directly. It adopts the same TF-IDF vectorization and multi-classifier comparison pipeline established by Tiwari & Upadhyay (2024) and validated by Betrand et al. (2025) and Darma et al. (2026), but grounds the comparison in actual PESO CSJDM placement data rather than in a transferred benchmark. It replaces cosine similarity ranking with predict_proba probability outputs from the deployed classifier, enabling vacancy ranking without requiring descriptive text on the vacancy side, as Najjar et al. (2021) required. It operates entirely within a standard Flask and scikit-learn stack, without the GPU infrastructure or LLM services that Srihari et al. (2025) and Heakl et al. (2024) depend on, making the system maintainable by a municipal government office. No related system examined was built on government-collected operational placement records from a Philippine PESO office; the present study is the first to do so, establishing an empirical baseline that other PESO offices can reference directly.
 
-Unlike the related systems reviewed, which were built on general-purpose datasets such as scraped resumes (Heakl et al., 2024; Chihab et al., 2025), publicly available job postings (Tiwari & Upadhyay, 2024), or purpose-built questionnaire instruments (Darma et al., 2026), the proposed system is trained exclusively on PESO CSJDM's own operational placement records, making it the first system in the reviewed literature to use Philippine PESO data. Where systems such as Tiwari and Upadhyay (2024), Najjar et al. (2021), and Winardi et al. (2025) rank matches through cosine similarity, a method that requires rich descriptive text on the vacancy side, the proposed system uses predict_proba probability outputs from the trained classifier because PESO vacancy records contain only employer name, job title, and occupational category, which is insufficient for cosine-based matching. The system also operates without the GPU infrastructure that Srihari et al. (2025) and Heakl et al. (2024) depend on, runs on a standard Flask and scikit-learn stack suitable for a municipal government office, and directs its outputs to PESO staff rather than to job seekers directly, a user orientation not present in any of the six related systems reviewed. In addition, none of the related systems include an analytical dashboard; the proposed system integrates one to support the office's quarterly job seeker reporting requirements.
+Unlike the related systems reviewed, which were built on general-purpose datasets such as scraped resumes (Heakl et al., 2024; Chihab et al., 2025), publicly available job postings (Tiwari & Upadhyay, 2024), or purpose-built questionnaire instruments (Darma et al., 2026), the proposed system is trained exclusively on PESO CSJDM's own operational placement records, making it the first system in the reviewed literature to use Philippine PESO data. Where systems such as Tiwari and Upadhyay (2024), Najjar et al. (2021), and Winardi et al. (2025) rank matches through cosine similarity, a method that requires rich descriptive text on the vacancy side, the proposed system uses predict_proba probability outputs from the trained classifier because PESO vacancy records contain only employer name, job title, and occupational category, which is insufficient for cosine-based matching. The system also operates without the GPU infrastructure that Srihari et al. (2025) and Heakl et al. (2024) depend on, runs on a standard Flask and scikit-learn stack suitable for a municipal government office, and directs its outputs directly to jobseekers through a self-service portal, a user orientation not present in any of the six related systems reviewed. In addition, none of the related systems include an analytical dashboard; the proposed system integrates one to support the office's quarterly job seeker reporting requirements.
 
 ---
 
@@ -256,7 +253,7 @@ Requirements were gathered through the following methods to keep system function
 
 #### Functional Requirements
 
-Table 4 lists what the system shall do, organized by process and corresponding directly to the seven processes in the Level 1 DFD. FR-03 covers the machine learning component.
+Table 4 lists what the system shall do, describing each functional requirement by its process and the users or actions it supports.
 
 **Table 4. Functional Requirements**
 
@@ -310,15 +307,7 @@ The recommendation engine is trained on historical placement records provided by
 
 *Figure 1. Conceptual Framework*
 
-Figure 1 presents the conceptual framework of the study using the Input–Process–Output (IPO) model.
-
-**Input.** The input column is organized into four sections. *Knowledge Requirements* cover the domain knowledge applied in the study: job recommendation systems, machine learning classification, decision support systems, and the ISO/IEC 25010:2023 and TAM evaluation frameworks. *Software Requirements* list the technologies used to build the system: HTML5, CSS3, and JavaScript for the frontend; Python, Flask, and SQLite for the backend; and scikit-learn, pandas, NumPy, joblib, and openpyxl for machine learning and data handling. *Data Requirements* identify the three data sources the system depends on: applicant profiles, job vacancy records from the PESO CSJDM Labor Market Information (LMI) list, and historical placement records from PESO CSJDM. *User Inputs* represent the actions each user group performs: jobseekers provide registration details, complete their profile, and submit referral confirmations; employers provide company profile details, vacancy postings, and approval requests; and admin staff provide login credentials, approve or reject employer registrations, and manage accounts and records.
-
-**Process.** The process column presents the four phases of Rapid Application Development (RAD), each paired with the corresponding CRISP-DM activities that govern the machine learning component. Phase 1 (Requirements Planning) covers staff interviews and on-site observation at PESO CSJDM, dataset profiling, and requirements specification, aligned with the Business Understanding phase of CRISP-DM. Phase 2 (User Design) covers system architecture, ERD, and DFD design alongside UI/UX prototyping reviewed with PESO staff, aligned with the Data Understanding and Data Preparation phases of CRISP-DM, in which the placement dataset is cleaned and prepared for modeling. Phase 3 (Construction) covers the development of all system modules integrated with the machine learning pipeline, aligned with the Modeling, Evaluation, and Deployment phases of CRISP-DM, in which the three classifiers are trained, compared by Macro F1-Score, and the best-performing model is serialized as a pre-trained model file for deployment. Phase 4 (Cutover) covers ISO/IEC 25010:2023 evaluation by IT professionals, TAM evaluation by PESO CSJDM staff, and system deployment and handover.
-
-**Output.** The output column presents the developed system, A Web-Based Job Recommendation and Referral System with Analytical Dashboard for PESO CSJDM, which delivers three results to its users: Ranked Job Category Recommendations and Referral Slips for jobseekers, a Vacancy Management and Referred Applicants view for employers, and an Analytical Dashboard for admin staff.
-
-**Feedback.** A feedback arrow connects the output back to the input, indicating that evaluation results and system usage can be fed back into the input layer to support continuous improvement of the system.
+Figure 1 presents the conceptual framework of the study using the Input–Process–Output (IPO) model. The input phase covers the knowledge, software, data, and user inputs required by the system — including domain knowledge on job recommendation and machine learning, the development technologies used, jobseeker and employer records from PESO CSJDM, and the actions performed by each user group. These inputs are processed through the RAD and CRISP-DM methodologies, covering requirements planning, system design, module construction with the integrated machine learning pipeline, and system evaluation. The expected output is A Web-Based Job Recommendation and Referral System with Analytical Dashboard for PESO CSJDM, delivering ranked job recommendations and referral slips to jobseekers, vacancy management to employers, and an analytical dashboard to admin staff. A feedback loop connects the output back to the input to support continuous improvement.
 
 ### Development Methodology
 
@@ -328,9 +317,9 @@ Two complementary frameworks were adopted: Rapid Application Development (RAD) f
 
 *Figure 2. Rapid Application Development Model*
 
-**Rapid Application Development (RAD).** RAD is an iterative software development methodology that replaces exhaustive upfront specification with rapid prototyping and continuous user involvement, so that requirements are discovered and refined through demonstration rather than documentation (Riadi et al., 2024). RAD was selected for this project because the primary stakeholders (PESO CSJDM staff, jobseekers, and employers) carry workflow knowledge rooted in daily practice rather than written documentation; showing each group working screens at each prototype review was the most practical way to surface and validate accurate requirements. The fixed capstone timeline and small team size also aligned naturally with RAD's structured phase approach, where each phase delivers a testable prototype before the next begins, keeping development bounded without deferring user validation to the end.
+**Rapid Application Development (RAD).** RAD is an iterative software development methodology that prioritizes rapid prototyping and continuous user involvement over exhaustive upfront documentation, so that requirements are discovered and refined through demonstration (Riadi et al., 2024). It was selected for this project because showing stakeholders working screens at each prototype review was the most practical way to surface and validate accurate requirements. The fixed capstone timeline and small team size also aligned naturally with RAD's phase structure, where each phase delivers a testable prototype before the next begins, keeping development bounded without deferring user validation to the end.
 
-**CRISP-DM.** CRISP-DM is a structured, industry-independent process model for data mining and machine learning projects that breaks the work into six sequential phases: Business Understanding, Data Understanding, Data Preparation, Modeling, Evaluation, and Deployment (Shimaoka et al., 2024). It was adopted for the machine learning component of this study because each phase maps directly to a concrete task in building the recommendation model: understanding PESO CSJDM's referral problem, examining the placement dataset, cleaning and preparing the records for training, fitting and comparing the three classifiers, selecting the best performer using Macro F1-Score, and deploying the model through the Flask application. CRISP-DM gave the machine learning work a clear and repeatable structure that kept the modeling process aligned with the system's actual operational needs from start to finish.
+**CRISP-DM.** CRISP-DM is a structured process model for data mining and machine learning projects that organizes work into six phases: Business Understanding, Data Understanding, Data Preparation, Modeling, Evaluation, and Deployment (Shimaoka et al., 2024). It was adopted for the machine learning component because each phase corresponds directly to a concrete task — understanding the referral problem, examining the placement dataset, cleaning and preparing the records, training and comparing the three classifiers, selecting the best performer by Macro F1-Score, and deploying the model through the Flask application. This gave the machine learning work a clear structure that kept the modeling process aligned with the system's operational needs from start to finish.
 
 Table 7 presents how the RAD and CRISP-DM phases were carried out in parallel.
 
@@ -339,8 +328,8 @@ Table 7 presents how the RAD and CRISP-DM phases were carried out in parallel.
 | Phase | RAD Activities | CRISP-DM Activities | Key Deliverable |
 |---|---|---|---|
 | 1. Requirements Planning | Conduct interviews and on-site observation with stakeholders (PESO CSJDM staff, jobseekers, and employers); profile the historical placement dataset; define functional and non-functional requirements | Business Understanding: identify the referral decision problem, confirm placement data availability, and define model performance goals | Requirements specification; Data Sharing Agreement |
-| 2. User Design | Design system architecture, DFDs, ERD, and high-fidelity mockups for all system modules; review prototypes with stakeholders (PESO CSJDM staff, jobseekers, and employers); refine per feedback | Data Understanding: examine dataset structure, field completeness, and class distribution. Data Preparation: remove incomplete records, fill blank work experience entries, consolidate 88 job titles into five occupational categories as the target label, and split the dataset 80/20 with stratification. | Validated system design; cleaned dataset; selected feature set |
-| 3. Construction | Develop all system modules; integrate the ML pipeline with the Flask application for recommendation inference | Modeling: fit TF-IDF vectorizer on the training partition; train Logistic Regression, Random Forest, and Naïve Bayes. Evaluation: evaluate all three classifiers on the held-out test set using Accuracy, Precision, Recall, and Macro F1-Score; select the best-performing model. Deployment: serialize the selected pipeline with joblib and deploy through the Flask application | Working system; algorithm comparison results; deployed recommendation model |
+| 2. User Design | Design system architecture, DFDs, ERD, and high-fidelity mockups; review prototypes with stakeholders; refine per feedback | Examine dataset structure and class distribution; clean records, map 88 job titles to five categories, and split 80/20 with stratification | Validated system design; cleaned dataset; selected feature set |
+| 3. Construction | Develop all system modules; integrate the ML pipeline with the Flask application | Fit TF-IDF vectorizer; train Logistic Regression, Random Forest, and Naïve Bayes; select best model by Macro F1-Score; serialize and deploy via Flask | Working system; algorithm comparison results; deployed recommendation model |
 | 4. Cutover | Conduct ISO/IEC 25010:2023 evaluation by IT professionals and TAM evaluation by respondents; apply corrections; prepare system handover | Post-deployment review of the deployed model's performance in operational context | Evaluated system; handover package |
 
 ---
@@ -363,7 +352,7 @@ Figure 3 presents the context diagram, which shows the whole system as a single 
 
 *Figure 4. Data Flow Diagram Level 1*
 
-Figure 4 decomposes the system into seven processes (P1–P7) and seven data stores (T1–T7), with three external entities: Jobseeker, Employer, and Admin (PESO Staff). Process 1 (Authenticate User) receives Login Credentials from all three external entities, reads User Account Data from the Users store (T1) to verify accounts, writes User Registration to T1 for new accounts, returns an Authentication Status to each entity, and writes every attempt as a Login Record to the Login Logs store (T7). Process 2 (Manage Jobseeker Profile) receives Profile Data from the Jobseeker, reads the User Account Link from T1 and the existing Applicant Profile from the Applicants store (T2), writes the Updated Profile back to T2, and returns a Profile Confirmation to the Jobseeker. Process 3 (Generate Job Recommendations) receives a Recommendation Request from the Jobseeker, reads the Applicant Profile from T2 and a Vacancy List from the Job Vacancies store (T4), applies the ML pipeline internally to rank vacancies by suitability, writes the Recommendation Record to the Recommendations store (T6), and returns the Ranked Job List to the Jobseeker. Process 4 (Process Referral) receives a Referral Confirmation from the Jobseeker, reads Applicant Data from T2 and Vacancy Data from T4, writes the Referral Record to the Referrals store (T5), and returns a Referral Slip to the Jobseeker. Process 5 (Manage Employer Portal) receives Company Profile and Vacancy Data from the Employer, reads the Employer Profile from T3, reads Vacancy Data from T4, reads Referred Applicants from T5 to show the employer which jobseekers have been referred to their active positions, writes the Updated Profile to T3 and the Vacancy Record to T4, and returns a Portal Confirmation to the Employer. Process 6 (Administer System) receives Management Actions from Admin, reads User Records from T1, Applicant Records from T2, Employer Records from T3, Vacancy Records from T4, Referral Records from T5, and Login History from T7, writes Account Updates to T1 and Approval Status to T3, and returns a System Report to Admin. Process 7 (Display Analytical Dashboard) receives a Dashboard Request from Admin, reads the Applicant Summary from T2 exclusively, and returns the Dashboard Report to Admin; vacancy and referral data are not directly aggregated in the dashboard.
+Figure 4 decomposes the system into seven processes (P1–P7) and seven data stores (T1–T7), with three external entities: Jobseeker, Employer, and Admin (PESO Staff). P1 (Authenticate User) handles login for all three entities, verifies credentials against the Users store (T1), registers new accounts, and logs every attempt to the Login Logs store (T7). P2 (Manage Jobseeker Profile) receives profile data from the Jobseeker, updates the Applicants store (T2), and returns a confirmation. P3 (Generate Job Recommendations) reads the jobseeker's profile from T2 and active vacancies from the Job Vacancies store (T4), applies the machine learning pipeline to rank results, saves the output to the Recommendations store (T3), and returns a ranked job list to the Jobseeker. P4 (Process Referral) receives a referral confirmation from the Jobseeker, records it in the Referrals store (T5), and returns a referral slip. P5 (Manage Employer Portal) receives company profile and vacancy data from the Employer, reads referred applicants from T5, updates the Employers store (T6) and T4, and returns a portal confirmation. P6 (Administer System) receives management actions from Admin, reads records across all data stores, updates accounts and approval statuses, and returns a system report. P7 (Display Analytical Dashboard) reads applicant data from T2 and returns the dashboard report to Admin.
 
 #### Use Case Diagram
 
@@ -371,7 +360,7 @@ Figure 4 decomposes the system into seven processes (P1–P7) and seven data sto
 
 *Figure 5. Use Case Diagram*
 
-Figure 5 presents the use case diagram with three actors — Jobseekers, Employers, and Admin (PESO Staff) — and seven use cases enclosed within the system boundary, each corresponding directly to a process in the Level 1 DFD. The Authenticate User use case is shared by all three actors, covering registration for Jobseekers and Employers and login for all three roles. The Jobseeker actor initiates three additional use cases: Manage Jobseeker Profile, which covers completing and updating the structured profile; Generate Job Recommendations, which triggers the ML ranking pipeline and returns a ranked vacancy list; and Process Referral, which confirms a referral and generates the referral slip. The Employer actor initiates one additional use case: Manage Employer Portal, which covers submitting a company profile, managing vacancies, and viewing referred applicants. The Admin actor initiates two additional use cases: Administer System, which covers managing user accounts, overseeing applicant records, approving employer registrations, overseeing vacancies, and reviewing referrals; and Display Analytical Dashboard, which produces the consolidated jobseeker summary. The recommendation model is pre-trained by the research team prior to deployment; model training is not a user-facing function for any of the three actors.
+Figure 5 presents the use case diagram showing three actors — Jobseeker, Employer, and Admin (PESO Staff) — and seven use cases. Authenticate User is shared by all three actors. The Jobseeker additionally initiates Manage Jobseeker Profile, Generate Job Recommendations, and Process Referral. The Employer initiates Manage Employer Portal, which covers submitting a company profile, posting vacancies, and viewing referred applicants. The Admin initiates Administer System for managing accounts, approvals, and records, and Display Analytical Dashboard for viewing the jobseeker summary report.
 
 #### Entity Relationship Diagram (ERD)
 
@@ -379,7 +368,7 @@ Figure 5 presents the use case diagram with three actors — Jobseekers, Employe
 
 *Figure 6. Entity Relationship Diagram*
 
-Figure 6 presents the ERD. The database has seven tables, each mapped to one data store in the Level 1 DFD, with users (T1) as the central hub table referenced by all others. The users table (T1) holds full name, email, password hash, role (admin, employer, or jobseeker), active status, and creation date for all three user types in a single unified table. The applicants table (T2) stores each jobseeker's profile via a foreign key to T1. The table contains 51 fields in total; the ERD shows 20 representative fields and abbreviates the remaining 32 scalar fields as a single placeholder row labeled "extended: personal, OFW, programme flags, work preference." The displayed fields include demographic fields (sex, age, barangay, district, employment status, disability status), the four ML input fields marked with an asterisk (educ_level, preferred_position, skills, work_experience), and repeatable extended profile fields stored as JSON (education, trainings, work_history, eligibilities) following the PESO format. The 32 abbreviated fields cover personal details (birthdate, contact number, civil status, citizenship), OFW-related fields, government programme flags, and work preference fields collected through the full PESO/NSRP registration form. The employers table (T3) stores each employer's company profile via a foreign key to T1, including company name, contact person, employer type, line of business, location fields, approval status, and profile completion flag. The job_vacancies table (T4) stores each vacancy via a foreign key to T1, including employer name, job title and occupational category (marked with asterisks as ML target fields), and the auto-matchable requirement fields: req_gender, req_age_min, req_age_max, req_education, req_experience_months, salary range, and job_location. The referrals table (T5) records each referral transaction with foreign keys to T2 (applicant_id), T4 (vacancy_id), and T1 (referred_by), together with the referral timestamp, status, and the suitability score captured at the time of referral. The recommendations table (T6) logs each ML recommendation result with foreign keys to T2 (applicant_id), T4 (vacancy_id), and T1 (generated_by), storing the suitability score, rank, timestamp, and status. The login_logs table (T7) records every authentication event with a foreign key to T1 (user_id), capturing the username, timestamp, IP address, and outcome.
+Figure 6 presents the ERD. The database has seven tables corresponding to the data stores in the Level 1 DFD. The users table (T1) is the central hub, storing account credentials and role for all three user types, with all other tables referencing it. The applicants table (T2) stores each jobseeker's profile, including the four ML input fields marked with an asterisk. The employers table (T6) stores company profile details and approval status. The job_vacancies table (T4) stores vacancy requirements, with job title and occupational category marked as ML target fields. The referrals (T5) and recommendations (T3) tables record each referral transaction and ML result respectively, both linking back to applicants, vacancies, and users. The login_logs table (T7) captures each authentication event.
 
 #### System Architecture Diagram
 
@@ -478,13 +467,13 @@ Table 8 lists the tools and technologies that will be used to develop the system
 | Frontend | HTML5, CSS3, JavaScript | HTML5 / CSS3 / ES2015 | Standard web markup, styling, and scripting languages for building structured, accessible, and interactive system pages; all frontend output will be rendered through Jinja2 templates served by Flask |
 | Frontend | Bootstrap (via CoreUI 5) | 5.3 | Open-source Bootstrap-based CSS framework providing pre-built, mobile-responsive UI components; will ensure consistent layout across desktop and mobile browsers without custom component development |
 | Backend | Python | 3.14.2 | Single language for both the web application and machine learning pipeline; routing, business logic, session management, and ML inference will all run within one Flask process |
-| Backend | Flask | 3.0 | Lightweight Python micro-framework for routing, Jinja2 templating, and session management; Werkzeug utilities bundled with Flask will handle password hashing and secure file uploads |
+| Backend | Flask | 3.0 | Lightweight Python micro-framework for routing, Jinja2 templating, and session management; Werkzeug utilities bundled with Flask will handle password hashing and request security utilities |
 | Database | SQLite | 3.46 | Serverless, file-based relational database bundled with Python; will store all seven system tables in a single database file deployed alongside the application without requiring a separate database server |
 | Python / ML Libraries | scikit-learn | 1.4 | Will provide TfidfVectorizer, LogisticRegression, RandomForestClassifier, MultinomialNB, and Pipeline for constructing and comparing the three classification models; NumPy (1.26) is included as a required numerical dependency |
-| Python / ML Libraries | pandas | 2.2 | Will handle .xlsx file reading for PEIS-exported batch uploads and all CRISP-DM Data Preparation steps including duplicate removal and missing value handling |
-| Python / ML Libraries | openpyxl | 3.1 | Excel reading engine for .xlsx files required for both training dataset ingestion and applicant batch upload processing |
+| Python / ML Libraries | pandas | 2.2 | Will handle .xlsx file reading for training dataset ingestion and all CRISP-DM Data Preparation steps including duplicate removal and missing value handling |
+| Python / ML Libraries | openpyxl | 3.1 | Excel reading engine for .xlsx files required for training dataset ingestion |
 | Model Serving | joblib | 1.4 | Will serialize the trained TF-IDF vectorizer and best-performing classifier into a pre-trained model file; the Flask application will reload this artifact at startup for live inference without retraining |
-| Jupyter Notebook | Python Script (.py) | 3.14.2 | ML training, preprocessing, and model evaluation will be implemented as standalone Python scripts executed directly through the Visual Studio Code terminal; all CRISP-DM Modeling and Evaluation steps will be performed via the Python interpreter without a notebook interface |
+| ML Training Script | Python Script (.py) | 3.14.2 | ML training, preprocessing, and model evaluation will be implemented as standalone Python scripts executed directly through the Visual Studio Code terminal; all CRISP-DM Modeling and Evaluation steps will be performed via the Python interpreter without a notebook interface |
 | Data Visualization | Chart.js | 4.4 | Lightweight open-source charting library that will render all Analytical Dashboard charts; chart data will be fetched asynchronously from the Flask JSON API endpoint |
 | Version Control | Git | 2.47 | Will track code changes and coordinate development across the five-member research team throughout all RAD phases |
 | IDE / Code Editor | Visual Studio Code | 1.96 | Free, extensible editor with integrated terminal and Python/JavaScript extensions; will serve as the primary development environment for all team members |
@@ -529,12 +518,12 @@ This section describes how the system will be evaluated following implementation
 1. **Functional Suitability** evaluates whether the system accurately and completely delivers its specified functions: applicant and vacancy management, job recommendation with suitability ranking, and dashboard reporting. This characteristic also serves as the formal verification of Objective 1's functional requirements (FR-01 to FR-07).
 2. **Performance Efficiency** covers the speed of generating recommendation outputs, loading applicant data, and handling daily use without degradation.
 3. **Compatibility** covers the system's ability to operate alongside existing PESO tools without interference and to behave consistently across common web browsers and devices.
-4. **Interaction Capability** covers the degree to which PESO staff can recognize the interface as appropriate for their tasks, learn to navigate it without advanced technical skill, and complete referral and dashboard workflows with minimal error.
+4. **Interaction Capability** covers the degree to which users can recognize the interface as appropriate for their tasks, learn to navigate it without advanced technical skill, and complete their respective workflows with minimal error.
 5. **Reliability** evaluates whether the system consistently generates stable outputs and maintains uninterrupted operation under continuous daily use.
 6. **Security** covers protection of applicant personal information, credentials, and recommendation records through authentication and access control.
 7. **Maintainability** covers ease of updating the ML model, modifying features, and maintaining the database schema.
 8. **Flexibility** evaluates whether the system operates across different browsers and devices without loss of function, and whether it can be adapted to different deployment environments.
-9. **Safety** evaluates whether the system prevents unacceptable risk to applicant data, including enforcement of authentication controls that restrict access to authorized PESO staff only and input validation that protects stored records from unauthorized modification.
+9. **Safety** evaluates whether the system prevents unacceptable risk to applicant data, including enforcement of authentication controls that restrict access to authorized users only and input validation that protects stored records from unauthorized modification.
 
 **Evaluators.** At least three (3) IT professionals with expertise in web development, database management, or machine learning systems will be invited as evaluators, selected through purposive sampling.
 
@@ -554,7 +543,7 @@ This section describes how the system will be evaluated following implementation
 
 **Respondents.** Twenty-seven (27) respondents will be selected through purposive sampling. Respondents are individuals who will interact with the system and can provide meaningful feedback on its usability and usefulness based on their experience with the system's workflows.
 
-**Instrument.** A TAM-based questionnaire aligned to the three constructs will be used, rated on the same 5-point Likert scale. Each respondent will receive a guided walkthrough covering the core workflows (registering or selecting an applicant, generating a ranked recommendation, and navigating the dashboard) before independently answering the questionnaire.
+**Instrument.** A TAM-based questionnaire aligned to the three constructs will be used, rated on the same 5-point Likert scale. Each respondent will receive a guided walkthrough covering the core workflows (completing a jobseeker profile, generating a ranked recommendation, and generating a referral slip) before independently answering the questionnaire.
 
 #### Data Handling and Analysis
 
@@ -566,7 +555,7 @@ The total evaluation population is thirty (30) respondents, broken down into two
 
 | Respondent Group | Evaluation Framework | Sampling Method | n |
 |---|---|---|---|
-| Respondents (jobseekers, employers, and general users who interacted with the system) | TAM | Purposive | 27 |
+| Respondents (jobseekers, employers, PESO staff, and general users who interacted with the system) | TAM | Purposive | 27 |
 | IT professionals (web development, database management, or ML systems expertise) | ISO/IEC 25010:2023 | Purposive | 3 |
 | **Total** | | | **30** |
 
@@ -584,7 +573,7 @@ Responses from both evaluator groups will be collected using a 5-point Likert sc
 | 1.51 – 2.50 | Slightly Acceptable |
 | 1.00 – 1.50 | Not Acceptable |
 
-For this system, a mean of 4.51–5.00 (Highly Acceptable) indicates that the evaluated characteristic (for example, the accuracy of the recommendation workflow or the clarity of the two-tab interface) fully meets the criterion with no significant areas for improvement. A mean of 3.51–4.50 (Acceptable) indicates the criterion is satisfied with only minor refinements needed. A mean of 2.51–3.50 (Moderately Acceptable) indicates the system partially satisfies the criterion and requires targeted improvement before regular operational use at PESO CSJDM. A mean of 1.51–2.50 (Slightly Acceptable) indicates substantial revision is required, and 1.00–1.50 (Not Acceptable) indicates the criterion is not met and fundamental redesign is needed. Consistent with Objective 3, the study's target threshold for each evaluation dimension is a weighted mean of at least 3.51 ("Acceptable").
+For this system, a mean of 4.51–5.00 (Highly Acceptable) indicates that the evaluated characteristic (for example, the accuracy of the recommendation workflow or the clarity of the referral generation interface) fully meets the criterion with no significant areas for improvement. A mean of 3.51–4.50 (Acceptable) indicates the criterion is satisfied with only minor refinements needed. A mean of 2.51–3.50 (Moderately Acceptable) indicates the system partially satisfies the criterion and requires targeted improvement before regular operational use at PESO CSJDM. A mean of 1.51–2.50 (Slightly Acceptable) indicates substantial revision is required, and 1.00–1.50 (Not Acceptable) indicates the criterion is not met and fundamental redesign is needed. Consistent with Objective 3, the study's target threshold for each evaluation dimension is a weighted mean of at least 3.51 ("Acceptable").
 
 ##### C. Statistical Treatment of Data
 
@@ -636,7 +625,7 @@ This chapter presents the results of the study based on the specific objectives 
 
 ---
 
-## Results for Specific Objective 1: Develop a web-based data-driven job recommendation system with dashboard for PESO CSJDM.
+## Results for Specific Objective 1: Develop a Web-Based Job Recommendation and Referral System with Analytical Dashboard for PESO CSJDM.
 
 The web-based data-driven job recommendation system with dashboard for PESO CSJDM was successfully developed and deployed. The system was built using Python and Flask as the backend framework, SQLite as the database, Bootstrap via CoreUI 5 for the frontend, and scikit-learn for the machine learning component. It runs through a responsive web interface that can be accessed on both desktop and mobile browsers. The system is organized into three role-based portals: the Jobseeker portal, the Employer portal, and the Admin panel. The Jobseeker portal provides self-service access to profile management, ML-powered job recommendations, job browsing, and referral generation. The Employer portal allows registered and approved employers to manage vacancies and view the profiles of jobseekers referred to their postings. The Admin panel provides tools for applicant oversight, vacancy monitoring, referral management, employer approval, user account management, and the Analytical Dashboard. The following sections describe the key modules as implemented.
 
@@ -692,7 +681,7 @@ Figure 20 shows the referral generation step in the Jobseeker portal, which is t
 
 **Figure 21.** Analytical Dashboard Tab
 
-Figure 21 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by PEIS registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
+Figure 21 shows the Analytical Dashboard tab, which supports PESO CSJDM's quarterly job seeker reporting requirements. The dashboard presents registered job seeker data across three sections. The top row shows the total number of registered job seekers with a male and female breakdown, and separate counts for youth (ages 15 to 30), senior citizens (ages 60 and above), and persons with disability (PWD). Below the summary row, the distribution of registrants by educational attainment is shown as a horizontal bar chart covering the ten canonical levels. The distribution by employment status is shown as a doughnut chart with a count summary below it. The barangay-level distribution of registrants separated into District 1 and District 2 is shown as two scrollable tables with totals. The dashboard loads its data in the background without requiring a full page reload, and it supports date range filtering by registration date, so staff can view data for a specific period. All data shown in the dashboard comes from the applicants table only; job vacancy and recommendation records are not counted here.
 
 ---
 
@@ -854,11 +843,11 @@ The overall Macro F1-Score of 0.7370 shows that Logistic Regression can correctl
 
 The pattern of results in Table 14 is consistent with the theoretical properties described for each algorithm in Chapter II. Logistic Regression achieved the highest Macro F1-Score across all five categories, which aligns with its documented behavior on sparse, high-dimensional TF-IDF vectors. Alyasiri & Cheah (2025) identified Logistic Regression as the top-performing traditional classifier across 19 benchmark text classification datasets, and the same ranking appeared on the PESO CSJDM data for the same structural reason: TF-IDF vectorization encodes the most class-discriminative terms as the features with the highest magnitude, organizing the feature space in a way that favors linear decision boundaries. Under the One-versus-Rest scheme, Logistic Regression learns a separate set of term weights per occupational category, identifying which terms most strongly predict membership in each class. The direct alignment between TF-IDF's term-weighting structure and Logistic Regression's linear decision mechanism produced the most accurate and consistent classification across all five categories.
 
-Multinomial Naïve Bayes ranked second with a Macro F1-Score of 0.7098. This result confirms the behavior described in Chapter II: despite the conditional independence assumption being unrealistic for real profile text, the algorithm's per-class term probability estimates still captured enough categorical signal from the PESO dataset to perform competitively. With only 149 to 317 training records per category after the 80/20 split, the lightweight single-pass training approach of Naïve Bayes fits the data volume available at PESO CSJDM well. Its estimates assigned high likelihood to clear category-specific terms such as "security guard" and "janitor" in General Services and Security, producing the highest per-category F1-Score at 0.9492. The gap between Naïve Bayes and Logistic Regression on the two categories with overlapping vocabularies, Warehouse and Logistics and Production and Manufacturing, reflects the cost of the independence assumption: when two categories share many of the same terms such as "helper," "laborer," and "packer," the per-class probability distributions become difficult to separate, and the multiplicative structure of the Naïve Bayes likelihood calculation does not capture the co-occurrence patterns that would help distinguish between them.
+Multinomial Naïve Bayes ranked second with a Macro F1-Score of 0.7098. This result confirms the behavior described in Chapter II: despite the conditional independence assumption being unrealistic for real profile text, the algorithm's per-class term probability estimates still captured enough categorical signal from the PESO dataset to perform competitively. With only 149 to 317 training records per category after the 80/20 split, the lightweight single-pass training approach of Naïve Bayes fits the data volume available at PESO CSJDM well. Its estimates assigned high likelihood to clear category-specific terms such as "security guard" and "janitor" in General Services and Security, which is why that category consistently achieved the highest per-category F1-Score across all three classifiers, as seen at 0.9492 for the selected Logistic Regression model in Table 15. The gap between Naïve Bayes and Logistic Regression on the two categories with overlapping vocabularies, Warehouse and Logistics and Production and Manufacturing, reflects the cost of the independence assumption: when two categories share many of the same terms such as "helper," "laborer," and "packer," the per-class probability distributions become difficult to separate, and the multiplicative structure of the Naïve Bayes likelihood calculation does not capture the co-occurrence patterns that would help distinguish between them.
 
 Random Forest recorded the lowest Macro F1-Score at 0.6679, contrary to the result in Betrand et al. (2025), where Random Forest outperformed both Naïve Bayes and Decision Trees on a career guidance dataset. The underperformance here is consistent with the known behavior of ensemble methods on small, sparse text datasets. A 100-tree ensemble built from bootstrap samples of 866 training records means each tree is trained on roughly 632 unique records, distributed across five categories of 119 to 254 records each before sampling. When individual trees additionally consider only a random subset of the 356 TF-IDF features at each split, many trees learn from terms that appear too infrequently in their sampled subset to form reliable split criteria, increasing the proportion of trees that misclassify borderline records. The non-linear ensemble boundaries that make Random Forest advantageous on larger and denser datasets become a liability at this scale because the dataset does not provide each tree with a stable feature distribution from which to learn reliable occupational split points. This outcome is consistent with Scherp et al. (2022), who observed that the performance advantage of more complex classifiers over linear models narrows substantially when the training data are limited and the feature space already captures the class structure through TF-IDF weighting.
 
-The combined result, Logistic Regression first, Naïve Bayes second, and Random Forest third, mirrors the ranking in Heakl et al. (2024), where the same three classifiers were evaluated on a 13,389-resume dataset with TF-IDF features and produced the same ordering: Logistic Regression ahead of Naïve Bayes, and both ahead of Random Forest. The selection of Logistic Regression for deployment is therefore supported not only by its observed Macro F1-Score on the PESO CSJDM dataset but also by the theoretical alignment between its linear decision structure and the discriminative feature encoding produced by TF-IDF vectorization.
+The combined result, Logistic Regression first, Naïve Bayes second, and Random Forest third, is consistent with Chihab et al. (2025), where Logistic Regression ranked second overall (behind SVM) and ahead of both Random Forest and Naïve Bayes, and with the benchmark by Alyasiri and Cheah (2025), which identified Logistic Regression as the top-performing traditional classifier for multiclass text classification. It differs from Heakl et al. (2024), where Naïve Bayes led at 82.8% Macro F1 ahead of Logistic Regression at 80.6%, confirming that the relative ordering of Logistic Regression and Naïve Bayes shifts with dataset domain and size, as Chapter II established. The consistent finding across all studies is that Random Forest ranked last when evaluated on limited, sparse text data. The selection of Logistic Regression for deployment is therefore supported not only by its observed Macro F1-Score on the PESO CSJDM dataset but also by the theoretical alignment between its linear decision structure and the discriminative feature encoding produced by TF-IDF vectorization.
 
 ---
 
@@ -891,11 +880,11 @@ Functional Suitability evaluates whether the system provides all the functions i
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Functional Completeness* | | | | | | | |
-| 1 | The system provides all necessary functions to support PESO staff in managing applicant profiles, job vacancies, and generating job recommendations. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 1 | The system provides a complete set of functions covering the whole process: registration, company profile and vacancy posting (employer), profile encoding and job recommendations (jobseeker), referral generation, and admin moderation. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Functional Correctness* | | | | | | | |
-| 2 | The system produces accurate job recommendations and analytics results based on applicant profiles and available job vacancies. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 2 | The system produces accurate results, such as job recommendations that fit the jobseeker profile and referral slips that show the correct jobseeker, job, and employer. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Functional Appropriateness* | | | | | | | |
-| 3 | The system's features appropriately support PESO staff in matching applicants to suitable job opportunities. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 3 | The system functions appropriately support matching a jobseeker to a suitable vacancy and generating a referral. | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | | **Overall Mean** | | | | | | **4.89** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -913,11 +902,11 @@ Performance Efficiency evaluates how quickly the system responds to actions and 
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Time Behaviour* | | | | | | | |
-| 4 | The system responds promptly to user actions such as generating recommendations, searching records, and loading the analytics dashboard. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 4 | The system responds quickly to actions such as submitting forms, generating recommendations, searching, and loading the dashboard. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Resource Utilization* | | | | | | | |
-| 5 | The system efficiently uses computing resources when processing applicant data and generating job recommendations. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 5 | The system uses memory, storage, and processing resources efficiently, as observed through developer tools or server monitoring during use. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Capacity* | | | | | | | |
-| 6 | The system can handle the expected volume of applicant records and job vacancies without performance degradation. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 6 | The system processes the available set of records (jobseekers, employers, and vacancies) without noticeable slowdown. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | | **Overall Mean** | | | | | | **5.00** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -928,16 +917,16 @@ Performance Efficiency received a perfect overall mean of 5.00 (Highly Acceptabl
 
 #### C. Compatibility
 
-Compatibility evaluates whether the system can work alongside other tools and accept data from existing systems without any conflicts. It covers Co-existence and Interoperability. Table 20 shows the evaluation results (n = 3).
+Compatibility evaluates whether the system can operate alongside other tools without interference and behave consistently across different browsers and devices. It covers Co-existence and Interoperability. Table 20 shows the evaluation results (n = 3).
 
 **Table 20.** Evaluation of Compatibility (n = 3)
 
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Co-existence* | | | | | | | |
-| 7 | The system operates effectively alongside other tools or software used in the PESO office environment. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 7 | The system runs in a web browser without negatively affecting other applications on the same device. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Interoperability* | | | | | | | |
-| 8 | The system can work with external data sources and formats used in employment service operations. | 1 | 1 | 1 | 0 | 0 | 4.00 |
+| 8 | The system behaves consistently across common web browsers and devices (for example Chrome and Edge, desktop and mobile). | 1 | 1 | 1 | 0 | 0 | 4.00 |
 | | **Overall Mean** | | | | | | **4.50** |
 
 *Verbal Interpretation: Acceptable*
@@ -948,28 +937,28 @@ Compatibility received an overall mean of 4.50 (Acceptable). Item 7, which asses
 
 #### D. Interaction Capability
 
-Interaction Capability evaluates how easy it is for PESO staff to understand and use the system, navigate through its features, and complete tasks with minimal errors. It covers Appropriateness Recognizability, Learnability, Operability, User Error Protection, User Engagement, Inclusivity, User Assistance, and Self-descriptiveness. Table 21 shows the evaluation results (n = 3).
+Interaction Capability evaluates how easy it is for users to understand and use the system, navigate through its features, and complete tasks with minimal errors. It covers Appropriateness Recognizability, Learnability, Operability, User Error Protection, User Engagement, Inclusivity, User Assistance, and Self-descriptiveness. Table 21 shows the evaluation results (n = 3).
 
 **Table 21.** Evaluation of Interaction Capability (n = 3)
 
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Appropriateness Recognizability* | | | | | | | |
-| 9 | Users can easily understand the purpose of the system and its job recommendation features upon first use. | 1 | 1 | 1 | 0 | 0 | 4.00 |
+| 9 | Users can easily recognize the system purpose and capabilities on first visit, such as from the landing page. | 1 | 1 | 1 | 0 | 0 | 4.00 |
 | *Learnability* | | | | | | | |
-| 10 | PESO staff can quickly learn to navigate and use the system's features without extensive training. | 1 | 0 | 2 | 0 | 0 | 3.67 |
+| 10 | First-time users can easily learn to register, encode a profile, and generate a referral. | 1 | 0 | 2 | 0 | 0 | 3.67 |
 | *Operability* | | | | | | | |
-| 11 | The system's functions for managing applicants, vacancies, and recommendations are easy to operate and control. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| 11 | The system functions (forms, menus, buttons) are easy to operate and control. | 1 | 2 | 0 | 0 | 0 | 4.33 |
 | *User Error Protection* | | | | | | | |
-| 12 | The system prevents or minimizes data entry errors when managing applicant profiles and job vacancies. | 2 | 0 | 1 | 0 | 0 | 4.33 |
+| 12 | The system notifies users when invalid data is entered while managing applicant profiles and job vacancies. | 2 | 0 | 1 | 0 | 0 | 4.33 |
 | *User Engagement* | | | | | | | |
-| 13 | The system's interface is well-designed and encourages PESO staff to use it consistently in daily operations. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| 13 | The system interface is inviting and encourages continued use. | 1 | 2 | 0 | 0 | 0 | 4.33 |
 | *Inclusivity* | | | | | | | |
-| 14 | The system is usable by PESO staff regardless of their level of technical proficiency. | 0 | 2 | 1 | 0 | 0 | 3.67 |
+| 14 | The system can be used effectively by people of varied technical backgrounds and abilities. | 0 | 2 | 1 | 0 | 0 | 3.67 |
 | *User Assistance* | | | | | | | |
-| 15 | The system provides sufficient guidance to help users navigate and accomplish their tasks. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| 15 | The system guides users through tasks with on-screen help such as field hints, placeholders, and instructional messages. | 1 | 2 | 0 | 0 | 0 | 4.33 |
 | *Self-descriptiveness* | | | | | | | |
-| 16 | The system's interface and features are clear and intuitive, allowing users to understand how to use them without needing additional documentation. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| 16 | The system presents information clearly through labels and icons, so its use is obvious without excessive help. | 1 | 2 | 0 | 0 | 0 | 4.33 |
 | | **Overall Mean** | | | | | | **4.12** |
 
 *Verbal Interpretation: Acceptable*
@@ -987,13 +976,13 @@ Reliability evaluates whether the system works consistently without errors durin
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Faultlessness* | | | | | | | |
-| 17 | The system consistently generates job recommendations and manages records without errors during normal operation. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 17 | The system consistently generates accurate job recommendations and manages records without errors under expected operating conditions. | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | *Availability* | | | | | | | |
-| 18 | The system is accessible and ready for use whenever PESO staff need it. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 18 | The system is available and accessible whenever needed through its URL. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Fault Tolerance* | | | | | | | |
-| 19 | The system continues to function normally even when encountering unexpected inputs or minor errors. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 19 | The system continues to function properly even when it encounters invalid data entries or minor technical errors. | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | *Recoverability* | | | | | | | |
-| 20 | The system can recover applicant data and return to normal operation after an unexpected interruption or failure. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 20 | After an interruption or restart, the system recovers and previously saved data (profiles, vacancies, referrals) remains intact. | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | | **Overall Mean** | | | | | | **4.75** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -1011,17 +1000,17 @@ Security covers how well the system protects applicant information, staff accoun
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Confidentiality* | | | | | | | |
-| 21 | The system ensures that applicant information and employment data are accessible only to authorized PESO staff. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 21 | Data is accessible only to authorized users (a jobseeker cannot view another user referral or records). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Integrity* | | | | | | | |
-| 22 | The system protects applicant records and recommendation data from unauthorized modification or deletion. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 22 | The system protects records from unauthorized modification or deletion (only the owning employer can edit their vacancy, only admin can approve employers). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Non-repudiation* | | | | | | | |
-| 23 | The system maintains records of significant actions performed, ensuring they can be verified and cannot be denied later. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 23 | The system records that key actions occurred (referral timestamps and login records), so they cannot be denied later. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Accountability* | | | | | | | |
-| 24 | The system logs and tracks user actions, allowing activities to be traced back to the responsible staff member. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 24 | The system traces actions to the responsible account, for example through the admin login history. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Authenticity* | | | | | | | |
-| 25 | The system verifies the identity of users before granting access to applicant data and system features. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 25 | The system verifies identity through login before granting access (a wrong password or a deactivated account is denied). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Resistance* | | | | | | | |
-| 26 | The system remains secure and functional even when subjected to unauthorized access attempts. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 26 | The system stays secure under unauthorized access attempts (protected pages redirect to login, approval cannot be bypassed by URL). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | | **Overall Mean** | | | | | | **5.00** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -1039,15 +1028,15 @@ Maintainability covers how easy it is to update or change the system, such as re
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Modularity* | | | | | | | |
-| 27 | The system is structured so that updates or changes to one feature do not disrupt other functions. | 1 | 2 | 0 | 0 | 0 | 4.33 |
+| 27 | The system is organized into independent modules (routes, templates, ML pipeline, database layer) so a change in one does not break others. | 1 | 2 | 0 | 0 | 0 | 4.33 |
 | *Reusability* | | | | | | | |
-| 28 | Components or features of the system can be repurposed or extended to support future enhancements. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 28 | The system reuses shared components such as base templates and helper functions across features. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Analysability* | | | | | | | |
-| 29 | Issues or defects in the system can be identified and diagnosed without difficulty. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 29 | The system code and structure make it easy to locate the cause of a defect or the impact of a change. | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | *Modifiability* | | | | | | | |
-| 30 | The system can be updated or enhanced to accommodate changes in PESO's operational requirements without introducing new errors. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 30 | The system can be updated or enhanced to accommodate changes in PESO operational requirements without errors. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Testability* | | | | | | | |
-| 31 | The system's features can be systematically tested to verify they meet the defined requirements. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 31 | The system functions are structured so they can be tested to verify requirements. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | | **Overall Mean** | | | | | | **4.80** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -1065,13 +1054,13 @@ Flexibility evaluates whether the system can be used on different devices and br
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Adaptability* | | | | | | | |
-| 32 | The system can be deployed and operated in different environments or configurations as needed by PESO. | 2 | 0 | 0 | 1 | 0 | 4.00 |
+| 32 | The system runs across different environments and devices (local and hosted, desktop and responsive mobile). | 2 | 0 | 0 | 1 | 0 | 4.00 |
 | *Scalability* | | | | | | | |
-| 33 | The system can accommodate growth in the number of applicants, vacancies, or users without significant performance loss. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 33 | The system design (database and architecture) can accommodate a growing number of users and records without significant performance loss. | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | *Installability* | | | | | | | |
-| 34 | The system can be set up and deployed in PESO's operating environment with ease. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 34 | The system can be deployed and accessed successfully, as shown by its running hosted instance. | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Replaceability* | | | | | | | |
-| 35 | The system's components can be updated or replaced to meet evolving needs without disrupting overall operations. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 35 | Records or components can be updated or replaced with minimal disruption (for example editing a vacancy or updating a profile). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | | **Overall Mean** | | | | | | **4.67** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -1089,15 +1078,15 @@ Safety evaluates whether the system protects applicant data from risks such as u
 | No. | Parameter | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | *Operational Constraint* | | | | | | | |
-| 36 | The system operates within defined parameters to prevent unintended actions that could affect applicant data integrity. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 36 | The system constrains operations within safe rules (it cannot approve an employer with an incomplete profile, and a jobseeker cannot hold two active referrals). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Risk Identification* | | | | | | | |
-| 37 | The system can identify and flag potentially problematic inputs or operations before they cause issues. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 37 | The system identifies risky or invalid operations before they take effect (for example an invalid salary or age range, or a past deadline). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Fail Safe* | | | | | | | |
-| 38 | The system defaults to a safe state when it encounters an error, preventing data loss or corruption. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 38 | The system reverts to a safe state on error and keeps data intact (an invalid form submission returns to the form without data loss). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | *Hazard Warning* | | | | | | | |
-| 39 | The system alerts users to potential issues, such as incomplete applicant profiles or missing required data, before processing. | 2 | 1 | 0 | 0 | 0 | 4.67 |
+| 39 | The system gives timely warnings about potential problems (for example reminding the user to complete the profile before applying, or flagging missing required fields). | 2 | 1 | 0 | 0 | 0 | 4.67 |
 | *Safe Integration* | | | | | | | |
-| 40 | The system maintains data integrity and safe operation when working with imported records or connected data sources. | 3 | 0 | 0 | 0 | 0 | 5.00 |
+| 40 | The system keeps data consistent across its modules (a referral correctly links the jobseeker, vacancy, and employer, and withdrawal updates access consistently). | 3 | 0 | 0 | 0 | 0 | 5.00 |
 | | **Overall Mean** | | | | | | **4.93** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -1131,7 +1120,7 @@ The overall ISO/IEC 25010:2023 evaluation obtained a weighted mean of 4.70 (High
 
 ### TAM Evaluation Results
 
-The system's user acceptance was evaluated by twenty-seven (27) respondents selected through purposive sampling. Each respondent was given a guided walkthrough of the main features, which included registering or selecting an applicant, generating a ranked recommendation, and using the Analytical Dashboard, before answering the TAM instrument on their own. Responses were gathered across three areas: Perceived Usefulness (PU), Perceived Ease of Use (PEOU), and Behavioral Intention to Use (BI). The same rating scale in Table 17 was used to interpret all scores.
+The system's user acceptance was evaluated by twenty-seven (27) respondents selected through purposive sampling. Each respondent was given a guided walkthrough of the main features, which included completing a jobseeker profile, generating a ranked recommendation, and generating a referral slip, before answering the TAM instrument on their own. Responses were gathered across three areas: Perceived Usefulness (PU), Perceived Ease of Use (PEOU), and Behavioral Intention to Use (BI). The same rating scale in Table 17 was used to interpret all scores.
 
 #### A. Perceived Usefulness
 
@@ -1141,10 +1130,10 @@ Perceived Usefulness assesses whether respondents believe the system helps them 
 
 | No. | Statement | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
-| PU1 | Using this system improves my performance in accomplishing job referral and applicant management tasks. | 19 | 7 | 1 | 0 | 0 | 4.67 |
-| PU2 | Using this system increases my productivity when working with job applicants and vacancies. | 16 | 9 | 2 | 0 | 0 | 4.52 |
-| PU3 | This system helps me identify suitable job category matches for applicants more quickly. | 21 | 4 | 2 | 0 | 0 | 4.70 |
-| PU4 | This system is useful for generating job category recommendations for applicants. | 20 | 6 | 1 | 0 | 0 | 4.70 |
+| PU1 | Using this system improves my performance in accomplishing job referral and job-matching tasks. | 19 | 7 | 1 | 0 | 0 | 4.67 |
+| PU2 | Using this system increases my productivity when finding and applying to suitable job vacancies. | 16 | 9 | 2 | 0 | 0 | 4.52 |
+| PU3 | This system helps me identify suitable job category matches for a jobseeker more quickly. | 21 | 4 | 2 | 0 | 0 | 4.70 |
+| PU4 | This system is useful for generating job category recommendations for jobseekers. | 20 | 6 | 1 | 0 | 0 | 4.70 |
 | PU5 | Overall, I find this system beneficial for job referral and employment matching purposes. | 17 | 8 | 2 | 0 | 0 | 4.56 |
 | | **Overall Mean** | | | | | | **4.63** |
 
@@ -1162,8 +1151,8 @@ Perceived Ease of Use assesses whether respondents find the system clear, easy t
 
 | No. | Statement | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
-| PEOU1 | Learning to use this system's features, such as registering applicants and generating job recommendations, was easy for me. | 18 | 7 | 2 | 0 | 0 | 4.59 |
-| PEOU2 | I find it easy to navigate the system and perform tasks such as managing applicant records or viewing job recommendations. | 18 | 7 | 2 | 0 | 0 | 4.59 |
+| PEOU1 | Learning to use this system's features, such as registering, encoding a profile, and generating job recommendations, was easy for me. | 18 | 7 | 2 | 0 | 0 | 4.59 |
+| PEOU2 | I find it easy to navigate the system and perform tasks such as encoding a profile or viewing job recommendations. | 18 | 7 | 2 | 0 | 0 | 4.59 |
 | PEOU3 | My interaction with the system, including its forms, navigation, and dashboard, is clear and understandable. | 19 | 6 | 2 | 0 | 0 | 4.63 |
 | PEOU4 | I find the system easy to use overall. | 17 | 7 | 3 | 0 | 0 | 4.52 |
 | PEOU5 | The system's interface (buttons, menus, navigation) is user-friendly. | 17 | 7 | 2 | 0 | 1 | 4.44 |
@@ -1184,9 +1173,9 @@ Behavioral Intention to Use assesses whether respondents plan to keep using the 
 | No. | Statement | 5 | 4 | 3 | 2 | 1 | Mean |
 |---|---|---|---|---|---|---|---|---|
 | BI1 | I intend to use this system regularly if it is made available. | 17 | 7 | 3 | 0 | 0 | 4.52 |
-| BI2 | I would recommend this system to others who work with job applicants and employment referrals. | 18 | 5 | 4 | 0 | 0 | 4.52 |
-| BI3 | I plan to use this system regularly for applicant management and job matching if it becomes available. | 17 | 8 | 2 | 0 | 0 | 4.56 |
-| BI4 | Given the chance, I would prefer using this system over manual methods for managing applicants and generating job recommendations. | 20 | 3 | 4 | 0 | 0 | 4.59 |
+| BI2 | I would recommend this system to others who are looking for a job or who use PESO services. | 18 | 5 | 4 | 0 | 0 | 4.52 |
+| BI3 | I plan to use this system regularly for job searching and referral if it becomes available. | 17 | 8 | 2 | 0 | 0 | 4.56 |
+| BI4 | Given the chance, I would prefer using this system over manual or walk-in methods for job referral and job searching. | 20 | 3 | 4 | 0 | 0 | 4.59 |
 | | **Overall Mean** | | | | | | **4.55** |
 
 *Verbal Interpretation: Highly Acceptable*
@@ -1274,7 +1263,7 @@ This chapter presents the conclusions drawn from the results of the study and th
 
 The five occupational categories used in this study were defined based on the 1,083 clean records available from PESO CSJDM at the time of development. As the office accumulates more placement records over time, future developers are encouraged to retrain the model with a larger and more balanced dataset and to consider expanding the number of categories if the data supports a finer-grained classification. The weakest category boundary in the current model, which falls between Warehouse and Logistics and Production and Manufacturing, is mainly a data volume problem and is expected to improve with additional records.
 
-Future developers are also encouraged to address the responsive layout issues observed during evaluation, particularly for small screens and dark mode displays, to improve the system's compatibility score under Interaction Capability and Flexibility. Additionally, implementing an email-based or OTP-based password recovery feature would address the usability gap noted by evaluators and respondents alike, since the current system requires administrator intervention to reset a forgotten password.
+Future developers are also encouraged to address the responsive layout issues observed during evaluation, particularly for small screens and dark mode displays, to improve the system's scores under Compatibility and Flexibility. Additionally, implementing an email-based or OTP-based password recovery feature would address the usability gap noted by evaluators and respondents alike, since the current system requires administrator intervention to reset a forgotten password.
 
 **For PESO CSJDM (Client Institution):**
 
@@ -1331,16 +1320,12 @@ Heakl, A., Mohamed, Y., Mohamed, N., Elsharkawy, A., & Zaky, A. (2024). ResuméA
 
 Jalal, N., Mehmood, A., Choi, G. S., & Ashraf, I. (2022). A novel improved random forest for text classification using feature ranking and optimal number of trees. *Journal of King Saud University - Computer and Information Sciences, 34*(6), 2733–2742. https://doi.org/10.1016/j.jksuci.2022.03.012
 
-Kumar, D., Grosz, T., Rekabsaz, N., Greif, E., & Schedl, M. (2023). Fairness of recommender systems in the recruitment domain: An analysis from technical and legal perspectives. *Frontiers in Big Data, 6*, Article 1245198. https://doi.org/10.3389/fdata.2023.1245198
-
 Kumar, N., Gupta, M., Sharma, D., & Ofori, I. (2022). Technical job recommendation system using APIs and web crawling. *Computational Intelligence and Neuroscience, 2022*, Article 7797548. https://doi.org/10.1155/2022/7797548
 
 
 Najjar, A., Amro, B., & Macedo, M. (2021). An intelligent decision support system for recruitment: Resumes screening and applicants ranking. *Informatica, 45*(4), 617–623. https://doi.org/10.31449/inf.v45i4.3356
 
 Opitz, J. (2024). *A closer look at classification evaluation metrics and a critical reflection of common evaluation practice* (arXiv:2404.16958). arXiv. https://arxiv.org/abs/2404.16958
-
-Qin, C., Zhang, L., Cheng, Y., Zha, R., Shen, D., Zhang, Q., Chen, X., Sun, Y., Zhu, C., Zhu, H., & Xiong, H. (2023). *A comprehensive survey of artificial intelligence techniques for talent analytics* (arXiv:2307.03195). arXiv. https://arxiv.org/abs/2307.03195
 
 Republic Act No. 8759. (1999). *An Act Institutionalizing a National Facilitation Service Network through the Establishment of a Public Employment Service Office in All Capital Towns of Provinces, Key Cities and Other Strategic Areas* (Public Employment Service Office Act of 1999). Official Gazette of the Republic of the Philippines. https://www.officialgazette.gov.ph/2000/02/14/republic-act-no-8759/
 

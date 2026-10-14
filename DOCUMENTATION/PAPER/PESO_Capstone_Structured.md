@@ -468,21 +468,31 @@ Table 9 presents the estimated breakdown of the cost of building the system.
 
 **Table 9. Development Cost**
 
-| Category | Details | Estimated Cost |
-|---|---|---|
-| Human Resource | 5 members × 300 hours each × ₱75/hour | ₱112,500.00 |
-| Software & Licensing | All tools open-source or freely available | ₱0.00 |
-| Hardware | Laptop depreciation: 5 units × ₱30,000 ÷ 3-year lifespan ÷ 12 months × 6 months | ₱25,000.00 |
-| Dataset Acquisition | Provided at no cost under Data Sharing Agreement | ₱0.00 |
-| Cloud Computing | None; all training performed on local hardware | ₱0.00 |
-| Internet & Utilities | ₱500/month × 5 members × 6 months | ₱15,000.00 |
-| Documentation & Printing | Manuscript, binding, evaluation instruments | ₱3,000.00 |
-| Transportation | Trips to PESO CSJDM for interviews, observation, evaluation | ₱2,000.00 |
-| **Subtotal** | | **₱157,500.00** |
-| Contingency (10%) | Unforeseen expenses | ₱15,750.00 |
-| **TOTAL** | | **₱173,250.00** |
+| Category | Item | Description | Estimated Cost |
+|---|---|---|---|
+| **Material Costing** | Laptop/PC | Coding, testing, ML training | ₱32,000.00 |
+| | External Storage | Backup and system files | ₱2,000.00 |
+| | Miscellaneous Supplies | Printing, documentation, etc. | ₱2,000.00 |
+| | Networking Equipment | | ₱3,000.00 |
+| | **Subtotal** | | **₱39,000.00** |
+| **Personnel** | System Analyst | | ₱30,000.00 |
+| | Programmer | | ₱27,000.00 |
+| | Project Manager | | ₱30,000.00 |
+| | Quality Assurance | | ₱24,000.00 |
+| | Documenter | | ₱22,260.00 |
+| | **Subtotal** | | **₱133,260.00** |
+| **Software** | Web Hosting Platform | Free tier (PythonAnywhere) | ₱0.00 |
+| | Domain Name | Free subdomain (PythonAnywhere) | ₱0.00 |
+| | **Subtotal** | | **₱0.00** |
+| **Utilities** | Electricity | | ₱1,000.00 |
+| | Internet | | ₱1,500.00 |
+| | **Subtotal** | | **₱2,500.00** |
+| **Maintenance** | System Maintenance | Weekly check-ups and remote support | ₱6,000.00 |
+| | Technical Support | | ₱22,000.00 |
+| | **Subtotal** | | **₱28,000.00** |
+| **TOTAL** | | | **₱202,760.00** |
 
-The total estimated development cost of ₱173,250.00 is low primarily because all software tools used in this study are free and open-source, no paid dataset was required, and the system is trained and deployed on existing hardware rather than paid cloud infrastructure. The largest component is human resource, reflecting the combined development effort of the five-member research team over the six-month project period.
+Table 9 presents the total estimated development cost of ₱202,760.00, covering materials, personnel, software, utilities, and maintenance required to build and deploy the system.
 
 ### Evaluation Methods
 

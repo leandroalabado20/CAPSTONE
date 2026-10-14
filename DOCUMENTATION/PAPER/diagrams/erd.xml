@@ -152,7 +152,7 @@
           <mxGeometry height="22" width="280" y="272" as="geometry" />
         </mxCell>
         <mxCell id="job_vacancies" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="job_vacancies" vertex="1">
-          <mxGeometry height="382" width="280" x="950" y="320" as="geometry" />
+          <mxGeometry height="404" width="280" x="950" y="320" as="geometry" />
         </mxCell>
         <mxCell id="job_vacancies__id" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="&lt;b&gt;PK&lt;/b&gt;  &lt;u&gt;vacancy_id&lt;/u&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="30" as="geometry" />
@@ -184,23 +184,26 @@
         <mxCell id="job_vacancies__req_experience_months" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   req_experience_months" vertex="1">
           <mxGeometry height="22" width="280" y="228" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__salary_min" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   salary_min" vertex="1">
+        <mxCell id="job_vacancies__req_skills" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   req_skills &lt;b&gt;*&lt;/b&gt;" vertex="1">
           <mxGeometry height="22" width="280" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__salary_max" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   salary_max" vertex="1">
+        <mxCell id="job_vacancies__salary_min" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   salary_min" vertex="1">
           <mxGeometry height="22" width="280" y="272" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__job_location" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   job_location" vertex="1">
+        <mxCell id="job_vacancies__salary_max" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   salary_max" vertex="1">
           <mxGeometry height="22" width="280" y="294" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__is_local" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_local" vertex="1">
+        <mxCell id="job_vacancies__job_location" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   job_location" vertex="1">
           <mxGeometry height="22" width="280" y="316" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__is_active" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_active" vertex="1">
+        <mxCell id="job_vacancies__is_local" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_local" vertex="1">
           <mxGeometry height="22" width="280" y="338" as="geometry" />
         </mxCell>
-        <mxCell id="job_vacancies__created_at" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
+        <mxCell id="job_vacancies__is_active" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   is_active" vertex="1">
           <mxGeometry height="22" width="280" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="job_vacancies__created_at" parent="job_vacancies" style="text;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=6;overflow=hidden;rotatable=0;points=[[0,0.5,0],[1,0.5,0]];portConstraint=eastwest;fontSize=11;html=1;" value="   created_at" vertex="1">
+          <mxGeometry height="22" width="280" y="382" as="geometry" />
         </mxCell>
         <mxCell id="referrals" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;marginBottom=0;swimlaneFillColor=#ffffff;fontSize=13;" value="referrals" vertex="1">
           <mxGeometry height="206" width="280" x="485" y="170" as="geometry" />

@@ -206,7 +206,12 @@
           <label class="form-label fw-semibold small">Date of birth <span class="text-danger">*</span></label>
           <input type="text" name="birthdate" id="birthdate" class="form-control" required placeholder="mm/dd/yyyy" autocomplete="off" value="{{ ap.birthdate or '' }}" />
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-2">
+          <label class="form-label fw-semibold small">Age</label>
+          <input type="text" id="age-display" class="form-control bg-light" readonly placeholder="—"
+                 value="{{ ap.age if ap.age else '' }}" tabindex="-1" />
+        </div>
+        <div class="col-sm-2">
           <label class="form-label fw-semibold small">Sex <span class="text-danger">*</span></label>
           <select name="sex" class="form-select" required>
             <option value="">-- Select --</option>
@@ -677,7 +682,15 @@ document.addEventListener('DOMContentLoaded', function () {
       onYearChange: function (s, d, fp) { fp._fpYear.value = fp.currentYear; }
     }, opts));
   }
-  initPicker('#birthdate', 1950, { dateFormat: 'Y-m-d', altInput: true, altFormat: 'm/d/Y', altInputClass: 'form-control' });
+  initPicker('#birthdate', 1950, { dateFormat: 'Y-m-d', altInput: true, altFormat: 'm/d/Y', altInputClass: 'form-control',
+    onChange: function(sel) {
+      var d = sel[0], disp = document.getElementById('age-display');
+      if (!d || !disp) return;
+      var today = new Date(), age = today.getFullYear() - d.getFullYear();
+      if (today.getMonth() < d.getMonth() || (today.getMonth() === d.getMonth() && today.getDate() < d.getDate())) age--;
+      disp.value = age >= 0 ? age : '';
+    }
+  });
   initPicker('#ofw-return-date', new Date().getFullYear() - 40, { dateFormat: 'Y-m', altInput: true, altFormat: 'F Y', altInputClass: 'form-control form-control-sm' });
   var BRGY_MAP = {{ barangay_district_map|tojson }};
   // District 1/2 only exists for City of San Jose del Monte; other cities leave it blank.

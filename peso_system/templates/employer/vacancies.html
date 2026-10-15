@@ -82,7 +82,8 @@
           <i class="bi bi-pencil me-1"></i>Edit
         </a>
         <form method="POST" action="{{ url_for('employer_vacancy_toggle', vid=v.vacancy_id) }}" class="d-inline">
-          <button type="submit" class="btn btn-sm {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
+          <button type="submit" class="btn btn-sm {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                  onclick="return confirm('{% if v.is_active %}Deactivate this vacancy? It will be hidden from job seekers.{% else %}Reactivate this vacancy?{% endif %}')">
             {% if v.is_active %}<i class="bi bi-pause-circle me-1"></i>Deactivate
             {% else %}<i class="bi bi-play-circle me-1"></i>Activate{% endif %}
           </button>

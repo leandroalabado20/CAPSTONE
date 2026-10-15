@@ -44,3 +44,9 @@ flask.log
 # Virtual environments
 .env
 .env.local
+
+# Claude Code internal config
+.claude/
+
+# Staging folder (already merged into peso_system)
+peso_system_update/

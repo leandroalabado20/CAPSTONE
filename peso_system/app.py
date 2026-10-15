@@ -471,6 +471,11 @@ def init_db():
     if 'suitability_score' not in rcols:
         db.execute('ALTER TABLE referrals ADD COLUMN suitability_score REAL')
 
+    reccols = [r[1] for r in db.execute("PRAGMA table_info(recommendations)").fetchall()]
+    for col, ddl in [('generated_by', 'INTEGER'), ('status', "TEXT DEFAULT 'pending'")]:
+        if col not in reccols:
+            db.execute(f'ALTER TABLE recommendations ADD COLUMN {col} {ddl}')
+
     ecols = [r[1] for r in db.execute("PRAGMA table_info(employers)").fetchall()]
     for col, ddl in [
         ('tin',               'TEXT'),

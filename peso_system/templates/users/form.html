@@ -12,7 +12,7 @@
   </div>
   <div class="card-body">
     <form method="POST"
-          action="{% if action == 'add' %}{{ url_for('user_add') }}{% else %}{{ url_for('user_edit', uid=user.id) }}{% endif %}">
+          action="{% if action == 'add' %}{{ url_for('user_add') }}{% else %}{{ url_for('user_edit', uid=user.user_id) }}{% endif %}">
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>

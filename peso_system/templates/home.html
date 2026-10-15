@@ -72,24 +72,6 @@
   </div>
 </div>
 
-<!-- ── Quick actions ────────────────────────────────────────────────────── -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header fw-semibold">
-    <i class="bi bi-lightning-charge-fill me-2 text-primary"></i>Quick Actions
-  </div>
-  <div class="card-body">
-    <div class="row g-3">
-      <div class="col-6 col-lg-3">
-        <a href="{{ url_for('referrals_list') }}"
-           class="btn btn-primary w-100 py-3 d-flex flex-column align-items-center gap-1">
-          <i class="bi bi-send-fill fs-4"></i>
-          <span class="fw-semibold">Referrals</span>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ── Recent activity ──────────────────────────────────────────────────── -->
 <div class="row g-4">
 
@@ -102,12 +84,13 @@
       </div>
       <div class="card-body p-0">
         {% if recent_applicants %}
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0 apps-table">
+          <thead><tr><th>Name</th><th>Preferred Occupation</th><th class="text-end">Registered</th></tr></thead>
           <tbody>
             {% for ap in recent_applicants %}
             <tr>
-              <td class="fw-semibold">{{ ap.last_name }}, {{ ap.first_name }}</td>
-              <td class="text-muted">{{ ap.preferred_position }}</td>
+              <td class="fw-semibold">{{ ap.first_name }} {{ ap.last_name }}</td>
+              <td class="text-muted">{{ ap.preferred_position or '—' }}</td>
               <td class="text-end text-muted small">{{ ap.created_at | friendly_dt }}</td>
             </tr>
             {% endfor %}
@@ -123,8 +106,45 @@
     </div>
   </div>
 
-  <!-- Recent recommendations -->
+  <!-- Recently registered employers -->
   <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-building me-2 text-warning"></i>Recently Registered Employers</span>
+        <a href="{{ url_for('admin_employers', status='all') }}" class="small text-decoration-none">View all</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_employers %}
+        <table class="table table-hover mb-0 apps-table">
+          <thead><tr><th>Company</th><th>Status</th><th class="text-end">Registered</th></tr></thead>
+          <tbody>
+            {% for e in recent_employers %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ e.company_name or '(profile not completed)' }}</div>
+                <div class="text-muted small">{{ e.contact_person or '' }}{% if e.line_of_business %} &middot; {{ e.line_of_business }}{% endif %}</div>
+              </td>
+              <td>
+                {% if e.is_approved %}<span class="badge bg-success-subtle text-success-emphasis">Approved</span>
+                {% else %}<span class="badge bg-warning-subtle text-warning-emphasis">Pending</span>{% endif %}
+              </td>
+              <td class="text-end text-muted small">{{ e.created_at | friendly_dt }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-building fs-3 d-block mb-2 opacity-50"></i>
+          No employers registered yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent recommendations -->
+  <div class="col-12">
     <div class="card shadow-sm h-100">
       <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
         <span><i class="bi bi-trophy-fill me-2 text-success"></i>Recent Recommendations</span>

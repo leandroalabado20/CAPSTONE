@@ -2,55 +2,88 @@
 {% block title %}Manage Account{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-  <h4 class="fw-bold mb-0">Manage Your Account</h4>
-  <p class="text-muted small mb-0">Update your account details or change your password.</p>
-</div>
+<style>
+  .acct-wrap{max-width:720px;margin:0 auto;}
+  .acct-card{border:0;border-radius:12px;}
+  .acct-card .form-label{font-size:.875rem;}
+  .acct-card .form-control{font-size:.95rem;padding:.55rem .75rem;}
+  .acct-help{font-size:.82rem;color:#5b6472;}
+  .acct-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;}
+  .acct-avatar-initials{display:inline-flex;align-items:center;justify-content:center;background:#1e3a6e;color:#fff;font-weight:700;font-size:1.3rem;}
+</style>
 
-<div class="card shadow-sm border-0 mb-3 mx-auto" style="max-width:560px;border-radius:12px;">
-  <div class="card-body p-4">
-    <p class="fw-semibold text-muted mb-3" style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Account</p>
-    <form method="POST" action="{{ url_for('employer_account') }}">
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Full name</label>
-        <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" required />
+<div class="acct-wrap">
+  <div class="mb-4">
+    <h4 class="fw-bold mb-0">Manage Your Account</h4>
+    <p class="acct-help mb-0">Update your account details or change your password.</p>
+  </div>
+
+  <div class="card acct-card shadow-sm mb-3">
+    <div class="card-body p-4 d-flex align-items-center gap-3 flex-wrap">
+      <span class="acct-avatar acct-avatar-initials" aria-hidden="true">{{ (user.full_name.split()|map('first')|list)[:2]|join|upper or 'E' }}</span>
+      <div class="flex-grow-1">
+        <div class="fw-bold fs-5">{{ user.full_name }}</div>
+        <div class="acct-help">
+          <span class="badge bg-primary-subtle text-primary me-1">Employer</span>
+          {% if user.created_at %}Member since {{ user.created_at[:10] }}{% endif %}
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Email address</label>
-        <input type="email" name="email" class="form-control" value="{{ user.email }}" required />
+      <a href="{{ url_for('employer_profile') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-building-gear me-1"></i>Edit company profile
+      </a>
+    </div>
+  </div>
+
+  <div class="card acct-card shadow-sm mb-3">
+    <div class="card-body p-4">
+      <p class="fw-semibold text-muted mb-3" style="font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;">Account details</p>
+      <form method="POST" action="{{ url_for('employer_account') }}" id="accountForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Display name</label>
+            <input type="text" name="full_name" class="form-control" maxlength="100" value="{{ user.full_name }}" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Email address</label>
+            <input type="email" name="email" class="form-control" maxlength="254" value="{{ user.email }}" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">User account type</label>
+            <input type="text" class="form-control" value="Employer" disabled readonly />
+          </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-outline-secondary" id="acctReset" disabled>Cancel</button>
+          <button type="submit" class="btn btn-success fw-semibold" id="acctSave" disabled>
+            <i class="bi bi-check2 me-1"></i>Save changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card acct-card shadow-sm mb-3">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between gap-2 flex-wrap">
+      <div>
+        <div class="fw-semibold">Password</div>
+        <div class="acct-help">Use a strong password you don't use on other sites.</div>
       </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">User account type</label>
-        <input type="text" class="form-control" value="Employer" disabled readonly />
+      <a href="{{ url_for('change_password') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-key me-1"></i>Change password
+      </a>
+    </div>
+  </div>
+
+  <div class="card acct-card shadow-sm border border-danger mb-4">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between gap-2 flex-wrap">
+      <div>
+        <div class="fw-semibold text-danger">Delete account</div>
+        <div class="acct-help">Permanently remove your account, company profile, and all job postings. This action cannot be undone.</div>
       </div>
-      <button type="submit" class="btn btn-success fw-semibold">
-        <i class="bi bi-check2 me-1"></i>Save changes
+      <button type="button" class="btn btn-outline-danger btn-sm" data-coreui-toggle="modal" data-coreui-target="#deleteAccountModal">
+        <i class="bi bi-trash3 me-1"></i>Delete account
       </button>
-    </form>
-  </div>
-</div>
-
-<div class="card shadow-sm border-0 mx-auto" style="max-width:560px;border-radius:12px;">
-  <div class="card-body p-4 d-flex align-items-center justify-content-between">
-    <div>
-      <div class="fw-semibold">Password</div>
-      <div class="text-muted small">Change your account password.</div>
     </div>
-    <a href="{{ url_for('change_password') }}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-key me-1"></i>Change password
-    </a>
-  </div>
-</div>
-
-<div class="card shadow-sm border-danger mt-3 mx-auto" style="max-width:560px;border-radius:12px;">
-  <div class="card-body p-4 d-flex align-items-center justify-content-between gap-2 flex-wrap">
-    <div>
-      <div class="fw-semibold text-danger">Delete account</div>
-      <div class="text-muted small">Permanently delete your account, company profile, and all job postings.</div>
-    </div>
-    <button type="button" class="btn btn-outline-danger btn-sm" data-coreui-toggle="modal" data-coreui-target="#deleteAccountModal">
-      <i class="bi bi-trash3 me-1"></i>Delete account
-    </button>
   </div>
 </div>
 
@@ -68,11 +101,27 @@
       </div>
       <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
         <button type="button" class="btn btn-outline-secondary px-4" data-coreui-dismiss="modal">Cancel</button>
-        <form method="POST" action="{{ url_for('employer_account_delete') }}">
-          <button type="submit" class="btn btn-danger px-4 fw-semibold"><i class="bi bi-trash3 me-1"></i>Delete permanently</button>
+        <form method="POST" action="{{ url_for('employer_account_delete') }}" class="d-flex gap-2 align-items-center">
+          <input type="text" id="deleteConfirm" class="form-control form-control-sm" style="width:130px;" placeholder="Type DELETE" autocomplete="off" />
+          <button type="submit" id="deleteBtn" class="btn btn-danger px-4 fw-semibold" disabled><i class="bi bi-trash3 me-1"></i>Delete permanently</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+{% block scripts %}{{ super() }}
+<script>
+(function(){
+  var f=document.getElementById('accountForm'), save=document.getElementById('acctSave'), reset=document.getElementById('acctReset');
+  var inputs=f.querySelectorAll('input[name]'), orig={};
+  inputs.forEach(function(i){orig[i.name]=i.value;});
+  function dirty(){var d=false;inputs.forEach(function(i){if(i.value!==orig[i.name])d=true;});save.disabled=reset.disabled=!d;}
+  f.addEventListener('input',dirty);
+  reset.addEventListener('click',function(){inputs.forEach(function(i){i.value=orig[i.name];});dirty();});
+  var c=document.getElementById('deleteConfirm'), b=document.getElementById('deleteBtn');
+  c.addEventListener('input',function(){b.disabled=c.value.trim()!=='DELETE';});
+})();
+</script>
+{% endblock %}
 {% endblock %}

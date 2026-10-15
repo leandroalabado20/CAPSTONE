@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign up &mdash; PESO CSJDM Job Recommendation System</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/peso_logo.png') }}" />
-  <script>
-  (function(){try{if(localStorage.getItem('peso-theme')==='dark'){var r=document.documentElement;r.setAttribute('data-theme','dark');r.setAttribute('data-bs-theme','dark');r.setAttribute('data-coreui-theme','dark');}}catch(e){}})();
-  </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/css/coreui.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
@@ -19,10 +16,6 @@
      aria-label="Home" title="Home">
     <i class="bi bi-house-door-fill"></i>
   </a>
-  <button type="button" class="theme-toggle-btn theme-toggle-btn-inverse"
-          aria-label="Toggle dark mode" title="Toggle dark mode">
-    <i class="bi bi-moon-stars-fill"></i>
-  </button>
 </div>
 
 <div class="login-card card shadow-lg p-4" style="width:100%;max-width:440px;">
@@ -39,27 +32,40 @@
     {% for category, message in messages %}
     <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
       {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" data-coreui-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
   {% endwith %}
 
-  <form method="POST" action="{{ url_for('register') }}">
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Full name</label>
-      <div class="input-group">
-        <span class="input-group-text"><i class="bi bi-person"></i></span>
-        <input type="text" name="full_name" class="form-control" placeholder="Your full name"
-               value="{{ form.get('full_name','') }}" required autofocus maxlength="100" />
+  {% set errs = errors if errors is defined and errors else {} %}
+  <form method="POST" action="{{ url_for('register') }}" id="signup-form">
+    <div class="row g-2 mb-3">
+      <div class="col-12 col-sm-6">
+        <label class="form-label fw-semibold">First name</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input type="text" name="first_name" class="form-control{% if errs.name %} is-invalid{% endif %}" placeholder="First name"
+                 value="{{ form.get('first_name','') }}" required autofocus maxlength="50" autocomplete="given-name" />
+        </div>
+      </div>
+      <div class="col-12 col-sm-6">
+        <label class="form-label fw-semibold">Last name / Surname</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input type="text" name="last_name" class="form-control{% if errs.name %} is-invalid{% endif %}" placeholder="Last name"
+                 value="{{ form.get('last_name','') }}" required maxlength="50" autocomplete="family-name" />
+        </div>
       </div>
     </div>
+    <div class="text-danger small mb-3 mt-n2" id="err-name" style="margin-top:-.4rem;{% if not errs.name %}display:none;{% endif %}">{{ errs.name or '' }}</div>
     <div class="mb-3">
       <label class="form-label fw-semibold">Email address</label>
       <div class="input-group">
         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-        <input type="email" name="email" class="form-control" placeholder="Email address"
+        <input type="email" name="email" class="form-control{% if errs.email %} is-invalid{% endif %}" placeholder="Email address"
                value="{{ form.get('email','') }}" required autocomplete="email" maxlength="254" />
       </div>
+      <div class="text-danger small mt-1" id="err-email" data-wipe-msg style="{% if not errs.email %}display:none;{% endif %}">{{ errs.email or '' }}</div>
     </div>
     <div class="mb-3">
       <label class="form-label fw-semibold">Confirm email address</label>
@@ -99,22 +105,14 @@
       </div>
     </div>
 
-    <button type="submit" class="btn btn-primary w-100 fw-semibold">
+    <button type="submit" class="btn btn-primary w-100 fw-semibold login-signin">
       <i class="bi bi-person-plus me-1"></i> Create Account
     </button>
   </form>
-
-  <hr class="my-3" />
-  <div class="text-center">
-    <span class="text-muted small">Already have an account?</span>
-    <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-primary ms-1">
-      <i class="bi bi-box-arrow-in-right me-1"></i>Sign in
-    </a>
-  </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/credential-wipe.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script src="{{ url_for('static', filename='js/forms.js') }}"></script>
 <script>
   function togglePw() {
@@ -128,6 +126,49 @@
       eye.className = 'bi bi-eye';
     }
   }
+</script>
+
+<script>
+(function () {
+  var form = document.getElementById('signup-form');
+  var fn = form.elements['first_name'], ln = form.elements['last_name'], em = form.elements['email'];
+  var errName = document.getElementById('err-name'), errEmail = document.getElementById('err-email');
+
+  function show(el, box, msg, inputs) {
+    box.textContent = msg || ''; box.style.display = msg ? '' : 'none';
+    inputs.forEach(function (i) { i.classList.toggle('is-invalid', !!msg); });
+  }
+  function check() {
+    var q = new URLSearchParams({ email: em.value.trim(), first_name: fn.value, last_name: ln.value });
+    return fetch('{{ url_for("register_check") }}?' + q, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (e) {
+        show(em, errEmail, e.email, [em]);
+        show(fn, errName, e.name, [fn, ln]);
+        return !e.email && !e.name;
+      })
+      .catch(function () { return true; });          // if the check can't run, the server still validates on submit
+  }
+  var t;
+  function later() { clearTimeout(t); t = setTimeout(check, 400); }
+  [fn, ln, em].forEach(function (i) {
+    i.addEventListener('blur', check);
+    i.addEventListener('input', function () { i.classList.remove('is-invalid'); later(); });
+  });
+
+  var busy = false;
+  form.addEventListener('submit', function (ev) {
+    if (busy) return;
+    if (!form.checkValidity()) return;                // let the browser's own required-field messages show first
+    ev.preventDefault();
+    busy = true;
+    check().then(function (ok) {
+      if (ok) { form.submit(); return; }
+      busy = false;
+      var first = form.querySelector('.is-invalid'); if (first) first.focus();
+    });
+  });
+})();
 </script>
 </body>
 </html>

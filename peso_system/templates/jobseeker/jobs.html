@@ -1,14 +1,36 @@
 {% extends 'base_jobseeker.html' %}
 {% block title %}Browse Jobs{% endblock %}
 
+{% block head %}
+<style>
+.jobs-title { font-size: 1.6rem; letter-spacing: -.01em; color: #0f172a; }
+.jobs-sub { color: #475569 !important; font-size: .95rem; line-height: 1.55; }
+.jobs-sub a { color: #1d4ed8; font-weight: 600; text-underline-offset: 2px; }
+.jobs-sub a:hover { color: #1e3a8a; }
+.jobs-filter { background: #fff; border: 1px solid #e8edf4; border-radius: 14px; padding: .85rem 1rem; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 6px 18px rgba(15,23,42,.05); align-items: center; }
+.jobs-filter .form-control, .jobs-filter .form-select { border: 1.5px solid #dbe3ee; border-radius: 10px; background-color: #f8fafd; padding: .5rem .85rem; transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
+.jobs-filter .form-control:focus, .jobs-filter .form-select:focus { background-color: #fff; border-color: #2563eb; box-shadow: 0 0 0 .2rem rgba(37,99,235,.15); }
+.jobs-filter .btn { border-radius: 10px; font-weight: 600; padding: .5rem 1.1rem; }
+.jobs-filter .btn-outline-primary { color: #1d4ed8; border-color: #93b4f5; background: #eaf1ff; }
+.jobs-filter .btn-outline-primary:hover { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.jobs-filter .btn-outline-secondary { color: #475569; border-color: #cbd5e1; background: #fff; }
+.jobs-filter .btn-outline-secondary:hover { background: #e2e8f0; color: #0f172a; border-color: #cbd5e1; }
+.job-card { border: 1px solid #e3eaf5 !important; border-radius: 14px !important; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.04) !important; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.job-card:hover { transform: translateY(-3px); border-color: #bfd3f2 !important; box-shadow: 0 12px 26px rgba(30,58,95,.13) !important; }
+.job-card .job-ico { background: linear-gradient(135deg,#e8f0ff,#d6e4ff) !important; border-radius: 10px !important; }
+.job-card .badge { border-radius: 999px; padding: .35em .7em; font-weight: 600; }
+.job-card .card-footer { background: transparent !important; border-top: 1px dashed #e3eaf5 !important; margin: 0 .75rem; padding: .75rem 0 .85rem !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="mb-3">
-  <h4 class="fw-bold mb-0">Browse Jobs</h4>
-  <p class="text-muted small mb-0">{{ vacancies|length }} active position{{ 's' if vacancies|length != 1 else '' }}. Click a job to view its full details and requirements. To apply, go to your <a href="{{ url_for('jobseeker_recommendations') }}">Recommendations</a>.</p>
+  <h4 class="fw-bold mb-0 jobs-title">Browse Jobs</h4>
+  <p class="text-muted small mb-0 jobs-sub">{{ vacancies|length }} active position{{ 's' if vacancies|length != 1 else '' }}. Click a job to view its full details and requirements. To apply, go to your Recommendations.</p>
 </div>
 
 <!-- Filters -->
-<form method="GET" action="{{ url_for('jobseeker_jobs') }}" class="d-flex gap-2 flex-wrap mb-4">
+<form method="GET" action="{{ url_for('jobseeker_jobs') }}" class="d-flex gap-2 flex-wrap mb-4 jobs-filter">
   <input type="text" name="search" value="{{ search }}" maxlength="80"
          class="form-control" style="max-width:260px;" placeholder="Search jobs" />
   <select name="category" class="form-select" style="max-width:240px;">
@@ -24,13 +46,13 @@
 </form>
 
 {% if vacancies %}
-<div class="row g-3">
+<div class="row g-4 job-grid">
   {% for v in vacancies %}
-  <div class="col-sm-6 col-lg-4 col-xl-3">
-    <div class="card h-100 border shadow-sm" style="border-radius:10px;">
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100 border shadow-sm job-card" style="border-radius:10px;">
       <div class="card-body p-3">
         <div class="d-flex align-items-start gap-2 mb-2">
-          <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+          <div class="d-flex align-items-center justify-content-center flex-shrink-0 job-ico"
                style="width:40px;height:40px;border-radius:8px;background:#eff6ff;">
             <i class="bi bi-briefcase-fill text-primary"></i>
           </div>
@@ -39,14 +61,14 @@
             <div class="text-muted text-truncate" style="font-size:.85rem;">{{ v.employer_name }}</div>
           </div>
         </div>
-        <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.72rem;">{{ v.occupational_category }}</span>
-        {% if v.is_local %}
-        <span class="badge bg-success-subtle text-success-emphasis ms-1" style="font-size:.72rem;"><i class="bi bi-geo-alt-fill me-1"></i>Local</span>
-        {% endif %}
-        <div class="mt-2">{% include '_vacancy_details.html' %}</div>
+        <div>
+          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.72rem;">{{ v.occupational_category }}</span>
+          {% set li = loc_info(v) %}<span class="badge {{ li.css }} ms-1" style="font-size:.72rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
+        </div>
+        <div>{% with compact=true %}{% include '_vacancy_details.html' %}{% endwith %}</div>
       </div>
       <div class="card-footer bg-transparent border-top-0 pt-0 pb-3 px-3">
-        <a href="{{ url_for('public_job_detail', vid=v.id, src='jobs') }}" class="btn btn-outline-secondary w-100 py-0 px-2" style="font-size:.78rem;">
+        <a href="{{ url_for('public_job_detail', vid=v.vacancy_id, src='jobs') }}" class="btn btn-view-details w-100">
           <i class="bi bi-eye me-1"></i>View Details
         </a>
       </div>

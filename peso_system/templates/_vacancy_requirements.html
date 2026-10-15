@@ -15,6 +15,121 @@
   </div>
 </div>
 
+<h6 class="fw-bold mb-3"><i class="bi bi-calendar-check me-1"></i>Schedule &amp; Venue <span class="text-muted fw-normal small">(shown to applicants)</span></h6>
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <label class="form-label fw-semibold">Submit Requirements By <span class="text-muted fw-normal">(optional)</span></label>
+    <input type="date" name="requirements_deadline" class="form-control" min="{{ today }}"
+           value="{{ vacancy.requirements_deadline if vacancy and vacancy.requirements_deadline else '' }}" />
+  </div>
+  <div class="col-sm-4">
+    <label class="form-label fw-semibold">Interview Start Date <span class="text-muted fw-normal">(optional)</span></label>
+    <input type="date" name="interview_date" id="iv-start" class="form-control" min="{{ today }}"
+           value="{{ vacancy.interview_date if vacancy and vacancy.interview_date else '' }}" />
+  </div>
+  <div class="col-sm-4">
+    <label class="form-label fw-semibold">Interview End Date <span class="text-muted fw-normal">(optional)</span></label>
+    <input type="date" name="interview_date_end" id="iv-end" class="form-control" min="{{ today }}"
+           value="{{ vacancy.interview_date_end if vacancy and vacancy.interview_date_end else '' }}" />
+  </div>
+  <div class="col-12">
+    {% set time_ranges = [('08:00','17:00'), ('08:00','18:00'), ('09:00','16:00'), ('09:00','17:00'), ('08:00','12:00'), ('13:00','17:00')] %}
+    {% set cur = ((vacancy.interview_time, vacancy.interview_time_end) if vacancy and vacancy.interview_date and vacancy.interview_time and vacancy.interview_time_end else ('08:00','18:00')) %}
+    {% macro t12(x) %}{{ ('%d:%s %s' % (((x[:2]|int) % 12) or 12, x[3:5], 'AM' if (x[:2]|int) < 12 else 'PM')) }}{% endmacro %}
+    <label class="form-label fw-semibold" for="iv-time-range">Interview Time Range</label>
+    <div class="position-relative">
+      <select name="interview_time_range" id="iv-time-range" class="form-select" style="padding-right:2.5rem;background-image:none;">
+        {% if cur not in time_ranges %}<option value="{{ cur[0] }}|{{ cur[1] }}" selected>{{ t12(cur[0]) }} &ndash; {{ t12(cur[1]) }}</option>{% endif %}
+        {% for r in time_ranges %}
+        <option value="{{ r[0] }}|{{ r[1] }}" {% if r == cur %}selected{% endif %}>{{ t12(r[0]) }} &ndash; {{ t12(r[1]) }}</option>
+        {% endfor %}
+        <option value="other">Others (set your own time)</option>
+      </select>
+      <i class="bi bi-clock position-absolute top-50 end-0 translate-middle-y me-3" style="color:#9ca3af;pointer-events:none;"></i>
+    </div>
+    <div class="row g-3 mt-0 d-none" id="iv-custom-time">
+      <div class="col-sm-6">
+        <label class="form-label fw-semibold small mb-1" for="iv-custom-start">Start time</label>
+        <input type="time" name="interview_time" id="iv-custom-start" class="form-control" value="{{ cur[0] }}" disabled />
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label fw-semibold small mb-1" for="iv-custom-end">End time</label>
+        <input type="time" name="interview_time_end" id="iv-custom-end" class="form-control" value="{{ cur[1] }}" disabled />
+      </div>
+    </div>
+    <div class="form-text">Applies to each interview day.</div>
+    <script>
+      (function () {
+        var sel = document.getElementById('iv-time-range'), box = document.getElementById('iv-custom-time'),
+            s = document.getElementById('iv-custom-start'), e = document.getElementById('iv-custom-end');
+        if (!sel || !box) return;
+        function sync() {
+          var custom = sel.value === 'other';
+          box.classList.toggle('d-none', !custom);
+          s.disabled = e.disabled = !custom;          // only submitted when "Others" is chosen
+          s.required = e.required = custom;
+        }
+        sel.addEventListener('change', sync); sync();
+      })();
+    </script>
+  </div>
+  <div class="col-12">
+    <label class="form-label fw-semibold">Venue Address <span class="text-muted fw-normal">(required if an interview date is set)</span></label>
+    <input type="text" name="venue_address" class="form-control" maxlength="200" placeholder="e.g. PESO Office, City Hall, San Jose del Monte, Bulacan"
+           value="{{ vacancy.venue_address if vacancy and vacancy.venue_address else '' }}" />
+  </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script>
+  (function () {
+    if (typeof flatpickr === 'undefined') return;           // falls back to the browser's own date inputs
+    var NAMES = ['application_deadline', 'requirements_deadline', 'interview_date', 'interview_date_end'];
+    function make(input, extra) {
+      return flatpickr(input, Object.assign({
+        dateFormat: 'Y-m-d', altInput: true, altFormat: 'M j, Y', altInputClass: 'form-control',
+        minDate: 'today', disableMobile: true, allowInput: false, locale: { firstDayOfWeek: 0 },
+        prevArrow: '<i class="bi bi-chevron-left"></i>', nextArrow: '<i class="bi bi-chevron-right"></i>',
+        onReady: function (sel, str, fp) {
+          fp.altInput.placeholder = 'Select date';
+          fp.calendarContainer.classList.add('emp-cal');
+          var ft = document.createElement('div'); ft.className = 'emp-cal-footer';
+          ft.innerHTML = '<button type="button" data-a="clear">Clear</button><button type="button" data-a="today">Today</button>';
+          ft.addEventListener('click', function (e) {
+            var act = e.target.getAttribute('data-a');
+            if (act === 'clear') { fp.clear(); fp.close(); }
+            if (act === 'today') { fp.setDate(new Date(), true); fp.close(); }
+          });
+          fp.calendarContainer.appendChild(ft);
+          var wrap = document.createElement('div');                 // own wrapper so the icon centres on the input only
+          wrap.style.position = 'relative';
+          fp.altInput.parentNode.insertBefore(wrap, fp.altInput);
+          wrap.appendChild(fp.altInput);
+          if (!wrap.querySelector('.emp-cal-icon')) {
+            var ic = document.createElement('i'); ic.className = 'bi bi-calendar3 emp-cal-icon';
+            ic.addEventListener('click', function () { fp.open(); });
+            wrap.appendChild(ic);
+          }
+        }
+      }, extra || {}));
+    }
+    var pickers = {};
+    NAMES.forEach(function (n) {
+      var el = document.querySelector('input[name="' + n + '"]');
+      if (el) pickers[n] = make(el);
+    });
+    var s = pickers.interview_date, e = pickers.interview_date_end;
+    if (s && e) {
+      function sync() {
+        var d = s.selectedDates[0];
+        if (d) { e.set('minDate', d); if (e.selectedDates[0] && e.selectedDates[0] < d) e.setDate(d, true); }
+        else e.set('minDate', 'today');
+      }
+      s.config.onChange.push(sync); sync();
+    }
+  })();
+</script>
+
 <h6 class="fw-bold mb-3"><i class="bi bi-person-check me-1"></i>Applicant Requirements <span class="text-muted fw-normal small">(all optional)</span></h6>
 <div class="row g-3 mb-3">
   <div class="col-sm-4">
@@ -50,6 +165,7 @@
     <label class="form-label fw-semibold">Minimum Work Experience (months)</label>
     <input type="number" name="req_experience_months" class="form-control" min="0" max="600" placeholder="e.g. 6"
            value="{{ vacancy.req_experience_months if vacancy and vacancy.req_experience_months else '' }}" />
+    <div class="form-text">Leave blank or 0 if fresh graduates are welcome.</div>
   </div>
 </div>
 <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>These requirements are automatically checked against each applicant's profile.</p>
@@ -68,11 +184,94 @@
   </div>
   {% endfor %}
 </div>
+<div class="mb-4" style="max-width:560px;">
+  {% set other_list = (vacancy.req_skills.split(',') if vacancy and vacancy.req_skills else []) | reject('in', skills_list) | list %}
+  <label class="form-label fw-semibold small" for="req-skills-other">Others <span class="text-muted fw-normal">(skills not in the list, separated by commas)</span></label>
+  <input type="text" name="req_skills_other" id="req-skills-other" class="form-control" maxlength="200" placeholder="e.g. Baking, Pallet Jack Operation"
+         value="{{ (vacancy.req_skills_other if vacancy and vacancy.req_skills_other is defined else other_list|join(', ')) }}" />
+</div>
 {% endif %}
 
 <h6 class="fw-bold mb-3 mt-4"><i class="bi bi-file-earmark-text me-1"></i>Documents to Bring</h6>
-<div class="mb-4">
+<div class="mb-4" id="docs-picker">
   <label class="form-label fw-semibold">Documents the applicant should bring</label>
-  <textarea name="req_documents" rows="2" class="form-control" maxlength="500"
-            placeholder="e.g. Resume, Barangay Clearance, NBI Clearance">{{ vacancy.req_documents if vacancy and vacancy.req_documents else '' }}</textarea>
+  <input type="hidden" name="req_documents" id="req-documents" value="{{ vacancy.req_documents if vacancy and vacancy.req_documents else '' }}" />
+  <div class="d-flex flex-wrap gap-2" id="docs-chips" role="group" aria-label="Documents the applicant should bring"></div>
+  <div class="input-group input-group-sm mt-2 d-none" id="docs-other-box" style="max-width:420px;">
+    <input type="text" class="form-control" id="docs-other-input" maxlength="80" placeholder="Type a document, then press Add" />
+    <button type="button" class="btn btn-outline-primary" id="docs-other-add">Add</button>
+  </div>
+  <div class="form-text">Click to select. Use <strong>+ Others</strong> for anything not on the list.</div>
 </div>
+<style>
+  .doc-chip { cursor:pointer; padding:4px 12px; border-radius:999px; font-size:.8rem; font-weight:500; border:1px solid #cbd5e1;
+              background:#fff; color:#475569; transition:background .15s,border-color .15s,color .15s; }
+  .doc-chip:hover { background:#eff6ff; border-color:#93c5fd; color:#2563eb; }
+  .doc-chip.selected { background:#0d6efd; border-color:#0d6efd; color:#fff; }
+  .doc-chip.other { border-style:dashed; }
+</style>
+<script>
+  // Documents picker: the hidden req_documents holds the selected names as a comma-separated string
+  // (same format the job pages and referral slip already display).
+  (function () {
+    var DOCS = ['Resume / CV', 'Birth Certificate (PSA)', 'NBI Clearance', 'Police Clearance', 'Barangay Clearance',
+                'TIN ID / Verification Slip', 'SSS Number / ID', 'PhilHealth ID / MDR', 'Pag-IBIG (HDMF) Number',
+                'Barangay Health Certificate', 'Academic Transcript of Records (TOR) / Diploma'];
+    var MAX = 500;
+    var hidden = document.getElementById('req-documents'), box = document.getElementById('docs-chips'),
+        otherBox = document.getElementById('docs-other-box'), otherIn = document.getElementById('docs-other-input');
+    var selected = [];                                   // state: ordered array of chosen document names
+
+    function parse(v) {
+      var seen = {};
+      return (v || '').split(',').map(function (x) { return x.trim(); }).filter(function (x) {
+        var k = x.toLowerCase(); if (!x || seen[k]) return false; seen[k] = 1; return true;
+      });
+    }
+    function has(name) { return selected.some(function (x) { return x.toLowerCase() === name.toLowerCase(); }); }
+    function sync() {
+      hidden.value = selected.join(', ');
+      hidden.dispatchEvent(new Event('change', { bubbles: true }));   // lets the draft autosave notice
+      render();
+    }
+    function toggle(name) {
+      if (has(name)) selected = selected.filter(function (x) { return x.toLowerCase() !== name.toLowerCase(); });
+      else if ((selected.join(', ') + ', ' + name).length <= MAX) selected.push(name);
+      sync();
+    }
+    function chip(label, cls, onclick) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'doc-chip ' + cls; b.textContent = label; b.addEventListener('click', onclick);
+      return b;
+    }
+    function render() {
+      box.innerHTML = '';
+      DOCS.forEach(function (d) {
+        var b = chip(d, has(d) ? 'selected' : '', function () { toggle(d); });
+        b.setAttribute('aria-pressed', has(d));
+        box.appendChild(b);
+      });
+      selected.filter(function (x) { return !DOCS.some(function (d) { return d.toLowerCase() === x.toLowerCase(); }); })
+        .forEach(function (c) {                           // custom entries: selected chips, click to remove
+          var b = chip(c + '  ✕', 'selected', function () { toggle(c); });
+          b.title = 'Remove'; box.appendChild(b);
+        });
+      box.appendChild(chip('+ Others', 'other', function () {
+        otherBox.classList.toggle('d-none'); if (!otherBox.classList.contains('d-none')) otherIn.focus();
+      }));
+    }
+    function addOther() {
+      var v = otherIn.value.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!v) return;
+      if (!has(v) && (selected.join(', ') + ', ' + v).length <= MAX) selected.push(v);
+      otherIn.value = ''; sync(); otherIn.focus();
+    }
+    document.getElementById('docs-other-add').addEventListener('click', addOther);
+    otherIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addOther(); } });
+    hidden.addEventListener('change', function (e) {      // external restore (draft autosave) rewrote the value
+      if (e.isTrusted === false && parse(hidden.value).join(', ') !== selected.join(', ')) { selected = parse(hidden.value); render(); }
+    });
+    selected = parse(hidden.value);
+    render();
+  })();
+</script>

@@ -7,7 +7,7 @@
   <a href="{{ url_for('applicants_list') }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Back to list
   </a>
-  <form method="POST" action="{{ url_for('applicant_delete', aid=ap.id) }}" class="ms-auto"
+  <form method="POST" action="{{ url_for('applicant_delete', aid=ap.applicant_id) }}" class="ms-auto"
         onsubmit="return confirm('Permanently delete {{ ap.first_name }} {{ ap.last_name }}? This removes the profile and the linked account. This cannot be undone.')">
     <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash3-fill me-1"></i>Delete</button>
   </form>
@@ -15,7 +15,7 @@
 
 <div class="card shadow-sm mb-3">
   <div class="card-header fw-semibold d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <span><i class="bi bi-person-badge me-2 text-primary"></i>{{ ap.last_name }}, {{ ap.first_name }}{% if ap.middle_name %} {{ ap.middle_name }}{% endif %}{% if ap.suffix %} {{ ap.suffix }}{% endif %}</span>
+    <span><i class="bi bi-person-badge me-2 text-primary"></i>{{ ap.first_name }}{% if ap.middle_name and ap.middle_name != '-' %} {{ ap.middle_name }}{% endif %} {{ ap.last_name }}{% if ap.suffix %} {{ ap.suffix }}{% endif %}</span>
     <span class="d-flex gap-1 flex-wrap">
       {% if not ap.skills or not ap.educ_level or not ap.preferred_position %}
       <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Incomplete</span>
@@ -108,7 +108,7 @@
     <h6 class="text-uppercase text-muted small fw-bold mb-2">Certification / Training</h6>
     <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
       <thead class="table-light"><tr><th>Course</th><th>Institution</th><th>Hours</th><th>Certificate</th></tr></thead>
-      <tbody>{% for t in ap.trainings %}<tr><td>{{ t.course }}</td><td>{{ t.institution }}</td><td>{{ t.hours }}</td><td>{{ t.certificate }}</td></tr>{% endfor %}</tbody>
+      <tbody>{% for t in ap.trainings %}<tr><td>{{ t.course }}</td><td>{{ t.institution }}</td><td>{{ t.hours }}</td><td>{% if t.cert_file %}<a href="{{ url_for('certificate_file', filename=t.cert_file) }}" target="_blank"><i class="bi bi-paperclip"></i> {{ t.certificate or 'View' }}</a>{% else %}{{ t.certificate }}{% endif %}</td></tr>{% endfor %}</tbody>
     </table></div>
     {% endif %}
 
@@ -116,15 +116,15 @@
     <h6 class="text-uppercase text-muted small fw-bold mb-2">Eligibility / License</h6>
     <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
       <thead class="table-light"><tr><th>Title</th><th>Rating / No.</th><th>Date / Valid until</th></tr></thead>
-      <tbody>{% for el in ap.eligibilities %}<tr><td>{{ el.title }}</td><td>{{ el.rating }}</td><td>{{ el.date }}</td></tr>{% endfor %}</tbody>
+      <tbody>{% for el in ap.eligibilities %}<tr><td>{{ el.title }}</td><td>{{ el.rating }}</td><td>{{ el.date|monthyear }}</td></tr>{% endfor %}</tbody>
     </table></div>
     {% endif %}
 
     {% if ap.work_history %}
     <h6 class="text-uppercase text-muted small fw-bold mb-2">Work Experience <span class="text-muted fw-normal">(total {{ total_exp_months }} months)</span></h6>
     <div class="table-responsive mb-3"><table class="table table-sm small mb-0">
-      <thead class="table-light"><tr><th>Company</th><th>Address</th><th>Position</th><th>Months</th><th>Status</th></tr></thead>
-      <tbody>{% for w in ap.work_history %}<tr><td>{{ w.company }}</td><td>{{ w.address }}</td><td>{{ w.position }}</td><td>{{ w.months }}</td><td>{{ w.status }}</td></tr>{% endfor %}</tbody>
+      <thead class="table-light"><tr><th>Company</th><th>Address</th><th>Position</th><th>Period</th><th>Months</th><th>Status</th></tr></thead>
+      <tbody>{% for w in ap.work_history %}<tr><td>{{ w.company }}</td><td>{{ w.address }}</td><td>{{ w.position }}</td><td>{% if w.from_y %}{{ w.from_m }}/{{ w.from_y }} – {% if w.current %}Present{% elif w.to_y %}{{ w.to_m }}/{{ w.to_y }}{% endif %}{% else %}—{% endif %}</td><td>{{ w.months }}</td><td>{{ w.status }}</td></tr>{% endfor %}</tbody>
     </table></div>
     {% endif %}
 

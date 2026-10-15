@@ -1,0 +1,167 @@
+{% extends 'base_public.html' %}
+{% block title %}About{% endblock %}
+
+{% block head %}
+<style>
+.about-hero { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color:#fff; padding:3rem 1.5rem; text-align:center; }
+.about-hero h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 800; margin:0; }
+.feature-section { padding: 3.5rem 1.5rem; }
+.feature-card {
+  border-radius: 12px;
+  padding: 1.75rem;
+  text-align: center;
+  height: 100%;
+}
+.feature-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  margin: 0 auto 1rem;
+}
+.step-row { border-radius: 12px; padding: 2rem; height: 100%; }
+.feature-card, .step-row { background: #fff; border: none; }
+.audience-card { padding: 2rem 2.25rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.audience-card .feature-icon { margin-bottom: .5rem; }
+.audience-head { width: 100%; }
+.audience-head > div:last-child { text-align: center; }
+.audience-head { padding-bottom: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #e5e7eb; }
+.audience-title { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; color: #111827; margin: 0 0 .2rem; }
+.audience-sub { font-size: .9rem; line-height: 1.4; color: #4b5563; margin: 0; }
+.audience-list { list-style: none; margin: 0; padding-left: 0; text-align: center; font-size: .95rem; line-height: 1.7; letter-spacing: .005em; color: #1f2937; }
+.audience-list li + li { margin-top: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-hero">
+  <div class="container">
+    <h1>About PESO CSJDM</h1>
+    <p class="mt-2 mb-0" style="opacity:.85;">Public Employment Service Office, City of San Jose del Monte, Bulacan</p>
+  </div>
+</div>
+
+<!-- Intro -->
+<div class="container pt-5" style="max-width:760px;">
+  <p class="text-center text-muted mb-0">
+    PESO CSJDM (the Public Employment Service Office of the City of San Jose del Monte) helps residents find jobs
+    and helps local employers find workers. This website lets you register, see job recommendations,
+    and apply for vacancies online. <a href="#contact">Contact the office</a>.
+  </p>
+</div>
+
+<!-- How it works -->
+<div class="feature-section">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold" style="font-size:1.5rem;">How It Works</h2>
+      <p class="text-muted">For jobseekers, in three steps.</p>
+    </div>
+    <div class="row g-3 mb-5">
+      <div class="col-md-4">
+        <div class="feature-card accent-blue">
+          <div class="feature-icon" style="background:#eff6ff;">
+            <i class="bi bi-person-plus-fill text-primary"></i>
+          </div>
+          <h6 class="fw-bold">1. Register Online</h6>
+          <p class="text-muted small mb-0">Create your profile from home or an internet cafe. No need to travel to the PESO office just to sign up.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card accent-blue">
+          <div class="feature-icon" style="background:#eff6ff;">
+            <i class="bi bi-stars text-primary"></i>
+          </div>
+          <h6 class="fw-bold">2. Get Matched</h6>
+          <p class="text-muted small mb-0">Our system analyzes your skills, education, and experience to recommend the job categories that fit you best.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card accent-blue">
+          <div class="feature-icon" style="background:#eff6ff;">
+            <i class="bi bi-send-fill text-primary"></i>
+          </div>
+          <h6 class="fw-bold">3. Get Your Referral</h6>
+          <p class="text-muted small mb-0">Apply to a matching vacancy and your referral slip is generated instantly. Bring it directly to the employer to start the hiring process. You can have one active referral at a time.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Who it's for -->
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="step-row audience-card accent-blue">
+          <div class="d-flex flex-column align-items-center text-center gap-2 audience-head">
+            <div class="feature-icon" style="background:#eff6ff;flex-shrink:0;">
+              <i class="bi bi-person-fill text-primary"></i>
+            </div>
+            <div>
+              <h5 class="audience-title">For Jobseekers</h5>
+              <p class="audience-sub">Looking for work in CSJDM?</p>
+            </div>
+          </div>
+          <ul class="audience-list">
+            <li>Register and build your profile</li>
+            <li>See which job categories fit you best</li>
+            <li>Browse active vacancies</li>
+            <li>Apply and track your referrals online</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="step-row audience-card accent-blue">
+          <div class="d-flex flex-column align-items-center text-center gap-2 audience-head">
+            <div class="feature-icon" style="background:#eff6ff;flex-shrink:0;">
+              <i class="bi bi-building text-primary"></i>
+            </div>
+            <div>
+              <h5 class="audience-title">For Employers</h5>
+              <p class="audience-sub">Hiring workers in CSJDM?</p>
+            </div>
+          </div>
+          <ul class="audience-list">
+            <li>Register your company and get verified by PESO</li>
+            <li>Post job vacancies once approved</li>
+            <li>Receive applicants referred by PESO to your vacancies</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div id="contact" class="text-center mt-5 mb-4">
+      <h2 class="fw-bold" style="font-size:1.5rem;">Contact Us</h2>
+      <p class="text-muted">Visit or reach the PESO office.</p>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="feature-card accent-blue">
+          <div class="feature-icon" style="background:#eff6ff;">
+            <i class="bi bi-geo-alt-fill text-primary"></i>
+          </div>
+          <h6 class="fw-bold">Address</h6>
+          <p class="text-muted small mb-0">New Government Center, Brgy. Dulong Bayan,<br>City of San Jose del Monte, Bulacan</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card accent-blue">
+          <div class="feature-icon" style="background:#eff6ff;">
+            <i class="bi bi-telephone-fill text-primary"></i>
+          </div>
+          <h6 class="fw-bold">Phone</h6>
+          <p class="text-muted small mb-0">044-919-7370 to 89<br>local 2215</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card accent-blue">
+          <div class="feature-icon" style="background:#eff6ff;">
+            <i class="bi bi-envelope-fill text-primary"></i>
+          </div>
+          <h6 class="fw-bold">Email</h6>
+          <p class="text-muted small mb-0"><a href="mailto:peso2016csjdm@gmail.com">peso2016csjdm@gmail.com</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

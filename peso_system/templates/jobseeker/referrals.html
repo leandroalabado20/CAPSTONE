@@ -1,21 +1,57 @@
 {% extends 'base_jobseeker.html' %}
 {% block title %}My Applications{% endblock %}
 
+{% block head %}
+<style>
+.apps-title { font-size: 1.6rem; letter-spacing: -.01em; color: #0f172a; }
+.apps-sub { color: #475569 !important; font-size: .95rem; }
+.apps-head .btn-primary { background: var(--peso-brand-grad); border: 1px solid #1e3a5f; border-radius: 10px; padding: .5rem 1.1rem; box-shadow: 0 4px 12px rgba(30,58,95,.25); transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+.apps-head .btn-primary:hover { background: #1e3a5f; transform: translateY(-1px); box-shadow: 0 8px 18px rgba(30,58,95,.33); }
+.apps-card { border: 1px solid #e8edf4 !important; border-radius: 14px !important; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 22px rgba(15,23,42,.06) !important; background: #fff; }
+.apps-table { border-collapse: separate; border-spacing: 0; }
+.apps-table thead { background: linear-gradient(180deg,#f8fafd,#f1f5fb) !important; }
+.apps-table thead th { color: #475569; font-weight: 700; border-bottom: 1px solid #e3eaf5; padding-top: .85rem !important; padding-bottom: .85rem !important; white-space: nowrap; }
+.apps-table tbody td { vertical-align: middle; padding-top: .95rem !important; padding-bottom: .95rem !important; border-bottom: 1px solid #eef2f8; color: #334155; }
+.apps-table tbody tr:last-child td { border-bottom: 0; }
+.apps-table.table-hover tbody tr { transition: background .15s ease; }
+.apps-table.table-hover tbody tr:hover > * { background-color: #f4f8ff; --bs-table-bg-state: #f4f8ff; }
+.apps-table tbody td:first-child { color: #0f172a; box-shadow: inset 3px 0 0 transparent; transition: box-shadow .15s ease; }
+.apps-table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 #2563eb; }
+.apps-table .badge { border-radius: 999px; padding: .4em .8em; font-weight: 600; }
+.apps-table .btn-sm { border-radius: 8px; font-weight: 600; padding: .35rem .75rem !important; font-size: .78rem !important; transition: all .15s ease; }
+.apps-table .btn-outline-secondary { color: #1d4ed8; background: #eaf1ff; border-color: #93b4f5; }
+.apps-table .btn-outline-secondary:hover { color: #fff; background: #1d4ed8; border-color: #1d4ed8; box-shadow: 0 5px 12px rgba(29,78,216,.3); transform: translateY(-1px); }
+.apps-table .btn-outline-danger { background: #fff5f5; border-color: #f5b5b5; }
+.apps-table .btn-outline-danger:hover { box-shadow: 0 5px 12px rgba(220,38,38,.28); transform: translateY(-1px); }
+/* Slip action buttons */
+.apps-table td .d-flex.gap-1 { gap: .5rem !important; align-items: center; flex-wrap: nowrap; }
+.apps-table td .d-flex form { margin: 0; }
+.apps-table .btn-sm { display: inline-flex; align-items: center; justify-content: center; gap: .1rem; min-height: 34px; padding: .4rem .95rem !important; font-size: .8rem !important; letter-spacing: .01em; white-space: nowrap; border-radius: 10px; }
+.apps-table .btn-outline-secondary { background: var(--peso-brand-grad); color: #fff; border: 1px solid #1e3a5f; box-shadow: 0 3px 8px rgba(30,58,95,.22); }
+.apps-table .btn-outline-secondary:hover, .apps-table .btn-outline-secondary:focus { background: #1e3a5f; color: #fff; border-color: #1e3a5f; box-shadow: 0 7px 16px rgba(30,58,95,.33); transform: translateY(-1px); }
+.apps-table .btn-outline-danger { background: #fff; color: #dc2626; border: 1.5px solid #f1a5a5; box-shadow: none; }
+.apps-table .btn-outline-danger:hover, .apps-table .btn-outline-danger:focus { background: #dc2626; color: #fff; border-color: #dc2626; box-shadow: 0 7px 16px rgba(220,38,38,.32); transform: translateY(-1px); }
+.apps-table .btn-sm:active { transform: none; box-shadow: none; }
+.apps-table .btn-sm:focus-visible { outline: 3px solid rgba(37,99,235,.3); outline-offset: 2px; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 apps-head">
   <div>
-    <h4 class="fw-bold mb-0">My Applications</h4>
-    <p class="text-muted small mb-0">Track all the jobs you have applied for.</p>
+    <h4 class="fw-bold mb-0 apps-title">My Applications</h4>
+    <p class="text-muted small mb-0 apps-sub">Track all the jobs you have applied for.</p>
   </div>
-  <a href="{{ url_for('jobseeker_recommendations') }}" class="btn btn-primary btn-sm fw-semibold">
+  <a href="{{ url_for('jobseeker_recommendations') }}" class="btn btn-sm fw-bold"
+     style="background:#fbbf24;color:#1e293b;border:1px solid #f59e0b;box-shadow:0 4px 12px rgba(245,158,11,.45);">
     <i class="bi bi-stars me-1"></i>Find Jobs
   </a>
 </div>
 
 {% if my_referrals %}
-<div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+<div class="card shadow-sm border-0 apps-card" style="border-radius:12px;overflow:hidden;">
   <div class="table-responsive">
-  <table class="table table-hover mb-0">
+  <table class="table table-hover mb-0 apps-table">
     <thead style="background:#f8fafc;font-size:.78rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">
       <tr>
         <th class="px-3 py-2">Position</th>
@@ -57,12 +93,12 @@
           <span class="text-muted small">—</span>
           {% else %}
           <div class="d-flex gap-1">
-            <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
+            <a href="{{ url_for('referral_slip', rid=r.referral_id) }}" target="_blank"
                class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.72rem;">
               <i class="bi bi-file-earmark-text me-1"></i>View Slip
             </a>
             {% if r.status == 'referred' %}
-            <form method="POST" action="{{ url_for('jobseeker_cancel_referral', rid=r.id) }}">
+            <form method="POST" action="{{ url_for('jobseeker_cancel_referral', rid=r.referral_id) }}">
               <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size:.72rem;"
                       onclick="return confirm('Withdraw your application for &quot;{{ r.job_title }}&quot;? This cannot be undone, but you can re-apply later.')">
                 <i class="bi bi-x-circle me-1"></i>Withdraw

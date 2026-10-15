@@ -1,4 +1,4 @@
-{% extends 'base_public.html' %}
+{% extends layout|default('base_public.html') %}
 {% block title %}{{ v.job_title }}{% endblock %}
 
 {% block content %}
@@ -21,8 +21,7 @@
           <div class="text-muted">{{ v.e_company or v.employer_name }}</div>
           <div class="mt-2">
             <span class="badge bg-primary-subtle text-primary-emphasis">{{ v.occupational_category }}</span>
-            {% if v.is_local %}<span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-geo-alt-fill me-1"></i>Local (CSJDM)</span>
-            {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">Outside CSJDM</span>{% endif %}
+            {% set li = loc_info(v) %}<span class="badge {{ li.css }}"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.label }}</span>
             {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis">Applications closed</span>{% endif %}
           </div>
         </div>
@@ -37,6 +36,7 @@
         <i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_date }}
         {% if v.application_deadline %}&nbsp;·&nbsp;<i class="bi bi-hourglass-split me-1"></i>Apply until {{ v.application_deadline|friendly_date }}
         {% else %}&nbsp;·&nbsp;<i class="bi bi-hourglass me-1"></i>Open until filled{% endif %}
+        {% set _loc = vacancy_location(v) %}{% if _loc %}&nbsp;·&nbsp;<i class="bi bi-geo-alt me-1"></i>{{ _loc }}{% endif %}
       </div>
 
       <!-- Requirements -->
@@ -48,12 +48,22 @@
         {% if v.req_age_min and v.req_age_max %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Age:</strong> {{ v.req_age_min }}–{{ v.req_age_max }} years old</li>
         {% elif v.req_age_min %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Age:</strong> {{ v.req_age_min }}+ years old</li>
         {% elif v.req_age_max %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Age:</strong> up to {{ v.req_age_max }} years old</li>{% endif %}
-        {% if v.req_education %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Education:</strong> {{ v.req_education }} or higher</li>{% endif %}
-        {% if v.req_experience_months %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Experience:</strong> at least {{ v.req_experience_months }} months</li>{% endif %}
+        {% if v.req_education %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Education:</strong> {{ edu_req_text(v.req_education) }}</li>{% endif %}
+        {% if v.req_experience_months %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Experience:</strong> at least {{ v.req_experience_months }} months</li>
+        {% else %}<li class="mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Experience:</strong> No experience needed, fresh graduates welcome</li>{% endif %}
       </ul>
       {% else %}
-      <p class="small text-muted">No specific requirements listed.</p>
+      <p class="small text-muted mb-1"><i class="bi bi-check2 text-success me-2"></i><strong>Experience:</strong> No experience needed, fresh graduates welcome</p>
+      <p class="small text-muted">No other specific requirements listed.</p>
       {% endif %}
+      <p class="fw-semibold text-muted mb-2 mt-3" style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Schedule &amp; Venue</p>
+      <ul class="list-unstyled small mb-3">
+        <li class="mb-1"><i class="bi bi-calendar-event text-primary me-2"></i><strong>Interview:</strong>
+          {% if v.interview_date %}{{ interview_text(v) }}{% else %}<span class="text-muted">To be announced</span>{% endif %}</li>
+        <li class="mb-1"><i class="bi bi-geo-alt-fill text-primary me-2"></i><strong>Venue:</strong>
+          {% if v.venue_address %}{{ v.venue_address }}{% else %}<span class="text-muted">To be announced</span>{% endif %}</li>
+        {% if v.requirements_deadline %}<li class="mb-1"><i class="bi bi-file-earmark-check text-primary me-2"></i><strong>Submit requirements by:</strong> {{ v.requirements_deadline|friendly_date }}</li>{% endif %}
+      </ul>
       {% if v.req_documents %}
       <p class="small mb-4"><i class="bi bi-file-earmark-text me-1 text-muted"></i><strong>Documents to bring:</strong> {{ v.req_documents }}</p>
       {% else %}<div class="mb-4"></div>{% endif %}

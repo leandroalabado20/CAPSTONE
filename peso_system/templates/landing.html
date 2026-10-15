@@ -1,32 +1,48 @@
 {% extends 'base_public.html' %}
 {% block title %}Welcome{% endblock %}
+{% block nav_signin %}{% endblock %}
 
 {% block head %}
 <style>
+body, .container-fluid { background: #fff !important; }
 .hero {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
-  color: #fff;
-  padding: 5rem 1.5rem 4rem;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #fff;
+  color: #1e293b;
+  padding: 4rem 1.5rem 3.5rem;
   text-align: center;
-}
-.hero h1 { font-size: clamp(1.7rem, 4vw, 2.6rem); font-weight: 800; }
-.hero p  { font-size: 1.05rem; opacity: .85; max-width: 600px; margin: 1rem auto 0; }
-.hero-btns { margin-top: 2.2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-.hero-btns .btn { padding: .65rem 1.6rem; font-weight: 600; font-size: .95rem; border-radius: 8px; }
-.feature-section { padding: 3.5rem 1.5rem; }
-.feature-card {
-  border-radius: 12px;
-  padding: 1.75rem;
-  text-align: center;
-  height: 100%;
-}
-.feature-icon {
-  width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem;
-  margin: 0 auto 1rem;
+  flex: 0 0 auto;
 }
-.step-row { border-radius: 12px; padding: 2rem; height: 100%; }
+body > .container-fluid { display: flex; flex-direction: column; }
+.hero .container { width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.hero h1 { text-wrap: balance; color: #1e3a5f; font-size: clamp(1.7rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: .015em; line-height: 1.15; margin: 0; }
+.hero h1::after { content: ""; display: block; width: 72px; height: 4px; border-radius: 4px; margin: 1.1rem auto 0;
+  background: linear-gradient(90deg, #2563eb, #60a5fa); }
+.hero h1, .hero p { text-align: center; }
+.hero p  { font-size: clamp(1.05rem, 2vw, 1.25rem); color: #475569; max-width: 760px; margin: 1.1rem auto 0; text-wrap: balance; line-height: 1.6; }
+.hero-cta { margin-top: 2.4rem; display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+.hero-signin, .hero-create { width: 280px; padding: .85rem 1.5rem; font-size: 1rem; border-radius: 10px; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease; }
+.hero-signin { font-weight: 700; background: var(--peso-brand-grad); border: 2px solid #1e3a5f; color: #fff; box-shadow: 0 6px 16px rgba(30,58,95,.3); }
+.hero-signin:hover { background: #1e3a5f; border-color: #162d4a; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(30,58,95,.4); }
+.hero-create { background: #fff; border: 2px solid #bfdbfe; color: #1d4ed8; box-shadow: 0 2px 8px rgba(15,23,42,.05); }
+.hero-create:hover { background: #eff6ff; border-color: #1d4ed8; color: #1d4ed8; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(29,78,216,.15); }
+.hero-signin:focus-visible, .hero-create:focus-visible { outline: 3px solid rgba(37,99,235,.4); outline-offset: 2px; }
+@media (max-width: 767.98px) { .hero { padding: 2.5rem 1rem; min-height: 0; } }
+.hero-seal { width: 104px; height: 104px; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 50%; background: #fff; display: block; margin: 0 auto 1.4rem; box-shadow: 0 6px 18px rgba(30,58,95,.18); }
+.hero-tagline { font-size: 1.15rem !important; font-weight: 700; color: #1d4ed8 !important; margin-top: 1.1rem !important; letter-spacing: .01em; }
+.features { flex: 1 0 auto; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 3rem 1.5rem 3.5rem; }
+.features-title { text-align: center; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #64748b; margin-bottom: 1.6rem; }
+.feature-grid { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.feature-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.6rem 1.4rem; text-align: center; box-shadow: 0 2px 10px rgba(15,23,42,.04); transition: transform .15s ease, box-shadow .15s ease; }
+.feature-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(29,78,216,.1); }
+.feature-icon { width: 52px; height: 52px; border-radius: 14px; background: #eff6ff; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+.feature-card h3 { font-size: 1.05rem; font-weight: 700; color: #1e3a5f; margin-bottom: .4rem; }
+.feature-card p { font-size: .92rem; color: #475569; margin: 0; line-height: 1.55; }
+.public-footer a { color: #fff !important; text-decoration-color: rgba(255,255,255,.5) !important; }
+@media (max-width: 767.98px) { .feature-grid { grid-template-columns: 1fr; } .features { padding: 2rem 1rem 2.5rem; } .hero-seal { width: 88px; height: 88px; } }
 </style>
 {% endblock %}
 
@@ -35,100 +51,41 @@
 <!-- Hero -->
 <div class="hero">
   <div class="container">
-    <div class="mb-3">
-      <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:.3rem .9rem;font-size:.8rem;font-weight:600;letter-spacing:.06em;">
-        PESO City of San Jose del Monte, Bulacan
-      </span>
-    </div>
-    <h1>Find a Job, Online</h1>
-    <p>The PESO CSJDM job matching portal. Jobseekers get matched to the right jobs and receive a referral online. Employers post vacancies and receive matched applicants. No more waiting in line at the office.</p>
-    <p class="mt-4 mb-0" style="opacity:.85;font-size:.95rem;">New here? Create an account to get started.</p>
-    <div class="hero-btns" style="margin-top:.8rem;">
-      <a href="{{ url_for('register') }}" class="btn btn-light text-primary fw-bold">
-        <i class="bi bi-person-plus me-2"></i>Get Started
+    <img src="{{ url_for('static', filename='img/peso_seal.png') }}" alt="PESO City of San Jose del Monte seal" class="hero-seal" />
+    <h1>PUBLIC EMPLOYMENT SERVICE OFFICE</h1>
+    <p>New Government Center, Brgy. Dulong Bayan,<br />City of San Jose del Monte, Bulacan</p>
+    <p class="hero-tagline">Find jobs. Get matched. Get your referral online.</p>
+    <div class="hero-cta">
+      <a href="{{ url_for('login') }}" class="btn fw-bold hero-signin">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </a>
+      <a href="{{ url_for('register') }}" class="btn fw-semibold hero-create">
+        <i class="bi bi-person-plus me-2"></i>Create New Account
       </a>
     </div>
   </div>
 </div>
 
 <!-- How it works -->
-<div class="feature-section">
-  <div class="container">
-    <div class="text-center mb-4">
-      <h2 class="fw-bold" style="font-size:1.5rem;">How It Works</h2>
-      <p class="text-muted">For jobseekers, in three steps.</p>
+<section class="features">
+  <div class="features-title">How it works</div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon"><i class="bi bi-person-vcard"></i></span>
+      <h3>Create your profile</h3>
+      <p>Register once and add your education, skills and work experience.</p>
     </div>
-    <div class="row g-3 mb-5">
-      <div class="col-md-4">
-        <div class="feature-card">
-          <div class="feature-icon" style="background:#eff6ff;">
-            <i class="bi bi-person-plus-fill text-primary"></i>
-          </div>
-          <h6 class="fw-bold">1. Register Online</h6>
-          <p class="text-muted small mb-0">Create your profile from home or an internet cafe. No need to travel to the PESO office just to sign up.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card">
-          <div class="feature-icon" style="background:#f0fdf4;">
-            <i class="bi bi-stars text-success"></i>
-          </div>
-          <h6 class="fw-bold">2. Get Matched</h6>
-          <p class="text-muted small mb-0">Our system analyzes your skills, education, and experience to recommend the job categories that fit you best.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card">
-          <div class="feature-icon" style="background:#fff7ed;">
-            <i class="bi bi-send-fill text-warning"></i>
-          </div>
-          <h6 class="fw-bold">3. Get Your Referral</h6>
-          <p class="text-muted small mb-0">Apply to a matching vacancy and your referral slip is generated instantly. Bring it directly to the employer to start the hiring process.</p>
-        </div>
-      </div>
+    <div class="feature-card">
+      <span class="feature-icon"><i class="bi bi-bullseye"></i></span>
+      <h3>Get matched to jobs</h3>
+      <p>The system recommends vacancies that fit your qualifications.</p>
     </div>
-
-    <!-- Who it's for -->
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="step-row">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="feature-icon mb-0" style="background:#eff6ff;flex-shrink:0;">
-              <i class="bi bi-person-fill text-primary"></i>
-            </div>
-            <div>
-              <h5 class="fw-bold mb-0">For Jobseekers</h5>
-              <p class="text-muted small mb-0">Looking for work in CSJDM?</p>
-            </div>
-          </div>
-          <ul class="text-muted small mb-0 ps-3">
-            <li>Register and build your profile</li>
-            <li>See which job categories fit you best</li>
-            <li>Browse active vacancies</li>
-            <li>Apply and track your referrals online</li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="step-row">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="feature-icon mb-0" style="background:#f0fdf4;flex-shrink:0;">
-              <i class="bi bi-building text-success"></i>
-            </div>
-            <div>
-              <h5 class="fw-bold mb-0">For Employers</h5>
-              <p class="text-muted small mb-0">Hiring workers in CSJDM?</p>
-            </div>
-          </div>
-          <ul class="text-muted small mb-0 ps-3">
-            <li>Register your company with PESO</li>
-            <li>Post job vacancies directly</li>
-            <li>Receive applicants matched to your vacancies</li>
-          </ul>
-        </div>
-      </div>
+    <div class="feature-card">
+      <span class="feature-icon"><i class="bi bi-send-check"></i></span>
+      <h3>Receive your referral online</h3>
+      <p>No more waiting in line at the office. Employers post vacancies and get matched applicants.</p>
     </div>
   </div>
-</div>
+</section>
 
 {% endblock %}

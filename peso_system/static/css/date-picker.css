@@ -1,0 +1,19 @@
+/* Month / Year dropdown date picker (flatpickr) — shared by static/js/date-picker.js */
+.flatpickr-calendar { border-radius:10px; box-shadow:0 8px 24px rgba(15,23,42,.18); width:307.875px; max-width:calc(100vw - 24px); background:#fff; }
+.flatpickr-calendar.hasFooter { padding-bottom:6px; }
+.flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { display:none; }  /* month/year are picked from the dropdowns */
+.flatpickr-current-month { display:flex; align-items:center; justify-content:center; gap:6px; padding:0 8px; width:100%; left:0; }
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month select.fp-year {
+  appearance:auto; -webkit-appearance:menulist; height:36px; min-width:0; flex:1 1 0; font-size:16px; font-weight:600;
+  color:#0f172a; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:0 6px; cursor:pointer; }
+.flatpickr-current-month select.fp-year { flex:0 0 92px; }
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month select.fp-year:hover { background:#f1f5f9; }
+.flatpickr-current-month .numInputWrapper { display:none; }
+.flatpickr-day.selected, .flatpickr-day.selected:hover { background:#1d4ed8; border-color:#1d4ed8; }
+.flatpickr-day.today:not(.selected) { border-color:#1d4ed8; }
+.fp-footer { display:flex; justify-content:space-between; padding:6px 12px 2px; border-top:1px solid #e2e8f0; margin-top:4px; }
+.fp-footer button { background:none; border:0; color:#0969da; font-size:.85rem; padding:6px 4px; cursor:pointer; }
+.fp-footer button:hover { text-decoration:underline; }
+.dp-alt { width:9.5rem !important; background-color:#fff; cursor:pointer; }

@@ -5,16 +5,128 @@
 <style>
 .skill-chip { cursor:pointer; padding:3px 10px; border-radius:12px; font-size:.72rem; font-weight:500;
   border:1px solid #cbd5e1; color:#475569; background:#f8fafc; user-select:none; white-space:nowrap; display:inline-block; }
+.skill-chip.active { background:#2563eb; border-color:#2563eb; color:#fff; }
 .skill-chip:hover { background:#eff6ff; border-color:#93c5fd; color:#2563eb; }
+.save-bar { position:sticky; bottom:0; z-index:20; display:flex; justify-content:space-between; align-items:center; gap:12px;
+  background:#fff; border-top:1px solid #e2e8f0; box-shadow:0 -4px 16px rgba(15,23,42,.06); padding:10px 16px; border-radius:12px 12px 0 0; }
+.save-bar.dirty #save-state { color:#b45309 !important; }
+.empty-hint { border:1px dashed #cbd5e1; border-radius:10px; padding:14px; text-align:center; color:#64748b; font-size:.85rem; }
 .sec-head { font-size:.75rem; letter-spacing:.07em; text-transform:uppercase; color:var(--peso-muted); }
 .repeat-row { position:relative; }
+.avatar { width:110px; height:110px; border-radius:50%; overflow:hidden; display:flex; align-items:center;
+  justify-content:center; background:#eff6ff; color:#93c5fd; border:3px solid #dbeafe; font-size:3.6rem; }
+.avatar img { width:100%; height:100%; object-fit:cover; }
+.flatpickr-calendar { border-radius:10px; box-shadow:0 8px 24px rgba(15,23,42,.18); width:307.875px; max-width:calc(100vw - 24px); }
+.flatpickr-calendar.hasFooter { padding-bottom:6px; }
+.flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { display:none; }  /* month/year are picked from the dropdowns */
+.flatpickr-current-month { display:flex; align-items:center; justify-content:center; gap:6px; padding:0 8px; width:100%; left:0; }
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month select.fp-year {
+  appearance:auto; -webkit-appearance:menulist; height:36px; min-width:0; flex:1 1 0; font-size:16px; font-weight:600;
+  color:#0f172a; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:0 6px; cursor:pointer; }
+.flatpickr-current-month select.fp-year { flex:0 0 92px; }
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month select.fp-year:hover { background:#f1f5f9; }
+.flatpickr-current-month .numInputWrapper { display:none; }
+.flatpickr-day.selected, .flatpickr-day.selected:hover { background:#2563eb; border-color:#2563eb; }
+.flatpickr-day.today:not(.selected) { border-color:#2563eb; }
+.fp-footer { display:flex; justify-content:space-between; padding:6px 12px 2px; border-top:1px solid #e2e8f0; margin-top:4px; }
+.fp-footer button { background:none; border:0; color:#0969da; font-size:.85rem; padding:6px 4px; cursor:pointer; }
+.fp-footer button:hover { text-decoration:underline; }
+@media (max-width:575.98px) { .flatpickr-day { height:42px; line-height:42px; } .fp-footer button { padding:10px 6px; } }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+<style>
+.crop-modal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+.crop-modal.open{display:flex}
+.crop-dialog{background:var(--bs-body-bg,#fff);color:var(--bs-body-color,#212529);border-radius:12px;width:100%;max-width:480px;padding:16px}
+.crop-stage{height:min(60vh,360px);background:#222;border-radius:8px;overflow:hidden}
+.crop-stage img{display:block;max-width:100%}
+.crop-circle .cropper-view-box,.crop-circle .cropper-face{border-radius:50%}
 </style>
 {% endblock %}
 
 {% block content %}
+{% macro we_row(w) %}
+<div class="repeat-row we-row row g-2 border rounded p-2">
+  <div class="col-md-3"><input name="we_company[]" class="form-control form-control-sm" maxlength="120" placeholder="Company" value="{{ w.company if w else '' }}" /></div>
+  <div class="col-md-3"><input name="we_address[]" class="form-control form-control-sm" maxlength="120" placeholder="Address" value="{{ w.address if w else '' }}" /></div>
+  <div class="col-md-3"><input name="we_position[]" class="form-control form-control-sm" maxlength="100" placeholder="Position" value="{{ w.position if w else '' }}" /></div>
+  <div class="col-md-3 d-flex gap-1"><select name="we_status[]" class="form-select form-select-sm"><option value="">Status</option>{% for st in work_status_choices %}<option value="{{ st }}" {% if w and w.status == st %}selected{% endif %}>{{ st }}</option>{% endfor %}</select><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+  <div class="col-md-4"><div class="small text-muted mb-1">From</div><div class="d-flex gap-1">
+    <select name="we_from_m[]" class="form-select form-select-sm we-month" data-selected="{{ w.from_m if w else '' }}"><option value="">Month</option></select>
+    <select name="we_from_y[]" class="form-select form-select-sm we-year" data-selected="{{ w.from_y if w else '' }}"><option value="">Year</option></select></div></div>
+  <div class="col-md-4"><div class="small text-muted mb-1">To</div><div class="d-flex gap-1 we-to">
+    <select name="we_to_m[]" class="form-select form-select-sm we-month" data-selected="{{ w.to_m if w else '' }}"><option value="">Month</option></select>
+    <select name="we_to_y[]" class="form-select form-select-sm we-year" data-selected="{{ w.to_y if w else '' }}"><option value="">Year</option></select></div></div>
+  <div class="col-md-4 d-flex align-items-end"><div class="form-check mb-1">
+    <input type="hidden" name="we_current[]" class="we-current-val" value="{{ '1' if w and w.current else '' }}" />
+    <input type="checkbox" data-draft="we_current" class="form-check-input we-current" {% if w and w.current %}checked{% endif %} />
+    <label class="form-check-label small">I currently work here</label></div>
+    <input type="hidden" name="we_months[]" value="{{ w.months if w and not w.from_y else '' }}" /></div>
+</div>
+{% endmacro %}
+{% macro elig_row(el) %}
+{% set t = el.title if el else '' %}
+{% set known = t in elig_types %}
+{% set d = el.date if el and el.date else '' %}
+{% set d_ok = d|length == 7 and d[4] == '-' %}
+<div class="repeat-row row g-2 border rounded p-2 elig-row">
+  <div class="col-md-4">
+    <label class="form-label small text-muted mb-1">Eligibility / License</label>
+    <select name="elig_type[]" class="form-select form-select-sm elig-type">
+      <option value="">Select type</option>
+      {% for o in elig_types %}<option value="{{ o }}" {% if t == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+      <option value="Others" {% if t and not known %}selected{% endif %}>Others</option>
+    </select>
+    <input type="text" name="elig_other[]" class="form-control form-control-sm mt-1 elig-other" maxlength="120" placeholder="Specify eligibility / license" value="{{ t if t and not known else '' }}" style="display:none;" />
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small text-muted mb-1">Rating / License no.</label>
+    <input name="elig_rating[]" class="form-control form-control-sm" maxlength="40" placeholder="Rating / License no." value="{{ el.rating if el else '' }}" />
+  </div>
+  <div class="col-md-5">
+    <label class="form-label small text-muted mb-1 elig-date-label">Month / Year</label>
+    <div class="d-flex gap-1">
+      <input type="text" name="elig_date[]" class="elig-date" autocomplete="off" value="{{ d if d_ok else '' }}" {% if d and not d_ok %}data-legacy="{{ d }}"{% endif %} />
+      <button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro cert_cell(t) %}
+<div class="col-md-4">
+  <div class="cert-cell d-flex gap-1 align-items-center">
+    <input type="hidden" name="trn_certificate[]" value="{{ t.certificate if t else '' }}" />
+    <input type="hidden" name="trn_cert_file[]" value="{{ t.cert_file if t else '' }}" />
+    <input type="file" name="trn_cert_upload[]" class="cert-input" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" hidden />
+    <button type="button" class="btn btn-sm btn-outline-secondary cert-pick text-truncate"><i class="bi bi-paperclip me-1"></i>Upload Certificate (Optional)</button>
+    <span class="cert-chip badge bg-primary-subtle text-primary-emphasis border d-none align-items-center gap-1 text-start" style="min-width:0;max-width:100%;">
+      <i class="bi bi-file-earmark-check"></i>
+      {% if t and t.cert_file %}<a class="cert-name text-truncate text-reset" target="_blank" href="{{ url_for('certificate_file', filename=t.cert_file) }}">{{ t.certificate or 'Certificate' }}</a>{% else %}<span class="cert-name text-truncate"></span>{% endif %}
+      <button type="button" class="btn-close cert-remove" style="font-size:.6rem;" aria-label="Remove certificate"></button>
+    </span>
+    <button type="button" class="btn btn-sm btn-outline-danger row-del ms-auto"><i class="bi bi-x"></i></button>
+  </div>
+  <div class="text-danger small cert-err"></div>
+</div>
+{% endmacro %}
+
 <div class="mb-4">
   <h4 class="fw-bold mb-0">My Profile</h4>
   <p class="text-muted small">Based on the PhilJobNet applicant registration. Keep it updated for accurate job recommendations.</p>
+</div>
+
+<div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+  <div class="card-body p-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-semibold">Profile <span id="pc-pct">0</span>% complete</span>
+      <span class="small text-muted" id="pc-next"></span>
+    </div>
+    <div class="progress" style="height:8px;"><div class="progress-bar bg-success" id="pc-bar" style="width:0%"></div></div>
+  </div>
 </div>
 
 {% if not ap.educ_level or not ap.preferred_position or not ap.skills %}
@@ -24,7 +136,48 @@
 </div>
 {% endif %}
 
-<form method="POST" action="{{ url_for('jobseeker_profile') }}">
+<form method="POST" action="{{ url_for('jobseeker_profile') }}" enctype="multipart/form-data">
+
+  <!-- Photo crop modal -->
+  <div class="crop-modal" id="crop-modal" role="dialog" aria-modal="true" aria-label="Crop profile photo">
+    <div class="crop-dialog">
+      <p class="fw-semibold mb-2">Crop your photo</p>
+      <div class="crop-stage crop-circle"><img id="crop-img" alt="Photo to crop" /></div>
+      <div class="d-flex align-items-center gap-2 mt-3">
+        <i class="bi bi-zoom-out"></i>
+        <input type="range" class="form-range" id="crop-zoom" min="1" max="3" step="0.01" value="1" aria-label="Zoom" />
+        <i class="bi bi-zoom-in"></i>
+      </div>
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="crop-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="crop-save">Crop &amp; Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile photo -->
+  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+    <div class="card-body p-3 d-flex flex-column flex-sm-row align-items-center gap-3">
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatar">
+          {% if ap.photo %}
+          <img src="{{ url_for('profile_photo', filename=ap.photo) }}" alt="Profile photo" id="avatar-img" />
+          {% else %}
+          <i class="bi bi-person-fill" id="avatar-icon"></i>
+          {% endif %}
+        </div>
+      </div>
+      <div class="text-center text-sm-start">
+        <p class="fw-semibold sec-head mb-1">Profile Photo <span class="text-muted fw-normal text-lowercase">(optional)</span></p>
+        <input type="file" name="photo" id="photo-input" accept="image/jpeg,image/png" hidden />
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('photo-input').click()">
+          <i class="bi bi-camera me-1"></i>Upload Photo
+        </button>
+        <div class="text-muted small mt-2" id="photo-hint">JPEG or PNG, max 2 MB. Your photo is saved as soon as you click <strong>Crop &amp; Save</strong>.</div>
+        <div class="text-danger small mt-1" id="photo-error"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. Applicant Name -->
   <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
@@ -50,12 +203,12 @@
           </select>
         </div>
         <div class="col-sm-4">
-          <label class="form-label fw-semibold small">Date of birth</label>
-          <input type="date" name="birthdate" class="form-control" value="{{ ap.birthdate or '' }}" />
+          <label class="form-label fw-semibold small">Date of birth <span class="text-danger">*</span></label>
+          <input type="text" name="birthdate" id="birthdate" class="form-control" required placeholder="mm/dd/yyyy" autocomplete="off" value="{{ ap.birthdate or '' }}" />
         </div>
         <div class="col-sm-4">
-          <label class="form-label fw-semibold small">Sex</label>
-          <select name="sex" class="form-select">
+          <label class="form-label fw-semibold small">Sex <span class="text-danger">*</span></label>
+          <select name="sex" class="form-select" required>
             <option value="">-- Select --</option>
             <option value="Male" {% if ap.sex == 'Male' %}selected{% endif %}>Male</option>
             <option value="Female" {% if ap.sex == 'Female' %}selected{% endif %}>Female</option>
@@ -77,46 +230,50 @@
             {% for c in civil_statuses %}<option value="{{ c }}" {% if ap.civil_status == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
           </select>
         </div>
-        <div class="col-sm-8">
-          <label class="form-label fw-semibold small">Present address (House no., Street, Village)</label>
-          <input type="text" name="address_line" class="form-control" maxlength="150" value="{{ ap.address_line or '' }}" />
-        </div>
         <div class="col-sm-4">
-          <label class="form-label fw-semibold small">Barangay</label>
-          <input type="text" name="barangay" id="barangay-input" class="form-control" list="barangay-list"
-                 autocomplete="off" maxlength="60" value="{{ ap.barangay or '' }}" oninput="autoFillDistrict(this.value)" />
-          <datalist id="barangay-list">{% for b in barangays %}<option value="{{ b|title }}">{% endfor %}</datalist>
-        </div>
-        <div class="col-sm-4">
-          <label class="form-label fw-semibold small">City / Municipality</label>
-          <input type="text" name="city" class="form-control" maxlength="60" value="{{ ap.city or 'City of San Jose del Monte' }}" />
-        </div>
-        <div class="col-sm-4">
-          <label class="form-label fw-semibold small">Province</label>
-          <input type="text" name="province" class="form-control" maxlength="60" value="{{ ap.province or 'Bulacan' }}" />
-        </div>
-        <input type="hidden" name="district" value="{{ ap.district or '' }}" id="district-input" />
-        <div class="col-sm-3">
           <label class="form-label fw-semibold small">Height (cm)</label>
           <input type="text" name="height_cm" class="form-control" maxlength="5" inputmode="numeric" value="{{ ap.height_cm or '' }}" />
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-4">
           <label class="form-label fw-semibold small">Religion</label>
           <select name="religion" class="form-select">
             <option value="">-- Select --</option>
             {% for r in religions %}<option value="{{ r }}" {% if ap.religion == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
           </select>
         </div>
-        <div class="col-sm-3">
+        <div class="col-12">
+          <div class="row g-3" id="loc-box" data-location data-psgc-base="{{ url_for('static', filename='data/psgc/') }}">
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Province <span class="text-danger">*</span></label>
+              <input type="text" name="province" data-loc="province" class="form-control" required maxlength="60" autocomplete="off"
+                     placeholder="Type to search" value="{{ ap.province or 'Bulacan' }}" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">City / Municipality <span class="text-danger">*</span></label>
+              <input type="text" name="city" data-loc="city" class="form-control" required maxlength="60" autocomplete="off"
+                     placeholder="Select province first" value="{{ ap.city or 'City of San Jose del Monte' }}" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Barangay <span class="text-danger">*</span></label>
+              <input type="text" name="barangay" id="barangay-input" data-loc="barangay" class="form-control" required maxlength="60" autocomplete="off"
+                     placeholder="Select city / municipality first" value="{{ ap.barangay or '' }}" />
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold small">Present address (House no., Street, Village) <span class="text-danger">*</span></label>
+          <input type="text" name="address_line" class="form-control" required maxlength="150" value="{{ ap.address_line or '' }}" />
+        </div>
+        <input type="hidden" name="district" value="{{ ap.district or '' }}" id="district-input" />
+        <div class="col-sm-4">
           <label class="form-label fw-semibold small">TIN</label>
-          <input type="text" name="tin" class="form-control" maxlength="20" inputmode="numeric" value="{{ ap.tin or '' }}" />
+          <input type="text" name="tin" data-mask="tin" class="form-control" value="{{ ap.tin or '' }}" />
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-4">
           <label class="form-label fw-semibold small">Cellphone no. <span class="text-danger">*</span></label>
-          <input type="text" name="contact_number" class="form-control" maxlength="11" inputmode="numeric" required
-                 pattern="09[0-9]{9}" title="11-digit mobile (09XXXXXXXXX)" value="{{ ap.contact_number or '' }}" placeholder="09XXXXXXXXX" />
+          <input type="text" name="contact_number" data-mask="mobile" class="form-control" required value="{{ ap.contact_number or '' }}" />
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-4">
           <label class="form-label fw-semibold small">Landline no.</label>
           <input type="text" name="landline" class="form-control" maxlength="12" inputmode="numeric" value="{{ ap.landline or '' }}" />
         </div>
@@ -144,7 +301,9 @@
             <input class="form-check-input" type="checkbox" name="is_4ps" id="is_4ps" value="1" {% if ap.is_4ps %}checked{% endif %} />
             <label class="form-check-label small" for="is_4ps">4Ps beneficiary</label>
           </div>
-          <input type="text" name="household_id" class="form-control form-control-sm mt-1" maxlength="40" value="{{ ap.household_id or '' }}" placeholder="Household ID No." />
+          <div id="hh-wrap" class="hh-wrap {% if ap.is_4ps %}open{% endif %}"><div>
+            <input type="text" name="household_id" id="household_id" class="form-control form-control-sm mt-1" maxlength="40" value="{{ ap.household_id or '' }}" placeholder="Household ID No." {% if not ap.is_4ps %}tabindex="-1"{% endif %} />
+          </div></div>
         </div>
         <div class="col-sm-6 d-flex flex-column gap-2 justify-content-center">
           <div class="form-check"><input class="form-check-input" type="checkbox" name="is_wodp" value="1" id="is_wodp" {% if ap.is_wodp %}checked{% endif %} /><label class="form-check-label small" for="is_wodp">WODP beneficiary</label></div>
@@ -152,14 +311,28 @@
           <div class="form-check"><input class="form-check-input" type="checkbox" name="is_caregiver" value="1" id="is_cg" {% if ap.is_caregiver %}checked{% endif %} /><label class="form-check-label small" for="is_cg">Caregiver</label></div>
         </div>
         <div class="col-sm-6">
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_ofw" value="1" id="is_ofw" onchange="toggle('ofw-country', this.checked)" {% if ap.is_ofw %}checked{% endif %} /><label class="form-check-label small" for="is_ofw">Are you an OFW?</label></div>
-          <input type="text" name="ofw_country" id="ofw-country" class="form-control form-control-sm mt-1" maxlength="60" value="{{ ap.ofw_country or '' }}" placeholder="Specify country" />
+          {% set ofw_state = 'current' if ap.is_ofw else ('former' if ap.is_former_ofw else 'none') %}
+          <label class="form-label fw-semibold small" for="ofw-status">Overseas Work Experience / Status</label>
+          <select name="ofw_status" id="ofw-status" class="form-select form-select-sm" onchange="ofwToggle()">
+            <option value="none" {% if ofw_state == 'none' %}selected{% endif %}>No OFW Experience</option>
+            <option value="current" {% if ofw_state == 'current' %}selected{% endif %}>Current OFW (Currently working abroad)</option>
+            <option value="former" {% if ofw_state == 'former' %}selected{% endif %}>Former OFW (Returned to the Philippines)</option>
+          </select>
         </div>
-        <div class="col-sm-6">
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="is_former_ofw" value="1" id="is_fofw" onchange="toggle('fofw-fields', this.checked)" {% if ap.is_former_ofw %}checked{% endif %} /><label class="form-check-label small" for="is_fofw">Former OFW?</label></div>
-          <div id="fofw-fields" class="mt-1 d-flex gap-2">
-            <input type="text" name="former_ofw_country" class="form-control form-control-sm" maxlength="60" value="{{ ap.former_ofw_country or '' }}" placeholder="Latest country of deployment" />
-            <input type="month" name="ofw_return_date" class="form-control form-control-sm" value="{{ ap.ofw_return_date or '' }}" title="Month/year of return" />
+        <div class="col-sm-6" id="ofw-current-box">
+          <label class="form-label fw-semibold small">Current Country of Deployment</label>
+          <input type="text" name="ofw_country" class="form-control form-control-sm" maxlength="60" value="{{ ap.ofw_country or '' }}" placeholder="Country" />
+        </div>
+        <div class="col-sm-6" id="ofw-former-box">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Latest Country of Deployment</label>
+              <input type="text" name="former_ofw_country" class="form-control form-control-sm" maxlength="60" value="{{ ap.former_ofw_country or '' }}" placeholder="Country" />
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Month/Year of Return to the Philippines</label>
+              <input type="text" name="ofw_return_date" id="ofw-return-date" class="form-control form-control-sm" placeholder="Month/year" autocomplete="off" value="{{ ap.ofw_return_date or '' }}" />
+            </div>
           </div>
         </div>
       </div>
@@ -174,8 +347,9 @@
         <div class="form-check"><input class="form-check-input" type="radio" name="employment_status" value="Employed" id="es_emp" onchange="empToggle()" {% if ap.employment_status == 'Employed' %}checked{% endif %} /><label class="form-check-label small" for="es_emp">Employed</label></div>
         <div class="form-check"><input class="form-check-input" type="radio" name="employment_status" value="Unemployed" id="es_unemp" onchange="empToggle()" {% if ap.employment_status != 'Employed' %}checked{% endif %} /><label class="form-check-label small" for="es_unemp">Unemployed</label></div>
       </div>
-      <div id="employed-fields" class="row g-3">
-        <div class="col-sm-6">
+      <div class="row g-3">
+      <div id="employed-fields" class="col-sm-6">
+        <div>
           <label class="form-label fw-semibold small">Type</label>
           <select name="employed_type" class="form-select">
             <option value="">-- Select --</option>
@@ -183,16 +357,15 @@
           </select>
         </div>
       </div>
-      <div id="unemployed-fields" class="row g-3">
-        <div class="col-sm-6">
+      <div id="unemployed-fields" class="col-sm-6">
+        <div>
           <label class="form-label fw-semibold small">Reason</label>
-          <select name="unemployed_reason" class="form-select">
+          <select name="unemployed_reason" id="unemployed-reason" class="form-select" onchange="weToggle()">
             <option value="">-- Select --</option>
             {% for r in unemployed_reasons %}<option value="{{ r }}" {% if ap.unemployed_reason == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
           </select>
         </div>
       </div>
-      <div class="row g-3 mt-0">
         <div class="col-sm-6">
           <label class="form-label fw-semibold small">How long looking for work? (months)</label>
           <input type="number" name="job_search_months" class="form-control" min="0" max="600" value="{{ ap.job_search_months if ap.job_search_months is not none else '' }}" />
@@ -213,12 +386,22 @@
           <datalist id="pos-list">{% for p in positions %}<option value="{{ p }}">{% endfor %}</datalist>
         </div>
         <div class="col-sm-4">
-          <label class="form-label fw-semibold small">Preferred Work Location (Local)</label>
-          <input type="text" name="pref_work_local" class="form-control" maxlength="80" value="{{ ap.pref_work_local or '' }}" placeholder="City / Province" />
+          <label class="form-label fw-semibold small d-block">Where do you prefer to work?</label>
+          {% set pref_ovs = ap.pref_work_overseas and not ap.pref_work_local %}
+          <div class="btn-group w-100" role="group" aria-label="Preferred work place">
+            <input type="radio" class="btn-check" name="work_pref_type" id="wp_local" value="local" autocomplete="off" {% if not pref_ovs %}checked{% endif %} onchange="workPrefToggle()" />
+            <label class="btn btn-outline-primary" for="wp_local">Local</label>
+            <input type="radio" class="btn-check" name="work_pref_type" id="wp_ovs" value="overseas" autocomplete="off" {% if pref_ovs %}checked{% endif %} onchange="workPrefToggle()" />
+            <label class="btn btn-outline-primary" for="wp_ovs">Overseas</label>
+          </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-4" id="wp-local-box">
+          <label class="form-label fw-semibold small">Preferred Work Location (Local)</label>
+          <input type="text" name="pref_work_local" id="pref-work-local" class="form-control" maxlength="80" autocomplete="off" value="{{ ap.pref_work_local or '' }}" placeholder="City, Province" />
+        </div>
+        <div class="col-sm-4" id="wp-ovs-box">
           <label class="form-label fw-semibold small">Preferred Work Location (Overseas)</label>
-          <input type="text" name="pref_work_overseas" class="form-control" maxlength="60" value="{{ ap.pref_work_overseas or '' }}" placeholder="Country" />
+          <input type="text" name="pref_work_overseas" id="pref-work-overseas" class="form-control" maxlength="60" autocomplete="off" value="{{ ap.pref_work_overseas or '' }}" placeholder="Country" />
         </div>
       </div>
     </div>
@@ -231,8 +414,8 @@
       {% set lang_map = {} %}{% for l in ap.languages %}{% set _ = lang_map.update({l.language: l}) %}{% endfor %}
       <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
-          <thead><tr class="small text-muted"><th>Language</th><th class="text-center">Read</th><th class="text-center">Write</th><th class="text-center">Speak</th><th class="text-center">Understand</th></tr></thead>
-          <tbody>
+          <thead><tr class="small text-muted"><th>Language</th><th class="text-center">Read</th><th class="text-center">Write</th><th class="text-center">Speak</th><th class="text-center">Understand</th><th style="width:40px"></th></tr></thead>
+          <tbody id="lang-rows">
           {% for lang in languages_list %}
           {% set cur = lang_map.get(lang, {}) %}
           <tr>
@@ -240,11 +423,26 @@
             {% for s in ['read','write','speak','understand'] %}
             <td class="text-center"><input type="checkbox" class="form-check-input" name="lang_{{ lang|lower }}_{{ s }}" {% if cur.get(s) %}checked{% endif %} /></td>
             {% endfor %}
+            <td></td>
+          </tr>
+          {% endfor %}
+          {% for l in ap.languages if l.language not in languages_list %}
+          {% set n = loop.index %}
+          <tr class="lang-custom">
+            <td><input type="text" class="form-control form-control-sm" name="xlang_name_{{ n }}" value="{{ l.language }}" list="lang-options" maxlength="60" placeholder="Search or type a language" autocomplete="off" /></td>
+            {% for s in ['read','write','speak','understand'] %}
+            <td class="text-center"><input type="checkbox" class="form-check-input" name="xlang_{{ s }}_{{ n }}" {% if l.get(s) %}checked{% endif %} /></td>
+            {% endfor %}
+            <td class="text-end"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.closest('tr').remove()" title="Remove" aria-label="Remove language"><i class="bi bi-trash"></i></button></td>
           </tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
+      <datalist id="lang-options">
+        {% for o in ['Cebuano','Ilocano','Hiligaynon','Waray','Kapampangan','Pangasinan','Bikol','Tausug','Maguindanaon','Chavacano','Japanese','Korean','Spanish','French','German','Arabic','Cantonese','Hokkien','Hindi','Italian','Portuguese','Russian','Thai','Vietnamese','Indonesian','Malay'] if o not in languages_list %}<option value="{{ o }}">{% endfor %}
+      </datalist>
+      <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addLang()"><i class="bi bi-plus-lg me-1"></i>Add Language</button>
     </div>
   </div>
 
@@ -253,16 +451,15 @@
     <div class="card-body p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <p class="fw-semibold sec-head mb-0">6 · Educational Background</p>
-        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('edu')"><i class="bi bi-plus-lg me-1"></i>Add education</button>
       </div>
       <div id="edu-rows" class="d-flex flex-column gap-2">
         {% for e in ap.education %}
-        <div class="repeat-row row g-2 border rounded p-2">
-          <div class="col-md-3"><select name="edu_level[]" class="form-select form-select-sm"><option value="">Level</option>{% for lvl in educ_levels %}<option value="{{ lvl }}" {% if e.level == lvl %}selected{% endif %}>{{ lvl }}</option>{% endfor %}</select></div>
-          <div class="col-md-3"><input name="edu_school[]" class="form-control form-control-sm" maxlength="120" placeholder="School" value="{{ e.school }}" /></div>
-          <div class="col-md-3"><input name="edu_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course" value="{{ e.course }}" /></div>
-          <div class="col-md-1"><input name="edu_year[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Year" value="{{ e.year }}" /></div>
-          <div class="col-md-2 d-flex gap-1"><input name="edu_awards[]" class="form-control form-control-sm" maxlength="120" placeholder="Awards" value="{{ e.awards }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+        <div class="repeat-row edu-row row g-2 border rounded p-2">
+          <div class="col-md-3"><select name="edu_level[]" class="form-select form-select-sm edu-level"><option value="" hidden {% if not e.level %}selected{% endif %}>Education Level</option>{% for lvl in educ_levels %}<option value="{{ lvl }}" {% if e.level == lvl or (e.level == 'ALS' and lvl.startswith('ALS')) %}selected{% endif %}>{{ lvl }}</option>{% endfor %}</select></div>
+          <div class="col-md-4 edu-school-col"><input name="edu_school[]" class="form-control form-control-sm" maxlength="120" placeholder="School" value="{{ e.school }}" /></div>
+          <div class="col-md-2 edu-course-col d-none"><input name="edu_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course" value="{{ e.course }}" /></div>
+          <div class="col-md-2"><select name="edu_year[]" class="form-select form-select-sm edu-year" data-selected="{{ e.year or '' }}"><option value="">Year</option></select></div>
+          <div class="col-md-3 d-flex gap-1"><input name="edu_awards[]" class="form-control form-control-sm" maxlength="120" placeholder="Awards" value="{{ e.awards }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
         </div>
         {% endfor %}
       </div>
@@ -279,10 +476,10 @@
       <div id="trn-rows" class="d-flex flex-column gap-2">
         {% for t in ap.trainings %}
         <div class="repeat-row row g-2 border rounded p-2">
-          <div class="col-md-4"><input name="trn_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course / Training" value="{{ t.course }}" /></div>
-          <div class="col-md-4"><input name="trn_institution[]" class="form-control form-control-sm" maxlength="120" placeholder="Training institution" value="{{ t.institution }}" /></div>
+          <div class="col-md-3"><input name="trn_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course / Training" value="{{ t.course }}" /></div>
+          <div class="col-md-3"><input name="trn_institution[]" class="form-control form-control-sm" maxlength="120" placeholder="Training institution" value="{{ t.institution }}" /></div>
           <div class="col-md-2"><input name="trn_hours[]" class="form-control form-control-sm" maxlength="10" placeholder="Hours" value="{{ t.hours }}" /></div>
-          <div class="col-md-2 d-flex gap-1"><input name="trn_certificate[]" class="form-control form-control-sm" maxlength="80" placeholder="Certificate" value="{{ t.certificate }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+          {{ cert_cell(t) }}
         </div>
         {% endfor %}
       </div>
@@ -298,33 +495,21 @@
       </div>
       <div id="elig-rows" class="d-flex flex-column gap-2">
         {% for el in ap.eligibilities %}
-        <div class="repeat-row row g-2 border rounded p-2">
-          <div class="col-md-5"><input name="elig_title[]" class="form-control form-control-sm" maxlength="120" placeholder="Eligibility / License" value="{{ el.title }}" /></div>
-          <div class="col-md-3"><input name="elig_rating[]" class="form-control form-control-sm" maxlength="40" placeholder="Rating / License no." value="{{ el.rating }}" /></div>
-          <div class="col-md-4 d-flex gap-1"><input name="elig_date[]" class="form-control form-control-sm" maxlength="40" placeholder="Date / Valid until" value="{{ el.date }}" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
-        </div>
+        {{ elig_row(el) }}
         {% endfor %}
       </div>
     </div>
   </div>
 
-  <!-- 9. Work Experience -->
-  <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
+  <!-- 9. Work Experience (hidden for "New entrant/fresh graduate") -->
+  <div id="we-section" class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
     <div class="card-body p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <p class="fw-semibold sec-head mb-0">9 · Work Experience</p>
         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('we')"><i class="bi bi-plus-lg me-1"></i>Add experience</button>
       </div>
       <div id="we-rows" class="d-flex flex-column gap-2">
-        {% for w in ap.work_history %}
-        <div class="repeat-row row g-2 border rounded p-2">
-          <div class="col-md-3"><input name="we_company[]" class="form-control form-control-sm" maxlength="120" placeholder="Company" value="{{ w.company }}" /></div>
-          <div class="col-md-3"><input name="we_address[]" class="form-control form-control-sm" maxlength="120" placeholder="Address" value="{{ w.address }}" /></div>
-          <div class="col-md-2"><input name="we_position[]" class="form-control form-control-sm" maxlength="100" placeholder="Position" value="{{ w.position }}" /></div>
-          <div class="col-md-1"><input name="we_months[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Mos." value="{{ w.months }}" /></div>
-          <div class="col-md-3 d-flex gap-1"><select name="we_status[]" class="form-select form-select-sm"><option value="">Status</option>{% for st in work_status_choices %}<option value="{{ st }}" {% if w.status == st %}selected{% endif %}>{{ st }}</option>{% endfor %}</select><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
-        </div>
-        {% endfor %}
+        {% for w in ap.work_history %}{{ we_row(w) }}{% endfor %}
       </div>
     </div>
   </div>
@@ -334,8 +519,8 @@
     <div class="card-body p-3">
       <p class="fw-semibold sec-head mb-3">10 · Skills</p>
       <label class="form-label fw-semibold small">Skills / Competencies <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5; used for recommendations, click chips to add)</span></label>
-      <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control mb-2 {% if not ap.skills %}border-danger{% endif %}" placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ ap.skills or '' }}</textarea>
-      <div class="d-flex flex-wrap gap-1 mb-3">{% for skill in skills_list %}<span class="skill-chip" onclick="addChip('skills-input','{{ skill }}')">{{ skill }}</span>{% endfor %}</div>
+      <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control mb-2 {% if not ap.skills %}border-danger{% endif %}" placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ (ap.skills or '').split(',') | map('trim') | reject('equalto','') | unique | join(', ') }}</textarea>
+      <div class="d-flex flex-wrap gap-1 mb-3">{% for skill in skills_list %}<span class="skill-chip" data-skill="{{ skill }}" onclick="addChip('skills-input','{{ skill }}')">{{ skill }}</span>{% endfor %}</div>
 
       <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5)</span></label>
       <div class="row g-1">
@@ -367,53 +552,175 @@
     </div>
   </div>
 
-  <button type="submit" class="btn btn-primary fw-semibold mb-4"><i class="bi bi-save me-1"></i>Save Profile</button>
+  <div class="save-bar">
+    <span class="small text-muted" id="save-state"><i class="bi bi-check-circle me-1"></i>All changes saved</span>
+    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-save me-1"></i>Save Profile</button>
+  </div>
 </form>
 
 <!-- Row templates for repeatable sections -->
-<template id="edu-tpl"><div class="repeat-row row g-2 border rounded p-2">
-  <div class="col-md-3"><select name="edu_level[]" class="form-select form-select-sm"><option value="">Level</option>{% for lvl in educ_levels %}<option value="{{ lvl }}">{{ lvl }}</option>{% endfor %}</select></div>
-  <div class="col-md-3"><input name="edu_school[]" class="form-control form-control-sm" maxlength="120" placeholder="School" /></div>
-  <div class="col-md-3"><input name="edu_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course" /></div>
-  <div class="col-md-1"><input name="edu_year[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Year" /></div>
-  <div class="col-md-2 d-flex gap-1"><input name="edu_awards[]" class="form-control form-control-sm" maxlength="120" placeholder="Awards" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+<style>.hh-wrap{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .25s ease,opacity .25s ease}.hh-wrap>div{overflow:hidden}.hh-wrap.open{grid-template-rows:1fr;opacity:1}</style>
+<style>#edu-rows .edu-row:only-child .row-del,#we-rows .we-row:only-child .row-del{display:none}.we-locked{pointer-events:none;background-color:var(--bs-secondary-bg,#e9ecef)}</style>
+<template id="edu-tpl"><div class="repeat-row edu-row row g-2 border rounded p-2">
+  <div class="col-md-3"><select name="edu_level[]" class="form-select form-select-sm edu-level"><option value="" hidden selected>Education Level</option>{% for lvl in educ_levels %}<option value="{{ lvl }}">{{ lvl }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 edu-school-col"><input name="edu_school[]" class="form-control form-control-sm" maxlength="120" placeholder="School" /></div>
+  <div class="col-md-2 edu-course-col d-none"><input name="edu_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course" /></div>
+  <div class="col-md-2"><select name="edu_year[]" class="form-select form-select-sm edu-year"><option value="">Year</option></select></div>
+  <div class="col-md-3 d-flex gap-1"><input name="edu_awards[]" class="form-control form-control-sm" maxlength="120" placeholder="Awards" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
 </div></template>
 <template id="trn-tpl"><div class="repeat-row row g-2 border rounded p-2">
-  <div class="col-md-4"><input name="trn_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course / Training" /></div>
-  <div class="col-md-4"><input name="trn_institution[]" class="form-control form-control-sm" maxlength="120" placeholder="Training institution" /></div>
+  <div class="col-md-3"><input name="trn_course[]" class="form-control form-control-sm" maxlength="120" placeholder="Course / Training" /></div>
+  <div class="col-md-3"><input name="trn_institution[]" class="form-control form-control-sm" maxlength="120" placeholder="Training institution" /></div>
   <div class="col-md-2"><input name="trn_hours[]" class="form-control form-control-sm" maxlength="10" placeholder="Hours" /></div>
-  <div class="col-md-2 d-flex gap-1"><input name="trn_certificate[]" class="form-control form-control-sm" maxlength="80" placeholder="Certificate" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
+  {{ cert_cell(none) }}
 </div></template>
-<template id="elig-tpl"><div class="repeat-row row g-2 border rounded p-2">
-  <div class="col-md-5"><input name="elig_title[]" class="form-control form-control-sm" maxlength="120" placeholder="Eligibility / License" /></div>
-  <div class="col-md-3"><input name="elig_rating[]" class="form-control form-control-sm" maxlength="40" placeholder="Rating / License no." /></div>
-  <div class="col-md-4 d-flex gap-1"><input name="elig_date[]" class="form-control form-control-sm" maxlength="40" placeholder="Date / Valid until" /><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
-</div></template>
-<template id="we-tpl"><div class="repeat-row row g-2 border rounded p-2">
-  <div class="col-md-3"><input name="we_company[]" class="form-control form-control-sm" maxlength="120" placeholder="Company" /></div>
-  <div class="col-md-3"><input name="we_address[]" class="form-control form-control-sm" maxlength="120" placeholder="Address" /></div>
-  <div class="col-md-2"><input name="we_position[]" class="form-control form-control-sm" maxlength="100" placeholder="Position" /></div>
-  <div class="col-md-1"><input name="we_months[]" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="Mos." /></div>
-  <div class="col-md-3 d-flex gap-1"><select name="we_status[]" class="form-select form-select-sm"><option value="">Status</option>{% for st in work_status_choices %}<option value="{{ st }}">{{ st }}</option>{% endfor %}</select><button type="button" class="btn btn-sm btn-outline-danger row-del"><i class="bi bi-x"></i></button></div>
-</div></template>
+<template id="elig-tpl">{{ elig_row(none) }}</template>
+<template id="we-tpl">{{ we_row(none) }}</template>
 {% endblock %}
 
 {% block scripts %}
 <script>
+(function () {
+  var form = document.querySelector('form[action*="profile"]');
+  if (!form) return;
+  [['trn-rows', 'No training added yet.'], ['elig-rows', 'No eligibility or license added yet.'], ['we-rows', 'No work experience added yet.']].forEach(function (c) {
+    var box = document.getElementById(c[0]); if (!box) return;
+    var hint = document.createElement('div'); hint.className = 'empty-hint'; hint.textContent = c[1];
+    box.parentNode.insertBefore(hint, box.nextSibling);
+    function upd() { hint.style.display = box.children.length ? 'none' : ''; }
+    new MutationObserver(upd).observe(box, { childList: true }); upd();
+  });
+  function val(n) { var e = form.querySelector('[name="' + n + '"]'); return e && e.value.trim(); }
+  var checks = [
+    ['Name', function () { return val('last_name') && val('first_name'); }],
+    ['Date of birth', function () { return val('birthdate'); }],
+    ['Sex', function () { return val('sex'); }],
+    ['Cellphone', function () { return val('contact_number'); }],
+    ['Province, city and barangay', function () { return val('province') && val('city') && val('barangay'); }],
+    ['Present address', function () { return val('address_line'); }],
+    ['Preferred occupation', function () { return val('preferred_position'); }],
+    ['Education', function () { return Array.prototype.some.call(form.querySelectorAll('[name="edu_level[]"]'), function (e) { return e.value; }); }],
+    ['Skills', function () { return val('skills'); }],
+    ['Certification', function () { var c = form.querySelector('[name="certify"]'); return c && c.checked; }]
+  ];
+  function progress() {
+    var done = 0, next = '';
+    checks.forEach(function (c) { if (c[1]()) done++; else if (!next) next = c[0]; });
+    var pct = Math.round(done / checks.length * 100);
+    document.getElementById('pc-pct').textContent = pct;
+    document.getElementById('pc-bar').style.width = pct + '%';
+    document.getElementById('pc-next').textContent = next ? 'Next: ' + next : 'All set!';
+  }
+  var bar = document.querySelector('.save-bar'), st = document.getElementById('save-state');
+  function dirty() { bar.classList.add('dirty'); st.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>Unsaved changes'; }
+  ['input', 'change'].forEach(function (ev) { form.addEventListener(ev, function (e) { if (e.isTrusted) dirty(); progress(); }); });
+  window.addEventListener('load', function () { setTimeout(progress, 600); });
+  progress();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var input = document.getElementById('pref-work-local'), places = [];
+  if (!input || !window.PesoAC) return;
+  fetch('/api/places').then(function (r) { return r.json(); }).then(function (d) { places = d || []; }).catch(function () {});
+  window.PesoAC.attach(input, function () {
+    var q = input.value.trim().toLowerCase();
+    if (!q) return places.slice(0, 40);
+    var starts = [], contains = [];
+    for (var i = 0; i < places.length; i++) {
+      var p = places[i], k = p.toLowerCase().indexOf(q);
+      if (k === 0) starts.push(p); else if (k > 0) contains.push(p);
+      if (starts.length >= 40) break;
+    }
+    return starts.concat(contains).slice(0, 40);
+  });
+  var ovs = document.getElementById('pref-work-overseas'), countries = [];
+  if (ovs) {
+    fetch('{{ url_for('static', filename='data/countries.json') }}').then(function (r) { return r.json(); }).then(function (d) { countries = d || []; }).catch(function () {});
+    window.PesoAC.attach(ovs, function () {
+      var q = ovs.value.trim().toLowerCase();
+      if (!q) return countries.slice(0, 20);                       // common OFW destinations first
+      return countries.filter(function (c) { return c.toLowerCase().indexOf(q) !== -1; }).slice(0, 40);
+    });
+  }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+  function initPicker(sel, MIN_YEAR, opts) {
+    flatpickr(sel, Object.assign({
+      monthSelectorType: 'dropdown', maxDate: 'today',
+      minDate: MIN_YEAR + '-01-01', disableMobile: true, allowInput: false,
+      onReady: function (sel, str, fp) {
+        var sy = document.createElement('select');
+        sy.className = 'fp-year'; sy.setAttribute('aria-label', 'Year');
+        for (var y = (opts && opts.maxYear) || new Date().getFullYear(); y >= MIN_YEAR; y--) {
+          var o = document.createElement('option'); o.value = o.textContent = y; sy.appendChild(o);
+        }
+        sy.addEventListener('change', function () { fp.changeYear(parseInt(this.value, 10)); });
+        fp.currentYearElement.parentNode.parentNode.appendChild(sy);
+        fp._fpYear = sy;
+        var ft = document.createElement('div'); ft.className = 'fp-footer';
+        ft.innerHTML = '<button type="button" data-a="clear">Clear</button><button type="button" data-a="today">Today</button>';
+        ft.addEventListener('click', function (e) {
+          var a = e.target.getAttribute('data-a');
+          if (a === 'clear') { fp.clear(); fp.close(); }
+          if (a === 'today') { fp.setDate(new Date(), true); fp.close(); }
+        });
+        fp.calendarContainer.appendChild(ft);
+        fp.calendarContainer.classList.add('hasFooter');
+        sy.value = fp.currentYear;
+      },
+      onOpen: function (s, d, fp) { fp._fpYear.value = fp.currentYear; },
+      onMonthChange: function (s, d, fp) { fp._fpYear.value = fp.currentYear; },
+      onYearChange: function (s, d, fp) { fp._fpYear.value = fp.currentYear; }
+    }, opts));
+  }
+  initPicker('#birthdate', 1950, { dateFormat: 'Y-m-d', altInput: true, altFormat: 'm/d/Y', altInputClass: 'form-control' });
+  initPicker('#ofw-return-date', new Date().getFullYear() - 40, { dateFormat: 'Y-m', altInput: true, altFormat: 'F Y', altInputClass: 'form-control form-control-sm' });
   var BRGY_MAP = {{ barangay_district_map|tojson }};
-  function autoFillDistrict(v) {
+  // District 1/2 only exists for City of San Jose del Monte; other cities leave it blank.
+  function autoFillDistrict() {
+    var city = document.querySelector('[data-loc="city"]').value.toLowerCase();
+    var v = document.getElementById('barangay-input').value;
     var key = (v || '').toUpperCase().replace(/\s+/g, ' ').trim();
-    var d = BRGY_MAP[key] || '';
+    var d = city.indexOf('san jose del monte') !== -1 ? (BRGY_MAP[key] || '') : '';
     var el = document.getElementById('district-input');
     if (el) el.value = d;
   }
+  document.getElementById('loc-box').addEventListener('change', autoFillDistrict);
   var SKILL_LIMIT = 5;
   function addChip(targetId, text) {
     var ta = document.getElementById(targetId);
     var parts = ta.value.trim() ? ta.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
     if (targetId === 'skills-input' && parts.length >= SKILL_LIMIT) return;
-    if (parts.indexOf(text) === -1) { parts.push(text); ta.value = parts.join(', '); }
+    var at = parts.indexOf(text);
+    if (at === -1) parts.push(text); else if (targetId === 'skills-input') parts.splice(at, 1);   // clicking a selected chip removes it
+    ta.value = parts.join(', ');
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
   }
+  function syncSkillChips() {
+    var ta = document.getElementById('skills-input'); if (!ta) return;
+    var sel = ta.value.split(',').map(function (x) { return x.trim().toLowerCase(); });
+    document.querySelectorAll('.skill-chip[data-skill]').forEach(function (c) {
+      c.classList.toggle('active', sel.indexOf(c.dataset.skill.toLowerCase()) !== -1);
+    });
+  }
+  function dedupeSkills() {
+    var ta = document.getElementById('skills-input'); if (!ta) return;
+    var seen = {}, out = [];
+    ta.value.split(',').forEach(function (x) { x = x.trim(); var k = x.toLowerCase(); if (x && !seen[k]) { seen[k] = 1; out.push(x); } });
+    ta.value = out.slice(0, SKILL_LIMIT).join(', ');
+  }
+  (function () {
+    var ta = document.getElementById('skills-input');
+    if (!ta) return;
+    ta.addEventListener('input', syncSkillChips);
+    ta.addEventListener('blur', function () { dedupeSkills(); syncSkillChips(); });
+    ta.form.addEventListener('submit', dedupeSkills);
+    dedupeSkills(); syncSkillChips();
+  })();
   function limitOtherSkills() {
     var boxes = document.querySelectorAll('input[name="other_skills"]');
     var checked = 0;
@@ -423,25 +730,424 @@
   document.addEventListener('change', function (e) {
     if (e.target && e.target.name === 'other_skills') limitOtherSkills();
   });
+  // Education rows: Course only for Vocational / College / Post-Graduate; Year is a dropdown.
+  // edu_course[] stays in the DOM (just hidden) so the parallel edu_* arrays keep their alignment.
+  var COURSE_LEVELS = /^(Vocational|College|Post-Graduate)/;
+  function initEduRow(row) {
+    var yr = row.querySelector('.edu-year');
+    if (yr && yr.options.length < 2) {
+      var top = new Date().getFullYear(), sel = yr.dataset.selected || '';
+      yr.add(new Option('Present / On-going', 'Present'));
+      for (var y = top; y >= 1960; y--) yr.add(new Option(y, y));
+      if (sel && !yr.querySelector('option[value="' + sel + '"]')) yr.add(new Option(sel, sel));
+      yr.value = sel;
+    }
+    syncEduCourse(row);
+  }
+  function syncEduCourse(row) {
+    var show = COURSE_LEVELS.test(row.querySelector('.edu-level').value);
+    var col = row.querySelector('.edu-course-col'), school = row.querySelector('.edu-school-col');
+    col.classList.toggle('d-none', !show);
+    school.classList.toggle('col-md-4', !show);
+    school.classList.toggle('col-md-2', show);
+    if (!show) col.querySelector('input').value = '';
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.classList && e.target.classList.contains('edu-level')) syncEduCourse(e.target.closest('.edu-row'));
+  });
+  document.querySelectorAll('#edu-rows .edu-row').forEach(initEduRow);
+  // always start with one row; its delete button is hidden by the :only-child CSS rule
+  if (!document.querySelector('#edu-rows .edu-row')) addRow('edu');
+  // 4Ps: Household ID only visible (and kept) while the checkbox is ticked
+  (function () {
+    var cb = document.getElementById('is_4ps'), wrap = document.getElementById('hh-wrap'), hh = document.getElementById('household_id');
+    function sync() {
+      wrap.classList.toggle('open', cb.checked);
+      hh.tabIndex = cb.checked ? 0 : -1;
+      if (!cb.checked) hh.value = '';
+    }
+    cb.addEventListener('change', sync);
+  })();
+  // Work experience: Month/Year selects for From/To; "I currently work here" locks To as Present.
+  // The checkbox state is mirrored into a hidden we_current[] so the parallel arrays stay aligned.
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function fillWeSelect(sel, isMonth, withPresent) {
+    var chosen = sel.dataset.selected || '';
+    if (isMonth) MONTHS.forEach(function (m, i) { sel.add(new Option(m, i + 1)); });
+    else for (var y = new Date().getFullYear(); y >= 1960; y--) sel.add(new Option(y, y));
+    if (withPresent) sel.add(new Option('Present', 'Present'));
+    if (chosen && !sel.querySelector('option[value="' + chosen + '"]')) sel.add(new Option(chosen, chosen));
+    sel.value = chosen;
+  }
+  function syncWeCurrent(row) {
+    var on = row.querySelector('.we-current').checked;
+    row.querySelector('.we-current-val').value = on ? '1' : '';
+    row.querySelectorAll('.we-to select').forEach(function (s) {
+      var wasPresent = s.value === 'Present';
+      s.classList.toggle('we-locked', on);
+      s.tabIndex = on ? -1 : 0;
+      if (on) s.value = 'Present'; else if (wasPresent) s.value = '';
+    });
+  }
+  function initWeRow(row) {
+    if (row.querySelector('.we-month').options.length < 2) {
+      row.querySelectorAll('.we-month').forEach(function (s) { fillWeSelect(s, true, !!s.closest('.we-to')); });
+      row.querySelectorAll('.we-year').forEach(function (s) { fillWeSelect(s, false, !!s.closest('.we-to')); });
+    }
+    syncWeCurrent(row);
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.classList && e.target.classList.contains('we-current')) syncWeCurrent(e.target.closest('.we-row'));
+  });
+  document.querySelectorAll('#we-rows .we-row').forEach(initWeRow);
+  if (!document.querySelector('#we-rows .we-row')) addRow('we');
   function addRow(section) {
     var tpl = document.getElementById(section + '-tpl');
     document.getElementById(section + '-rows').appendChild(tpl.content.cloneNode(true));
+    if (section === 'elig') initEligRows();
+    if (section === 'we') initWeRow(document.getElementById('we-rows').lastElementChild);
+    if (section === 'edu') initEduRow(document.getElementById('edu-rows').lastElementChild);
   }
   document.addEventListener('click', function (e) {
     var del = e.target.closest('.row-del');
     if (del) del.closest('.repeat-row').remove();
   });
+  // "+ Add Language": appends a custom row (name input with suggestions + 4 checkboxes + delete)
+  var langSeq = 1000;
+  function addLang() {
+    var n = ++langSeq, tr = document.createElement('tr');
+    tr.className = 'lang-custom';
+    var cells = ['read','write','speak','understand'].map(function (k) {
+      return '<td class="text-center"><input type="checkbox" class="form-check-input" name="xlang_' + k + '_' + n + '" /></td>';
+    }).join('');
+    tr.innerHTML = '<td><input type="text" class="form-control form-control-sm" name="xlang_name_' + n + '" list="lang-options" maxlength="60" placeholder="Search or type a language" autocomplete="off" /></td>' + cells +
+      '<td class="text-end"><button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.closest(\'tr\').remove()" title="Remove" aria-label="Remove language"><i class="bi bi-trash"></i></button></td>';
+    document.getElementById('lang-rows').appendChild(tr);
+    tr.querySelector('input[type=text]').focus();
+  }
+  // Job Preferences: show only the Local or Overseas location field (hidden one is disabled, so it saves blank)
+  function workPrefToggle() {
+    var ovs = document.getElementById('wp_ovs').checked;
+    [['wp-local-box', !ovs], ['wp-ovs-box', ovs]].forEach(function (p) {
+      var box = document.getElementById(p[0]);
+      box.style.display = p[1] ? '' : 'none';
+      box.querySelector('input').disabled = !p[1];
+    });
+  }
+  workPrefToggle();
+  // OFW status: show only the fields for the chosen status; hidden fields are disabled so they save blank
+  function ofwToggle() {
+    var v = document.getElementById('ofw-status').value;
+    [['ofw-current-box', v === 'current'], ['ofw-former-box', v === 'former']].forEach(function (p) {
+      var box = document.getElementById(p[0]);
+      box.style.display = p[1] ? '' : 'none';
+      box.querySelectorAll('input').forEach(function (i) { i.disabled = !p[1]; });
+    });
+  }
+  // Training certificate upload: PDF/JPG/PNG, max 5 MB; shows a removable file chip
+  (function () {
+    var MAX = 5 * 1024 * 1024, OK = /\.(pdf|jpe?g|png)$/i;
+    function sync(cell) {
+      var has = !!(cell.querySelector('.cert-input').files.length || cell.querySelector('[name="trn_cert_file[]"]').value);
+      cell.querySelector('.cert-pick').classList.toggle('d-none', has);
+      var chip = cell.querySelector('.cert-chip');
+      chip.classList.toggle('d-none', !has); chip.classList.toggle('d-inline-flex', has);
+    }
+    document.querySelectorAll('.cert-cell').forEach(sync);
+    document.addEventListener('click', function (e) {
+      var cell = e.target.closest('.cert-cell');
+      if (!cell) return;
+      if (e.target.closest('.cert-pick')) cell.querySelector('.cert-input').click();
+      if (e.target.closest('.cert-remove')) {
+        cell.querySelector('.cert-input').value = '';
+        cell.querySelector('[name="trn_certificate[]"]').value = '';
+        cell.querySelector('[name="trn_cert_file[]"]').value = '';
+        cell.parentNode.querySelector('.cert-err').textContent = '';
+        var nm = cell.querySelector('.cert-name'); if (nm.tagName === 'A') nm.removeAttribute('href');
+        nm.textContent = '';
+        sync(cell);
+      }
+    });
+    document.addEventListener('change', function (e) {
+      if (!e.target.classList.contains('cert-input')) return;
+      var cell = e.target.closest('.cert-cell'), err = cell.parentNode.querySelector('.cert-err'), file = e.target.files[0];
+      err.textContent = '';
+      if (file && !OK.test(file.name)) { err.textContent = 'Only PDF, JPG or PNG files are allowed.'; e.target.value = ''; }
+      else if (file && file.size > MAX) { err.textContent = 'File is too large (max 5 MB).'; e.target.value = ''; }
+      else if (file) {
+        var nm = cell.querySelector('.cert-name'); if (nm.tagName === 'A') nm.removeAttribute('href');
+        nm.textContent = file.name;
+      }
+      sync(cell);
+    });
+  })();
+  // Eligibility / License rows: type dropdown drives the date label and the month/year picker
+  var ELIG_LABELS = {
+    'Civil Service Eligibility': ['Date of Examination / Issue', 'issue'],
+    'National Certificate (TESDA NC)': ['Date of Examination / Issue', 'issue'],
+    'Professional Regulation Commission (PRC) License': ['Expiration Date (Valid Until)', 'expiry'],
+    "Driver's License": ['Expiration Date (Valid Until)', 'expiry'],
+    'Others': ['Date / Valid Until', 'other']
+  };
+  function eligApply(row) {
+    var type = row.querySelector('.elig-type').value, info = ELIG_LABELS[type] || ['Month / Year', 'other'];
+    var other = row.querySelector('.elig-other');
+    other.style.display = type === 'Others' ? '' : 'none';
+    other.disabled = type !== 'Others';
+    row.querySelector('.elig-date-label').textContent = info[0];
+    var inp = row.querySelector('.elig-date'), fp = inp._flatpickr;
+    if (fp) {
+      fp.altInput.placeholder = inp.dataset.legacy ? 'Previously: ' + inp.dataset.legacy : 'Select month / year';
+      fp.set('maxDate', info[1] === 'issue' ? 'today' : (new Date().getFullYear() + 30) + '-12-31');
+    }
+  }
+  function initEligRows() {
+    document.querySelectorAll('.elig-row').forEach(function (row) {
+      var inp = row.querySelector('.elig-date');
+      if (!inp._flatpickr) {
+        var yr = new Date().getFullYear();
+        initPicker(inp, yr - 60, { dateFormat: 'Y-m', altInput: true, altFormat: 'F Y', altInputClass: 'form-control form-control-sm', maxYear: yr + 30 });
+      }
+      eligApply(row);
+    });
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('elig-type')) eligApply(e.target.closest('.elig-row'));
+  });
   function toggle(id, show) { var el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; }
+
   function empToggle() {
     var emp = document.getElementById('es_emp').checked;
     toggle('employed-fields', emp);
     toggle('unemployed-fields', !emp);
+    weToggle();
   }
+  // Fresh graduates have no work history: hide the whole section and clear its rows;
+  // switching back restores it with one empty default row.
+  function weToggle() {
+    var sel = document.getElementById('unemployed-reason'), emp = document.getElementById('es_emp');
+    var fresh = !!sel && !!emp && !emp.checked && sel.value === 'New entrant/fresh graduate';
+    var box = document.getElementById('we-rows');
+    toggle('we-section', !fresh);
+    if (fresh) box.innerHTML = '';
+    else if (!box.querySelector('.we-row')) addRow('we');
+  }
+  var PHOTO_MAX = 2 * 1024 * 1024;
+  document.getElementById('photo-input').addEventListener('change', function () {
+    var f = this.files[0], err = document.getElementById('photo-error');
+    err.textContent = '';
+    if (!f) return;
+    if (['image/jpeg', 'image/png'].indexOf(f.type) === -1) {
+      err.textContent = 'Please choose a JPEG or PNG image.'; this.value = ''; return;
+    }
+    if (f.size > PHOTO_MAX) {
+      err.textContent = 'Photo is too large (max 2 MB).'; this.value = ''; return;
+    }
+    openCropper(f);
+  });
+  // Crop modal: Cropper.js, fixed 1:1, circular guide; result replaces the file in #photo-input
+  var cropper = null, cropBase = 1, cropName = 'photo.jpg';
+  var cropModal = document.getElementById('crop-modal'), cropImg = document.getElementById('crop-img'),
+      cropZoom = document.getElementById('crop-zoom'), photoInput = document.getElementById('photo-input');
+  function closeCropper(clearInput) {
+    if (cropper) { cropper.destroy(); cropper = null; }
+    if (cropImg.src) URL.revokeObjectURL(cropImg.src);
+    cropImg.removeAttribute('src');
+    cropModal.classList.remove('open');
+    if (clearInput) photoInput.value = '';
+  }
+  function openCropper(file) {
+    cropName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+    cropImg.src = URL.createObjectURL(file);
+    cropModal.classList.add('open');
+    cropZoom.value = 1;
+    cropper = new Cropper(cropImg, {
+      aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 1,
+      cropBoxMovable: false, cropBoxResizable: false, toggleDragModeOnDblclick: false,
+      ready: function () { cropBase = cropper.getCanvasData().width / cropper.getImageData().naturalWidth; },
+      zoom: function (e) {
+        var r = e.detail.ratio / cropBase;
+        if (r < 1 || r > 3) { e.preventDefault(); return; }
+        cropZoom.value = r;
+      }
+    });
+  }
+  cropZoom.addEventListener('input', function () { if (cropper) cropper.zoomTo(cropBase * parseFloat(this.value)); });
+  document.getElementById('crop-cancel').addEventListener('click', function () { closeCropper(true); });
+  var saveBtn = document.getElementById('crop-save');
+  saveBtn.addEventListener('click', function () {
+    if (!cropper) return;
+    var canvas = cropper.getCroppedCanvas({ width: 512, height: 512, imageSmoothingQuality: 'high', fillColor: '#fff' });
+    canvas.toBlob(function (blob) {
+      var out = new File([blob], cropName, { type: 'image/jpeg' }), fd = new FormData();
+      fd.append('photo', out);
+      var err = document.getElementById('photo-error'), hint = document.getElementById('photo-hint');
+      err.textContent = '';
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+      fetch("{{ url_for('jobseeker_profile_photo') }}", { method: 'POST', body: fd, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) { err.textContent = d.error || 'Could not save the photo.'; return; }
+          var box = document.getElementById('avatar');
+          box.innerHTML = '';
+          var img = document.createElement('img');
+          img.alt = 'Profile photo'; img.src = d.url;
+          box.appendChild(img);
+          var pill = document.querySelector('.topbar-avatar');
+          if (pill) {
+            var ni = document.createElement('img');
+            ni.className = 'topbar-avatar'; ni.alt = ''; ni.src = d.url;
+            pill.replaceWith(ni);
+          }
+          photoInput.value = '';
+          hint.textContent = 'Photo saved.';
+          closeCropper(false);
+        })
+        .catch(function () { err.textContent = 'Could not save the photo. Please try again.'; })
+        .finally(function () { saveBtn.disabled = false; saveBtn.innerHTML = 'Crop &amp; Save'; });
+    }, 'image/jpeg', 0.9);
+  });
   document.addEventListener('DOMContentLoaded', function () {
     empToggle();
-    toggle('ofw-country', document.getElementById('is_ofw').checked);
-    toggle('fofw-fields', document.getElementById('is_fofw').checked);
+    ofwToggle();
+    initEligRows();
     limitOtherSkills();
   });
+
+  // ── Draft autosave: keeps unsaved edits across refresh / failed saves (sessionStorage, cleared on a successful save) ──
+  (function () {
+    var form = document.getElementById('edu-rows').closest('form');
+    var KEY = 'peso_profile_draft_{{ session.get("user_id") }}';
+    var SKIP = { photo: 1, district: 1 };               // photo is saved by the crop modal; district is derived from barangay
+    var SKIP_TYPES = ['file', 'hidden', 'password', 'submit', 'button'];
+    var SECTIONS = { edu: '#edu-rows .edu-row', trn: '#trn-rows .repeat-row', elig: '#elig-rows .elig-row', we: '#we-rows .we-row' };
+    var restoring = false, timer = null, baseline = null;   // baseline = form as rendered from the saved profile
+
+    function store(fn) { try { return fn(window.sessionStorage); } catch (e) { return null; } }
+    function keyOf(el) {
+      var k = el.name || el.getAttribute('data-draft') || '';
+      return k.replace(/^(xlang_\w+?)_\d+$/, '$1');     // custom language rows are numbered; match them by position instead
+    }
+    function fields() {
+      var seen = {}, out = [];
+      form.querySelectorAll('input, select, textarea').forEach(function (el) {
+        if (el.closest('#crop-modal') || SKIP_TYPES.indexOf(el.type) !== -1) return;
+        var k = keyOf(el);
+        if (!k || SKIP[k]) return;
+        seen[k] = seen[k] === undefined ? 0 : seen[k] + 1;
+        out.push({ el: el, id: k + '#' + seen[k] });
+      });
+      return out;
+    }
+    function counts() {
+      var c = { lang: document.querySelectorAll('#lang-rows .lang-custom').length };
+      Object.keys(SECTIONS).forEach(function (k) { c[k] = document.querySelectorAll(SECTIONS[k]).length; });
+      return c;
+    }
+    function snapshot() {
+      var data = {};
+      fields().forEach(function (f) {
+        data[f.id] = (f.el.type === 'checkbox' || f.el.type === 'radio') ? f.el.checked : f.el.value;
+      });
+      return JSON.stringify({ counts: counts(), data: data });
+    }
+    function save() {
+      if (restoring || baseline === null) return;   // never write before the saved state is known
+      var snap = snapshot();
+      // Identical to what's saved in the database -> nothing to restore, so keep no draft at all
+      store(function (s) { if (snap === baseline) s.removeItem(KEY); else s.setItem(KEY, snap); });
+    }
+    // Only genuine user events may touch the stored draft. Events fired by the page's own scripts during
+    // load/restore (isTrusted === false) must never overwrite it with a half-populated form.
+    function schedule(e) {
+      if (!e || !e.isTrusted) return;
+      clearTimeout(timer); timer = setTimeout(save, 300);
+    }
+
+    function matchRows(sel, n, add) {
+      var rows = document.querySelectorAll(sel);
+      for (var i = rows.length; i < n; i++) add();
+      rows = document.querySelectorAll(sel);
+      for (var j = rows.length - 1; j >= n; j--) rows[j].remove();
+    }
+    function restore(draft) {
+      restoring = true;
+      Object.keys(SECTIONS).forEach(function (k) {
+        if (draft.counts[k] !== undefined) matchRows(SECTIONS[k], Math.max(1, draft.counts[k]), function () { addRow(k); });
+      });
+      matchRows('#lang-rows .lang-custom', draft.counts.lang || 0, addLang);
+      // Several passes: setting a parent field (e.g. city/barangay, education level) fires its change handler,
+      // which may only then create the options a later dropdown needs. Repeat until nothing is left to apply.
+      for (var pass = 0; pass < 5; pass++) {
+        var pending = 0;
+        fields().forEach(function (f) {
+          if (!(f.id in draft.data) || f.el.hasAttribute('data-loc')) return;
+          var v = draft.data[f.id], el = f.el;
+          if (el.type === 'checkbox' || el.type === 'radio') {
+            if (el.checked === v) return;
+            el.checked = v;
+          } else {
+            if (el.tagName === 'SELECT' && v && !el.querySelector('option[value="' + String(v).replace(/"/g, '\\"') + '"]')) { pending++; return; }
+            if (el.value === v) return;
+            el.value = v;
+          }
+          pending++;
+          el.dispatchEvent(new Event('change', { bubbles: true }));   // runs the conditional-field logic
+        });
+        if (!pending) break;
+      }
+      ['empToggle', 'ofwToggle', 'workPrefToggle', 'limitOtherSkills', 'autoFillDistrict', 'initEligRows'].forEach(function (fn) {
+        try { window[fn](); } catch (e) {}
+      });
+      var box = document.querySelector('[data-location]'), d = draft.data;
+      var done = (box && box.pesoSet && ('province#0' in d))
+        ? box.pesoSet(d['province#0'], d['city#0'], d['barangay#0']) : Promise.resolve();
+      return done.then(function () {
+        try { window.autoFillDistrict(); } catch (e) {}
+        restoring = false;
+      });
+    }
+    function showBanner() {
+      var n = document.createElement('div');
+      n.className = 'alert alert-info d-flex justify-content-between align-items-center py-2 small';
+      n.innerHTML = '<span>Your unsaved changes were restored. Click <strong>Save Profile</strong> to keep them.</span>' +
+                    '<span class="d-flex align-items-center gap-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-act="discard">Discard</button>' +
+                    '<button type="button" class="btn-close" data-act="close" aria-label="Close"></button></span>';
+      n.querySelector('[data-act="close"]').addEventListener('click', function () { n.remove(); });
+      n.querySelector('[data-act="discard"]').addEventListener('click', function () {
+        store(function (s) { s.removeItem(KEY); }); location.reload();
+      });
+      form.parentNode.insertBefore(n, form);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var box = document.querySelector('[data-location]');
+      var ready = (box && box.pesoReady) || Promise.resolve();
+      // Wait until the Province > City > Barangay cascade has filled itself from the saved profile,
+      // so the baseline is the real saved state and the draft restore isn't overwritten afterwards.
+      ready.catch(function () {}).then(function () {
+        baseline = snapshot();
+        var saved = document.querySelector('.alert-success');
+        if (saved && /Profile saved/i.test(saved.textContent)) {
+          store(function (s) { s.removeItem(KEY); });      // successful save: start fresh
+          return;
+        }
+        var raw = store(function (s) { return s.getItem(KEY); }), draft = null;
+        try { draft = raw && JSON.parse(raw); } catch (e) {}
+        if (draft && draft.data && draft.counts) {
+          restore(draft).then(function () {
+            // Banner only if the restored form really differs from the saved profile
+            if (snapshot() !== baseline) showBanner();
+            else store(function (s) { s.removeItem(KEY); });
+          });
+        } else if (raw) {
+          store(function (s) { s.removeItem(KEY); });
+        }
+      });
+      form.addEventListener('input', schedule);
+      form.addEventListener('change', schedule);
+      form.addEventListener('click', schedule);          // add / remove rows, chips, custom languages
+    });
+  })();
 </script>
 {% endblock %}

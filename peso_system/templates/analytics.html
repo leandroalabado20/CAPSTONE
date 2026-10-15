@@ -4,20 +4,39 @@
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/date-picker.css') }}" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="{{ url_for('static', filename='js/date-picker.js') }}"></script>
 <style>
   /* ── DESKTOP: cards size to content, capped so sparse data doesn't stretch ─── */
-  .af-root   { display: flex; flex-direction: column; gap: .85rem; }
-  .af-charts { display: flex; align-items: stretch; gap: .85rem; }
+  .af-root   { display: flex; flex-direction: column; gap: 1.75rem; padding-bottom: 1rem; }
+  .af-charts { display: flex; align-items: stretch; gap: 1.75rem; }
   .af-charts > .af-col { min-width: 0; display: flex; flex-direction: column; }
 
-  .fill-card              { height: 380px; display: flex; flex-direction: column; }
+  .fill-card              { height: 440px; display: flex; flex-direction: column; }
+  .fill-card .card-header { padding: 1rem 1.35rem !important; font-size: 1rem; background: #fff; }
+  .fill-card .card-body.p-3 { padding: 1.35rem !important; }
+  .sec-title { display: flex; align-items: center; gap: .75rem; margin: .25rem 0 -.75rem; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #64748b; }
+  .sec-title::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
+  .delta { display: inline-flex; align-items: center; gap: .1rem; margin-top: .35rem; padding: .15rem .55rem; white-space: nowrap; border-radius: 999px; font-size: .68rem; font-weight: 700; background: #dcfce7; color: #15803d; }
+  .delta.zero { background: #f1f5f9; color: #64748b; }
+  .hero-delta { display: inline-flex; align-items: center; gap: .25rem; margin-top: .4rem; padding: .15rem .6rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: rgba(255,255,255,.18); color: #fff; }
+  .ch-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem 1.25rem; padding: .35rem 0 .1rem; }
+  .ch-legend .it { display: flex; align-items: center; gap: .45rem; font-size: .85rem; color: #334155; }
+  .ch-legend .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .ch-legend strong { color: #0f172a; }
+  .fill-card tfoot tr { position: sticky; bottom: 0; }
+  .fill-card tfoot td { background: #e8edff !important; }
+  .brgy-row .bar { height: 6px; border-radius: 999px; background: #eef2f7; overflow: hidden; margin-top: 4px; }
+  .brgy-row .bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1e3a5f, #2563eb); }
   .fill-card .card-body   { flex: 1; min-height: 0; position: relative; overflow: hidden; }
 
   .cv-wrap { position: relative; height: 100%; }
 
   /* ── TABLET (<992px): stack the three figures so none get squeezed ─────────── */
   @media (max-width: 991.98px) {
-    .af-charts              { flex-direction: column; gap: .85rem; }
+    .af-charts              { flex-direction: column; gap: 1.5rem; }
     .af-charts > .af-col    { width: 100%; }
 
     /* Give each card a sensible fixed height */
@@ -33,44 +52,43 @@
 
   <!-- ── Date filter (slim card, unified with the metrics below) ─────────────── -->
   <div class="card shadow-sm" style="flex-shrink:0;">
-    <div class="card-body d-flex flex-wrap align-items-center gap-2 py-2 px-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3 py-3 px-4">
       <span class="fw-semibold small text-muted">
         <i class="bi bi-calendar3 me-1"></i>Filter by Registration Date:
       </span>
-      <input type="date" id="date-from" class="form-control form-control-sm" style="width:auto;" />
+      <input type="text" id="date-from" class="form-control form-control-sm" placeholder="From date" autocomplete="off" />
       <span class="text-muted small">to</span>
-      <input type="date" id="date-to"   class="form-control form-control-sm" style="width:auto;" />
+      <input type="text" id="date-to" class="form-control form-control-sm" placeholder="To date" autocomplete="off" />
       <button class="btn btn-sm btn-primary" onclick="loadCharts()">Apply</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="
-        var f=document.getElementById('date-from');
-        var t=document.getElementById('date-to');
-        f.value=''; f.removeAttribute('max');
-        t.value=''; t.removeAttribute('min');
-        loadCharts();">Clear</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="clearDates(); loadCharts();">Clear</button>
       <span class="vr mx-1 d-none d-sm-inline"></span>
       <button class="btn btn-sm filter-chip btn-outline-secondary" onclick="setDatePreset('month')">This Month</button>
       <button class="btn btn-sm filter-chip btn-outline-secondary" onclick="setDatePreset('year')">This Year</button>
       <span class="text-muted small ms-1" id="date-label"></span>
+      <a class="btn btn-sm btn-outline-primary ms-auto" id="export-btn" href="/analytics/export"><i class="bi bi-download me-1"></i>Export CSV</a>
     </div>
   </div>
 
+  <div class="sec-title">Overview</div>
+
   <!-- ── Row 1: Hero + 3 stat cards ────────────────────────────────────────── -->
-  <div class="row g-3" style="flex-shrink:0;">
+  <div class="row g-4" style="flex-shrink:0;">
 
     <!-- Hero: Total + Sex -->
     <div class="col-md-8">
       <div class="card shadow-sm h-100 border-0"
            style="background:linear-gradient(135deg, var(--peso-dark), var(--peso-blue));color:#fff;">
-        <div class="card-body py-2 px-3">
-          <div class="d-flex align-items-center justify-content-center gap-3 h-100">
+        <div class="card-body py-4 px-4">
+          <div class="d-flex align-items-center justify-content-center gap-4 h-100">
 
             <!-- Total -->
             <div class="text-center" style="min-width:130px;">
               <div class="fw-bold lh-1" id="stat-total"
-                   style="font-size:2rem;letter-spacing:-1px;">—</div>
+                   style="font-size:2.4rem;letter-spacing:-1px;">—</div>
               <div style="opacity:.8;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;margin-top:3px;">
                 Registered Job Seekers
               </div>
+              <div class="hero-delta" id="delta-total" style="display:none;"></div>
             </div>
 
             <div style="width:1px;height:48px;background:rgba(255,255,255,.3);flex-shrink:0;"></div>
@@ -79,7 +97,7 @@
             <div class="d-flex gap-4">
               <div class="text-center">
                 <div class="fw-bold lh-1" id="stat-male-pct"
-                     style="font-size:1.35rem;">—</div>
+                     style="font-size:1.5rem;">—</div>
                 <div style="opacity:.75;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;">
                   <i class="bi bi-gender-male"></i> Male
                 </div>
@@ -87,7 +105,7 @@
               </div>
               <div class="text-center">
                 <div class="fw-bold lh-1" id="stat-female-pct"
-                     style="font-size:1.35rem;">—</div>
+                     style="font-size:1.5rem;">—</div>
                 <div style="opacity:.75;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;">
                   <i class="bi bi-gender-female"></i> Female
                 </div>
@@ -102,40 +120,43 @@
 
     <!-- Youth · Senior · PWD -->
     <div class="col-md-4">
-      <div class="row g-3 h-100">
+      <div class="row g-4 h-100">
 
         <div class="col-4">
           <div class="card stat-card shadow-sm h-100">
-            <div class="card-body text-center py-2 px-1">
+            <div class="card-body text-center py-3 px-2">
               <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-blue);">
                 <i class="bi bi-mortarboard-fill"></i>
               </div>
               <div class="stat-value" id="stat-youth" style="font-size:1.1rem;">—</div>
               <div class="stat-label" style="font-size:.68rem;">Youths</div>
+              <div class="delta" id="delta-youth" style="display:none;"></div>
             </div>
           </div>
         </div>
 
         <div class="col-4">
           <div class="card stat-card shadow-sm h-100">
-            <div class="card-body text-center py-2 px-1">
-              <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-chart-amber);">
+            <div class="card-body text-center py-3 px-2">
+              <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-blue);">
                 <i class="bi bi-person-fill"></i>
               </div>
               <div class="stat-value" id="stat-senior" style="font-size:1.1rem;">—</div>
               <div class="stat-label" style="font-size:.68rem;">Senior Citizens</div>
+              <div class="delta" id="delta-senior" style="display:none;"></div>
             </div>
           </div>
         </div>
 
         <div class="col-4">
           <div class="card stat-card shadow-sm h-100">
-            <div class="card-body text-center py-2 px-1">
-              <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-chart-teal);">
+            <div class="card-body text-center py-3 px-2">
+              <div class="stat-icon" style="font-size:1.15rem;color:var(--peso-blue);">
                 <i class="bi bi-universal-access"></i>
               </div>
               <div class="stat-value" id="stat-pwd" style="font-size:1.1rem;">—</div>
               <div class="stat-label" style="font-size:.68rem;">Persons w/ Disability</div>
+              <div class="delta" id="delta-pwd" style="display:none;"></div>
             </div>
           </div>
         </div>
@@ -145,17 +166,19 @@
 
   </div><!-- /Row 1 -->
 
+  <div class="sec-title">Demographics &amp; Distribution</div>
+
   <!-- ── Row 2: Figures 1 · 2 · 3 ──────────────────────────────────────────── -->
   <div class="af-charts">
 
     <!-- Figure 1 — Education -->
-    <div class="af-col" style="flex:4;">
+    <div class="af-col" style="flex:5;">
       <div class="card shadow-sm fill-card">
         <div class="card-header py-1 small fw-semibold">
           <i class="bi bi-mortarboard-fill me-1" style="color:var(--peso-blue);"></i>
           Educational Attainment
         </div>
-        <div class="card-body p-2">
+        <div class="card-body p-3">
           <div class="cv-wrap">
             <canvas id="chart-educ"></canvas>
           </div>
@@ -164,28 +187,28 @@
     </div>
 
     <!-- Figure 2 — Employment -->
-    <div class="af-col" style="flex:3;">
+    <div class="af-col" style="flex:4;">
       <div class="card shadow-sm fill-card">
         <div class="card-header py-1 small fw-semibold">
           <i class="bi bi-briefcase-fill me-1" style="color:var(--peso-blue);"></i>
           Employment Status
         </div>
-        <div class="card-body p-2 d-flex flex-column align-items-center">
+        <div class="card-body p-3 d-flex flex-column align-items-center">
           <div class="cv-wrap w-100" style="flex:1;min-height:0;">
             <canvas id="chart-emp"></canvas>
           </div>
-          <div id="emp-summary" class="text-muted text-center lh-sm"
-               style="font-size:.78rem;flex-shrink:0;margin-top:4px;"></div>
+          <div id="emp-summary" class="ch-legend w-100" style="flex-shrink:0;margin-top:.6rem;"></div>
         </div>
       </div>
     </div>
 
     <!-- Figure 3 — Barangay -->
-    <div class="af-col" style="flex:5;">
+    <div class="af-col" style="flex:7;">
       <div class="card shadow-sm fill-card">
         <div class="card-header py-1 small fw-semibold">
           <i class="bi bi-geo-alt-fill me-1" style="color:var(--peso-blue);"></i>
           Jobseekers by Barangay
+          <span class="float-end fw-normal text-muted" style="font-size:.8rem;">Total <strong class="text-dark" id="brgy-total">—</strong></span>
         </div>
         <!-- Two district columns side by side, each independently scrollable -->
         <div class="card-body p-0 d-flex" style="overflow:hidden;">
@@ -197,7 +220,7 @@
               <i class="bi bi-geo-alt-fill me-1"></i>District I
             </div>
             <div style="flex:1;overflow-y:auto;min-height:0;">
-              <table class="table table-sm table-hover mb-0" style="font-size:.78rem;">
+              <table class="table table-sm table-hover mb-0" style="font-size:.85rem;">
                 <tbody id="tbody-d1"></tbody>
                 <tfoot>
                   <tr class="fw-semibold table-primary">
@@ -216,12 +239,31 @@
               <i class="bi bi-geo-alt-fill me-1"></i>District II
             </div>
             <div style="flex:1;overflow-y:auto;min-height:0;">
-              <table class="table table-sm table-hover mb-0" style="font-size:.78rem;">
+              <table class="table table-sm table-hover mb-0" style="font-size:.85rem;">
                 <tbody id="tbody-d2"></tbody>
                 <tfoot>
                   <tr class="fw-semibold table-primary">
                     <td>Total</td>
                     <td class="text-end" id="tfoot-d2">—</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Outside CSJDM / no address -->
+          <div class="d-flex flex-column border-start" style="flex:1;min-height:0;">
+            <div class="py-1 text-center fw-bold text-uppercase"
+                 style="font-size:.72rem;letter-spacing:.06em;background:#f1f5f9;color:#475569;flex-shrink:0;">
+              <i class="bi bi-signpost-split me-1"></i>Outside / No address
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;">
+              <table class="table table-sm table-hover mb-0" style="font-size:.85rem;">
+                <tbody id="tbody-o"></tbody>
+                <tfoot>
+                  <tr class="fw-semibold table-primary">
+                    <td>Total</td>
+                    <td class="text-end" id="tfoot-o">—</td>
                   </tr>
                 </tfoot>
               </table>
@@ -239,6 +281,16 @@
 
 {% block scripts %}
 <script>
+if (window.Chart) {
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = '#475569';
+}
+const TOOLTIP = {
+  backgroundColor: '#0f172a', titleColor: '#fff', bodyColor: '#e2e8f0', padding: 10, cornerRadius: 8, displayColors: true,
+  boxPadding: 4, titleFont: { weight: '600', size: 12 }, bodyFont: { size: 12 }, caretSize: 6,
+};
+
 function chartThemeColors() {
   const s = getComputedStyle(document.documentElement);
   const v = (name, fallback) => (s.getPropertyValue(name) || fallback).trim();
@@ -260,41 +312,69 @@ const barValueLabelPlugin = {
       meta.data.forEach((bar, index) => {
         const value = dataset.data[index];
         ctx.save();
-        ctx.fillStyle = c.text;
-        ctx.font = '600 11px sans-serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 12px ' + Chart.defaults.font.family;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.fillText(value.toLocaleString(), bar.x + 6, bar.y);
+        const tot = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+        ctx.fillText(value.toLocaleString() + (tot ? '  (' + Math.round(value / tot * 100) + '%)' : ''), bar.x + 8, bar.y);
         ctx.restore();
       });
     });
   }
 };
 
+function wrapLabel(text, max) {
+  const words = String(text).split(' '), lines = [];
+  let cur = '';
+  words.forEach(w => {
+    if ((cur + ' ' + w).trim().length > max && cur) { lines.push(cur); cur = w; } else { cur = (cur + ' ' + w).trim(); }
+  });
+  if (cur) lines.push(cur);
+  return lines;
+}
+
 function hBar(ctx, labels, values) {
   const c = chartThemeColors();
+  const gradient = (context) => {
+    const { chart } = context;
+    const area = chart.chartArea;
+    if (!area) return c.blue;
+    const g = chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
+    g.addColorStop(0, '#1e3a5f');
+    g.addColorStop(1, '#3b82f6');
+    return g;
+  };
   return new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
       datasets: [{
         data: values,
-        backgroundColor: c.blue,
-        borderRadius: 3,
-        barPercentage: 0.55,
-        categoryPercentage: 0.8,
-        maxBarThickness: 40,
+        backgroundColor: gradient,
+        hoverBackgroundColor: '#1d4ed8',
+        borderRadius: 8,
+        borderSkipped: false,
+        barPercentage: 0.62,
+        categoryPercentage: 0.85,
+        maxBarThickness: 34,
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: 'y',
-      layout: { padding: { right: 28 } },
-      plugins: { legend: { display: false } },
+      layout: { padding: { left: 8, right: 64 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: (i) => ' ' + i.parsed.x.toLocaleString() + ' jobseeker' + (i.parsed.x === 1 ? '' : 's') } }),
+      },
       scales: {
-        x: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: c.text }, grid: { color: c.grid } },
-        y: { ticks: { font: { size: 11 }, color: c.text }, grid: { display: false } },
+        x: { beginAtZero: true, border: { display: false }, ticks: { precision: 0, font: { size: 12 }, color: '#475569' }, grid: { color: '#e5e7eb', drawTicks: false } },
+        y: { border: { display: false }, grid: { display: false },
+             afterFit: function (scale) { scale.width += 14; },
+             ticks: { font: { size: 12, weight: '500' }, color: '#0f172a',
+                      callback: function (value) { return wrapLabel(this.getLabelForValue(value), 17); } } },
       },
     },
     plugins: [barValueLabelPlugin],
@@ -305,36 +385,40 @@ const donutCenterTotalPlugin = {
   id: 'donutCenterTotal',
   afterDraw(chart) {
     const { ctx, chartArea: { width, height, top, left } } = chart;
-    const c = chartThemeColors();
     const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
     const cx = left + width / 2;
     const cy = top + height / 2;
+    const fam = Chart.defaults.font.family;
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = c.text;
-    ctx.font = '700 22px sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '800 34px ' + fam;
     ctx.fillText(total.toLocaleString(), cx, cy - 8);
-    ctx.font = '600 10px sans-serif';
-    ctx.fillText('TOTAL', cx, cy + 10);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '600 11px ' + fam;
+    if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '1.5px';
+    ctx.fillText('TOTAL JOBSEEKERS', cx, cy + 20);
     ctx.restore();
   }
 };
 
+const EMP_PALETTE = { 'Employed': '#16a34a', 'Unemployed': '#475569' };
+
 function donut(ctx, labels, values) {
-  const c = chartThemeColors();
-  const EMP_COLORS = { 'Employed': c.good, 'Unemployed': c.text };
-  const colors = labels.map(l => EMP_COLORS[l] || c.grid);
+  const colors = labels.map(l => EMP_PALETTE[l] || '#cbd5e1');
   return new Chart(ctx, {
     type: 'doughnut',
-    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2 }] },
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#fff', borderWidth: 3, hoverOffset: 6 }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '70%',
+      layout: { padding: 6 },
       plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 8, color: c.text } }
+        legend: { display: false },
+        tooltip: Object.assign({}, TOOLTIP, { callbacks: { label: (i) => ' ' + i.label + ': ' + i.parsed.toLocaleString() } }),
       },
-      cutout: '60%',
     },
     plugins: [donutCenterTotalPlugin],
   });
@@ -356,14 +440,13 @@ function fillTable(tbodyId, tfootId, labels, values, accentColor) {
     total += v;
     const pct = Math.round((v / max) * 100);
     const tr = document.createElement('tr');
+    tr.className = 'brgy-row';
     tr.innerHTML = `
-      <td>
-        <div>${lbl}</div>
-        <div style="height:4px;border-radius:2px;background:var(--peso-progress-bg);overflow:hidden;margin-top:2px;">
-          <div style="height:100%;width:${pct}%;background:${accentColor};border-radius:2px;"></div>
-        </div>
+      <td style="padding:.45rem .85rem;">
+        <div style="font-weight:500;color:#0f172a;">${lbl}</div>
+        <div class="bar"><span style="width:${pct}%;"></span></div>
       </td>
-      <td class="text-end fw-semibold align-middle">${v.toLocaleString()}</td>`;
+      <td class="text-end fw-bold align-middle" style="color:#0f172a;padding-right:.85rem;">${v.toLocaleString()}</td>`;
     tbody.appendChild(tr);
   });
   tfoot.textContent = total.toLocaleString();
@@ -381,15 +464,12 @@ function setDatePreset(range) {
   } else {
     return;
   }
-  const from = document.getElementById('date-from');
-  const to   = document.getElementById('date-to');
-  from.value = iso(start);
-  to.value   = iso(now);
-  to.min     = from.value;
-  from.max   = to.value;
+  fpFrom.setDate(iso(start), true);
+  fpTo.setDate(iso(now), true);
   loadCharts();
 }
 
+let _loadCtl = null, _loadSeq = 0;
 function loadCharts() {
   const from = document.getElementById('date-from').value;
   const to   = document.getElementById('date-to').value;
@@ -399,9 +479,17 @@ function loadCharts() {
   document.getElementById('date-label').textContent =
     (from || to) ? `Showing: ${from || '…'} → ${to || '…'}` : 'Showing: all dates';
 
-  fetch('/api/analytics?' + qs.toString())
-    .then(r => r.json())
+  // Quick successive filter clicks: cancel the older request and ignore any answer that is no longer the latest
+  if (_loadCtl) _loadCtl.abort();
+  _loadCtl = new AbortController();
+  const mySeq = ++_loadSeq;
+  const applyBtn = document.querySelector('button[onclick="loadCharts()"]');
+  if (applyBtn) { applyBtn.disabled = true; }
+
+  fetch('/api/analytics?' + qs.toString(), { signal: _loadCtl.signal, credentials: 'same-origin' })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => {
+      if (mySeq !== _loadSeq) return;
       const js = data.jobseekers;
 
       // Hero
@@ -412,6 +500,20 @@ function loadCharts() {
       document.getElementById('stat-female-pct').textContent  = pct(js.female);
       document.getElementById('stat-male-count').textContent   = js.male.toLocaleString();
       document.getElementById('stat-female-count').textContent = js.female.toLocaleString();
+
+      // "This month" badges
+      const setDelta = (id, n, hero) => {
+        const el = document.getElementById(id); if (!el) return;
+        el.style.display = '';
+        el.className = (hero ? 'hero-delta' : 'delta') + (!hero && !n ? ' zero' : '');
+        el.title = 'Registered this month';
+        el.innerHTML = n ? (hero ? `<i class="bi bi-arrow-up-short"></i>+${n.toLocaleString()} this month` : `<i class="bi bi-arrow-up-short"></i>+${n.toLocaleString()} new`) : (hero ? '<span>No new this month</span>' : '<span>No new</span>');
+      };
+      setDelta('delta-total', js.new_month.total, true);
+      setDelta('delta-youth', js.new_month.youth);
+      setDelta('delta-senior', js.new_month.senior);
+      setDelta('delta-pwd', js.new_month.pwd);
+      document.getElementById('export-btn').href = '/analytics/export?' + qs.toString();
 
       // Stat cards
       document.getElementById('stat-youth').textContent  = js.youth.toLocaleString();
@@ -435,37 +537,49 @@ function loadCharts() {
       if (js.emp_labels && js.total > 0) {
         empSummary.innerHTML = js.emp_labels.map((lbl, i) => {
           const v = js.emp_values[i] || 0;
-          return `<strong>${lbl}</strong>: ${v.toLocaleString()} (${(v / js.total * 100).toFixed(2)}%)`;
-        }).join('<br>');
+          const col = EMP_PALETTE[lbl] || '#cbd5e1';
+          return `<span class="it"><span class="dot" style="background:${col};"></span><span><strong>${lbl}</strong> ${v.toLocaleString()} <span class="text-muted">(${(v / js.total * 100).toFixed(1)}%)</span></span></span>`;
+        }).join('');
       }
 
       // Figure 3
       fillTable('tbody-d1', 'tfoot-d1', js.d1_labels, js.d1_values, chartThemeColors().blue);
       fillTable('tbody-d2', 'tfoot-d2', js.d2_labels, js.d2_values, chartThemeColors().blue);
+      fillTable('tbody-o', 'tfoot-o', js.o_labels, js.o_values, '#64748b');
+      const sum = a => (a || []).reduce((x, y) => x + y, 0);
+      document.getElementById('brgy-total').textContent = (sum(js.d1_values) + sum(js.d2_values) + sum(js.o_values)).toLocaleString();
     })
-    .catch(err => console.error('Analytics API error:', err));
+    .catch(err => {
+      if (err && err.name === 'AbortError') return;                 // superseded by a newer request
+      console.error('Analytics API error:', err);
+      const lbl = document.getElementById('date-label');
+      if (lbl) lbl.textContent = 'Could not load the figures. Please try again.';
+    })
+    .finally(() => { if (mySeq === _loadSeq && applyBtn) applyBtn.disabled = false; });
 }
 
 document.addEventListener('DOMContentLoaded', loadCharts);
 
-// Date range enforcement — second date must always be after the first
-(function () {
-  var from = document.getElementById('date-from');
-  var to   = document.getElementById('date-to');
-  if (!from || !to) return;
-  from.addEventListener('change', function () {
-    to.min = this.value || '';
-    if (to.value && to.value < this.value) to.value = '';
-  });
-  to.addEventListener('change', function () {
-    from.max = this.value || '';
-    if (from.value && from.value > this.value) from.value = '';
-  });
-}());
+// Month/Year dropdown pickers; the second date can never be before the first.
+// The underlying inputs keep a Y-m-d value, so loadCharts() reads them exactly as before.
+const DP_MIN_YEAR = 2015;
+const dpOpts = { dateFormat: 'Y-m-d', altInput: true, altFormat: 'M j, Y', altInputClass: 'form-control form-control-sm dp-alt' };
+const fpFrom = initDropdownPicker('#date-from', DP_MIN_YEAR, Object.assign({}, dpOpts, {
+  onChange: function (sel, str) {
+    fpTo.set('minDate', str || DP_MIN_YEAR + '-01-01');
+    if (str && document.getElementById('date-to').value && document.getElementById('date-to').value < str) fpTo.clear();
+  }
+}));
+const fpTo = initDropdownPicker('#date-to', DP_MIN_YEAR, Object.assign({}, dpOpts, {
+  onChange: function (sel, str) {
+    fpFrom.set('maxDate', str || 'today');
+    if (str && document.getElementById('date-from').value > str) fpFrom.clear();
+  }
+}));
+function clearDates() {
+  fpFrom.clear(); fpTo.clear();
+  fpFrom.set('maxDate', 'today'); fpTo.set('minDate', DP_MIN_YEAR + '-01-01');
+}
 
-// Re-render charts with the new theme's colors when dark mode is toggled
-new MutationObserver(loadCharts).observe(document.documentElement, {
-  attributes: true, attributeFilter: ['data-theme']
-});
 </script>
 {% endblock %}

@@ -1,0 +1,6 @@
+{# Schedule and venue for a vacancy. Expects: v #}
+<div class="vd-schedule mt-2 p-2 rounded-2" style="background:#f0f7ff;border:1px solid #cfe2ff;font-size:.78rem;">
+  {% if v.requirements_deadline %}<div><i class="bi bi-file-earmark-check me-1 text-primary"></i><strong>Submit requirements by:</strong> {{ v.requirements_deadline|friendly_date }}</div>{% endif %}
+  <div><i class="bi bi-calendar-event me-1 text-primary"></i><strong>Interview:</strong> {% if v.interview_date %}{{ interview_text(v) }}{% else %}<span class="text-muted">To be announced</span>{% endif %}</div>
+  <div><i class="bi bi-geo-alt-fill me-1 text-primary"></i><strong>Venue:</strong> {% if v.venue_address %}{{ v.venue_address }}{% else %}<span class="text-muted">To be announced</span>{% endif %}</div>
+</div>

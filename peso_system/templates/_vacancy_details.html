@@ -1,18 +1,27 @@
-{# Read-only summary of salary, dates and requirements. Expects: v (row/dict with vacancy columns) #}
+{# Summary of salary, dates, schedule and requirements for a vacancy card. Expects: v. Optional: compact (shorter version for listings) #}
+{% set compact = compact|default(false) %}
 {% set chips = req_summary(v) %}
-{% if salary_text(v) %}
-<div class="fw-semibold text-success mb-1" style="font-size:.8rem;"><i class="bi bi-cash-coin me-1"></i>{{ salary_text(v) }}</div>
-{% endif %}
-<div class="text-muted" style="font-size:.72rem;">
-  {% if v.application_deadline %}
-  <i class="bi bi-hourglass-split me-1"></i>Apply until {{ v.application_deadline|friendly_date }}
-  {% else %}
-  <i class="bi bi-hourglass me-1"></i>Open until filled
+{% set _loc = vacancy_location(v) %}
+<div class="vd">
+  {% if salary_text(v) %}<div class="vd-salary"><i class="bi bi-cash-coin"></i>{{ salary_text(v) }}</div>{% endif %}
+  <ul class="vd-list">
+    <li>{% if v.application_deadline %}<i class="bi bi-hourglass-split"></i><span>Apply until <strong>{{ v.application_deadline|friendly_date }}</strong></span>
+        {% else %}<i class="bi bi-hourglass"></i><span>Open until filled</span>{% endif %}</li>
+    {% if _loc %}<li><i class="bi bi-geo-alt"></i><span>{{ _loc }}</span></li>{% endif %}
+    <li><i class="bi bi-calendar-event"></i>
+      <span>{% if v.interview_date %}Interview <strong>{{ interview_text(v).split(' \u00b7 ')[0] if compact else interview_text(v) }}</strong>{% else %}<span class="text-muted">Interview to be announced</span>{% endif %}</span></li>
+  </ul>
+  {% if not compact %}
+  <div class="vd-box">
+    {% if v.requirements_deadline %}<div class="vd-row"><i class="bi bi-file-earmark-check"></i><span class="vd-lbl">Requirements due</span><span>{{ v.requirements_deadline|friendly_date }}</span></div>{% endif %}
+    <div class="vd-row"><i class="bi bi-geo-alt-fill"></i><span class="vd-lbl">Venue</span><span>{% if v.venue_address %}{{ v.venue_address }}{% else %}<span class="text-muted">To be announced</span>{% endif %}</span></div>
+  </div>
   {% endif %}
+  {% if chips %}
+  <div class="vd-chips">
+    {% for c in (chips[:3] if compact else chips) %}<span class="badge bg-secondary-subtle text-secondary-emphasis fw-normal">{{ c }}</span>{% endfor %}
+    {% if compact and chips|length > 3 %}<span class="badge bg-light text-secondary border fw-normal" title="{{ chips[3:]|join(' \u00b7 ') }}">+{{ chips|length - 3 }} more</span>{% endif %}
+  </div>
+  {% endif %}
+  {% if not compact and v.req_documents %}<div class="vd-bring"><i class="bi bi-file-earmark-text"></i><span><strong>Bring:</strong> {{ v.req_documents }}</span></div>{% endif %}
 </div>
-{% if chips %}
-<div class="mt-1">
-  {% for c in chips %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1 fw-normal" style="font-size:.66rem;">{{ c }}</span>{% endfor %}
-</div>
-{% endif %}
-{% if v.req_documents %}<div class="text-muted mt-1" style="font-size:.72rem;"><i class="bi bi-file-earmark-text me-1"></i>Bring: {{ v.req_documents }}</div>{% endif %}

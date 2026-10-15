@@ -20,28 +20,76 @@
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Occupational Category <span class="text-danger">*</span></label>
-            <select name="occupational_category" class="form-select" required>
+            {% set cat_val = (vacancy.occupational_category if vacancy and vacancy.occupational_category else '') %}
+            {% set is_other = cat_val and (cat_val == 'Others' or cat_val not in categories) %}
+            <select name="occupational_category" id="occ-cat" class="form-select" required>
               <option value="">-- Select Category --</option>
               {% for cat in categories %}
               <option value="{{ cat }}"
-                {% if vacancy and vacancy.occupational_category == cat %}selected{% endif %}>
+                {% if cat_val == cat %}selected{% endif %}>
                 {{ cat }}
               </option>
               {% endfor %}
+              <option value="Others" {% if is_other %}selected{% endif %}>Others (specify)</option>
             </select>
+            <input type="text" name="occupational_category_other" id="occ-cat-other" maxlength="60"
+                   class="form-control mt-2 {% if not is_other %}d-none{% endif %}" placeholder="Type the occupational category"
+                   value="{{ (vacancy.occupational_category_other if cat_val == 'Others' and vacancy.occupational_category_other is defined else (cat_val if is_other and cat_val != 'Others' else '')) }}"
+                   {% if not is_other %}disabled{% endif %} />
+            <script>
+              (function () {
+                var sel = document.getElementById('occ-cat'), other = document.getElementById('occ-cat-other');
+                function sync() { var on = sel.value === 'Others'; other.classList.toggle('d-none', !on); other.disabled = !on; other.required = on; if (on) other.focus(); }
+                sel.addEventListener('change', sync); other.classList.contains('d-none') || (other.required = true);
+              })();
+            </script>
             <div class="form-text">This determines which jobseekers will be matched to this vacancy.</div>
           </div>
           <div class="mb-4">
-            <label class="form-label fw-semibold">Job Location</label>
-            <input type="text" name="job_location" class="form-control" maxlength="120"
-                   value="{{ vacancy.job_location if vacancy else '' }}"
-                   placeholder="e.g. Brgy. Tungkong Mangga, City of San Jose del Monte" />
-            <div class="form-text">Where the job is based. Jobseekers whose preferred work location matches are surfaced higher within the matched category.</div>
-            <div class="form-check mt-2">
-              <input type="checkbox" name="is_local" value="1" class="form-check-input" id="is_local"
-                     {% if not vacancy or vacancy.get('is_local', 1) %}checked{% endif %} />
-              <label class="form-check-label" for="is_local">Local vacancy (within CSJDM)</label>
-            </div>
+            <label class="form-label fw-semibold d-block" for="job-location">Job Location</label>
+            <input type="text" name="job_location" id="job-location" class="form-control" maxlength="120"
+                   value="{{ vacancy.job_location if vacancy and vacancy.job_location else '' }}"
+                   placeholder="e.g. Brgy. Tungkong Mangga, City of San Jose del Monte, or Dubai, UAE" />
+            <div class="form-text">Where the job is based (city, province or country). We detect whether it is Local, Outside CSJDM or Overseas from this. Jobseekers whose preferred work location matches are surfaced higher within the matched category.</div>
+            <div id="loc-hint" class="form-text d-none"><i class="bi bi-geo-alt me-1"></i><span id="loc-hint-text"></span></div>
+            <script>
+              (function () {
+                var input = document.getElementById('job-location'), hint = document.getElementById('loc-hint'),
+                    txt = document.getElementById('loc-hint-text'), timer = null;
+                function check() {
+                  clearTimeout(timer);
+                  var q = input.value.trim();
+                  if (q.length < 3) { hint.classList.add('d-none'); return; }
+                  timer = setTimeout(function () {
+                    fetch('/api/location-hint?q=' + encodeURIComponent(q)).then(function (r) { return r.json(); }).then(function (d) {
+                      txt.textContent = 'Will be shown as: ' + (d.label || 'Outside CSJDM');
+                      hint.classList.remove('d-none');
+                    }).catch(function () { hint.classList.add('d-none'); });
+                  }, 350);
+                }
+                input.addEventListener('input', check); check();
+              })();
+            </script>
+            <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                var input = document.getElementById('job-location'), items = [];
+                if (!input || !window.PesoAC) return;
+                Promise.all([
+                  fetch('/api/places').then(function (r) { return r.json(); }),
+                  fetch('{{ url_for('static', filename='data/countries.json') }}').then(function (r) { return r.json(); })
+                ]).then(function (d) { items = (d[0] || []).concat(d[1] || []); }).catch(function () {});
+                window.PesoAC.attach(input, function () {
+                  var q = input.value.trim().toLowerCase();
+                  if (!q) return items.filter(function (x) { return /San Jose Del Monte|Quezon City|Manila/.test(x) && x.indexOf(',') > 0; }).slice(0, 8);
+                  var starts = [], contains = [];
+                  for (var i = 0; i < items.length; i++) {
+                    var p = items[i], k = p.toLowerCase().indexOf(q);
+                    if (k === 0) starts.push(p); else if (k > 0) contains.push(p);
+                  }
+                  return starts.concat(contains).slice(0, 40);
+                });
+              });
+            </script>
           </div>
 
           <h6 class="fw-bold mb-3"><i class="bi bi-cash-coin me-1"></i>Salary <span class="text-muted fw-normal small">(optional)</span></h6>
@@ -82,4 +130,70 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if action != 'edit' %}
+<script>
+  // Draft autosave for "Post a New Vacancy": every field is cached in localStorage as it changes and
+  // restored on reload. The draft is removed after the vacancy is posted (see employer/vacancies.html).
+  (function () {
+    var form = document.querySelector('form[method="POST"]');
+    var KEY = 'peso_vacancy_draft_{{ session.get("user_id") }}';
+    var SKIP_TYPES = ['hidden', 'file', 'password', 'submit', 'button'];
+    var timer = null, restoring = false;
+    function store(fn) { try { return fn(window.localStorage); } catch (e) { return null; } }
+    function fields() {
+      var seen = {}, out = [];
+      form.querySelectorAll('input, select, textarea').forEach(function (el) {
+        if (!el.name || (SKIP_TYPES.indexOf(el.type) !== -1 && el.name !== 'req_documents' && !el._flatpickr)) return;
+        seen[el.name] = seen[el.name] === undefined ? 0 : seen[el.name] + 1;
+        out.push({ el: el, id: el.name + '#' + seen[el.name] });
+      });
+      return out;
+    }
+    function save() {
+      if (restoring) return;
+      var data = {};
+      fields().forEach(function (f) {
+        data[f.id] = (f.el.type === 'checkbox' || f.el.type === 'radio') ? f.el.checked : f.el.value;
+      });
+      store(function (s) { s.setItem(KEY, JSON.stringify(data)); });
+    }
+    function schedule() { clearTimeout(timer); timer = setTimeout(save, 300); }
+    function restore(data) {
+      restoring = true;
+      fields().forEach(function (f) {
+        if (!(f.id in data)) return;
+        var v = data[f.id], el = f.el;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked === v) return;
+          el.checked = v;
+        } else {
+          if ((el.type === 'date' || el._flatpickr) && v && v < new Date().toISOString().slice(0, 10)) return;   // a past deadline is no longer valid
+          if (el.tagName === 'SELECT' && v && !el.querySelector('option[value="' + String(v).replace(/"/g, '\\"') + '"]')) return;
+          if (el.value === v) return;
+          if (el._flatpickr) { el._flatpickr.setDate(v || null, false); } else { el.value = v; }
+        }
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      restoring = false;
+    }
+    var raw = store(function (s) { return s.getItem(KEY); }), draft = null;
+    try { draft = raw && JSON.parse(raw); } catch (e) {}
+    if (draft && typeof draft === 'object') {
+      restore(draft);
+      var n = document.createElement('div');
+      n.className = 'alert alert-info d-flex justify-content-between align-items-center py-2 small';
+      n.innerHTML = '<span>Your unsaved vacancy draft was restored.</span><button type="button" class="btn btn-sm btn-outline-secondary ms-2">Discard</button>';
+      n.querySelector('button').addEventListener('click', function () {
+        store(function (s) { s.removeItem(KEY); }); location.reload();
+      });
+      form.parentNode.insertBefore(n, form);
+    }
+    form.addEventListener('input', schedule);
+    form.addEventListener('change', schedule);
+  })();
+</script>
+{% endif %}
 {% endblock %}

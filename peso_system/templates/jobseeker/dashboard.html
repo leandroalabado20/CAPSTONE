@@ -1,49 +1,112 @@
 ﻿{% extends 'base_jobseeker.html' %}
 {% block title %}My Dashboard{% endblock %}
 
+{% block head %}
+<style>
+.dash-welcome { position: relative; overflow: hidden; padding: 1.75rem 1.75rem; box-shadow: 0 8px 24px rgba(37,99,235,.22); }
+.dash-welcome::after { content: ""; position: absolute; right: -40px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.08); }
+.dash-welcome h4 { font-size: 1.5rem; letter-spacing: -.01em; position: relative; z-index: 1; }
+.dash-welcome p { position: relative; z-index: 1; }
+.dash-card { border: 1px solid #e8edf4; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px rgba(15,23,42,.05); transition: box-shadow .2s ease, transform .2s ease; }
+.dash-card:hover { box-shadow: 0 2px 4px rgba(15,23,42,.05), 0 10px 24px rgba(15,23,42,.08); }
+.dash-card .card-header { border-bottom: 1px solid #eef2f7; padding: .9rem 1.1rem !important; font-size: .95rem; color: #0f172a; border-radius: 12px 12px 0 0; }
+.dash-card .card-body { padding: 1.1rem 1.25rem !important; }
+.dash-card .progress { background: #e8eef7; border-radius: 999px; overflow: hidden; }
+.dash-card .progress-bar { border-radius: 999px; background-image: var(--peso-brand-grad); }
+.dash-card .progress-bar.bg-success { background-image: none; }
+.dash-card h6 { color: #0f172a; letter-spacing: -.005em; }
+.dash-card .btn-primary { border-radius: 8px; font-weight: 600; padding: .5rem 1.1rem; box-shadow: 0 2px 6px rgba(37,99,235,.25); }
+.dash-card .btn-outline-primary { border-radius: 8px; font-weight: 600; }
+.dash-card .badge { font-weight: 600; padding: .4em .7em; border-radius: 999px; }
+.dash-step { transition: color .2s ease; }
+.dash-step span { box-shadow: 0 0 0 3px #fff; }
+.dash-step.current span { box-shadow: 0 0 0 3px #dbeafe; }
+.dash-step + .dash-step::before { width: 36px; }
+.dash-step.done + .dash-step::before { background: #16a34a; }
+.dash-card a:not(.btn) { text-decoration: none; font-weight: 600; }
+.dash-card a:not(.btn):hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="mb-4">
-  <h4 class="fw-bold mb-0">Welcome, {{ session.get('full_name', '') }}</h4>
-  <p class="text-muted small">Here's your job matching overview.</p>
+<div class="dash-welcome mb-4">
+  <h4 class="fw-bold mb-1">Welcome, {{ session.get('full_name', '') }}</h4>
+  <p class="mb-0 small">Here's your job matching overview.</p>
 </div>
 
-<!-- Profile completeness alert -->
 {% if not ap %}
 <div class="alert alert-warning d-flex gap-2">
   <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
   <span>Your profile was not found. Contact PESO admin for assistance.</span>
 </div>
-{% elif not ap.educ_level or not ap.preferred_position or not ap.skills %}
-<div class="alert alert-warning d-flex gap-2">
-  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-  <div>
-    <strong>Your profile is incomplete.</strong> Fill in your education level, preferred position, and skills to receive job recommendations.
-    <a href="{{ url_for('jobseeker_profile') }}" class="ms-2 fw-semibold">Complete Profile →</a>
+{% else %}
+{% set checks = [
+  ('Basic details', identity_ok),
+  ('Education level', ap.educ_level),
+  ('Preferred position', ap.preferred_position),
+  ('Skills', ap.skills)] %}
+{% set done = checks|selectattr(1)|list|length %}
+{% set pct = (done * 100 / checks|length)|int %}
+{% set profile_ok = identity_ok and ap.educ_level and ap.preferred_position and ap.skills %}
+{% set active_ref = referrals|selectattr('status', 'ne', 'cancelled')|list|first %}
+
+<!-- Profile completeness -->
+{% if pct < 100 %}
+<div class="card dash-card mb-4">
+  <div class="card-body p-3 p-md-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="fw-bold mb-0">Profile {{ pct }}% complete</h6>
+      <a href="{{ url_for('jobseeker_profile') }}" class="small fw-semibold">Complete profile →</a>
+    </div>
+    <div class="progress mb-3" style="height:8px;">
+      <div class="progress-bar" style="width:{{ pct }}%;"></div>
+    </div>
+    <div class="row g-2 small">
+      {% for label, val in checks %}
+      <div class="col-6 col-md-3">
+        {% if val %}<i class="bi bi-check-circle-fill text-success me-1"></i>{% else %}<i class="bi bi-circle text-muted me-1"></i>{% endif %}{{ label }}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="small text-muted mt-2">Work experience is optional. Adding it can improve your job matches.</div>
   </div>
 </div>
 {% endif %}
 
-<!-- KPI row -->
-<div class="row g-3 mb-4">
-  <div class="col-sm-6">
-    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
-      <div class="fw-bold fs-3 text-primary">{{ active_vacancies }}</div>
-      <div class="text-muted small">Active Vacancies</div>
+<!-- Next step -->
+<div class="card dash-card mb-4">
+  <div class="card-body p-3 p-md-4">
+    <div class="dash-steps mb-3">
+      <div class="dash-step {% if profile_ok %}done{% else %}current{% endif %}"><span>1</span>Profile</div>
+      <div class="dash-step {% if active_ref %}done{% elif profile_ok %}current{% endif %}"><span>2</span>Recommendations</div>
+      <div class="dash-step {% if active_ref %}current{% endif %}"><span>3</span>Applied</div>
     </div>
-  </div>
-  <div class="col-sm-6">
-    <div class="card border shadow-sm text-center p-3" style="border-radius:10px;">
-      <div class="fw-bold fs-3 text-success">{{ referrals|length }}</div>
-      <div class="text-muted small">My Referrals</div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <div class="text-muted small">Your next step</div>
+        <div class="fw-bold">
+          {% if not profile_ok %}Complete your profile to get job recommendations
+          {% elif active_ref %}You have an active referral for "{{ active_ref.job_title }}"
+          {% else %}Review your recommended jobs and apply{% endif %}
+        </div>
+      </div>
+      {% if not profile_ok %}
+      <a href="{{ url_for('jobseeker_profile') }}" class="btn btn-primary">Complete Profile</a>
+      {% elif active_ref %}
+      <a href="{{ url_for('referral_slip', rid=active_ref.referral_id) }}" class="btn btn-primary">View Referral Slip</a>
+      {% else %}
+      <a href="{{ url_for('jobseeker_recommendations', generate=1) }}" class="btn btn-primary">View Recommendations</a>
+      {% endif %}
     </div>
   </div>
 </div>
+{% endif %}
 
 <div class="row g-4">
 
   <!-- Top recommendation -->
   <div class="col-md-6">
-    <div class="card shadow-sm h-100" style="border-radius:12px;">
+    <div class="card dash-card h-100">
       <div class="card-header fw-semibold bg-transparent border-bottom py-2 px-3">
         <i class="bi bi-stars text-primary me-2"></i>Top Job Match
       </div>
@@ -55,7 +118,7 @@
           <a href="{{ url_for('jobseeker_profile') }}" class="btn btn-sm btn-primary mt-2">Complete Profile</a>
         </div>
         {% elif not pipeline_loaded %}
-        <div class="text-muted small text-center py-3">ML engine unavailable.</div>
+        <div class="text-muted small text-center py-3">Recommendations are temporarily unavailable. Please try again later.</div>
         {% elif top_rec %}
         <div class="d-flex align-items-start gap-3">
           <div class="d-flex align-items-center justify-content-center flex-shrink-0"
@@ -64,20 +127,30 @@
           </div>
           <div class="flex-grow-1">
             <div class="fw-bold">{{ top_rec.category }}</div>
+            <div class="text-muted small">Match score</div>
             <div class="text-success fw-bold fs-5">{{ top_rec.suitability_pct }}</div>
-            <div class="progress mt-2" style="height:6px;">
+            <div class="progress mt-1" style="height:6px;">
               <div class="progress-bar bg-success"
                    style="width:{{ (top_rec.suitability_score * 100)|round(0)|int }}%;border-radius:3px;"></div>
             </div>
-            {% if top_rec.vacancies %}
-            <p class="text-muted small mt-2 mb-0">
-              <i class="bi bi-briefcase me-1"></i>{{ top_rec.vacancies|length }} open position{{ 's' if top_rec.vacancies|length != 1 else '' }}
-            </p>
-            {% else %}
-            <p class="text-muted small mt-2 mb-0 fst-italic">No openings currently.</p>
-            {% endif %}
           </div>
         </div>
+        {% if top_rec.vacancies %}
+        <div class="mt-3">
+          {% for v in top_rec.vacancies[:3] %}
+          <div class="d-flex justify-content-between align-items-center gap-2 py-2 {% if not loop.last %}border-bottom{% endif %}">
+            <div class="overflow-hidden">
+              <div class="fw-semibold small text-truncate">{{ v.title }}</div>
+              <div class="text-muted" style="font-size:.73rem;">{{ v.employer }}{% if v.location %} · {{ v.location }}{% endif %}</div>
+            </div>
+            <a href="{{ url_for('public_job_detail', vid=v.vacancy_id, src='jobs') }}" class="btn btn-sm btn-view-details flex-shrink-0" style="padding:.25rem .75rem;">View</a>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted small mt-3 mb-0 fst-italic">No openings currently.</p>
+        {% endif %}
+        <a href="{{ url_for('jobseeker_recommendations', generate=1) }}" class="btn btn-sm btn-outline-primary w-100 mt-3">View all recommendations</a>
         {% else %}
         <div class="text-muted small text-center py-3">No recommendations yet.</div>
         {% endif %}
@@ -87,7 +160,7 @@
 
   <!-- Recent referrals -->
   <div class="col-md-6">
-    <div class="card shadow-sm h-100" style="border-radius:12px;">
+    <div class="card dash-card h-100">
       <div class="card-header fw-semibold bg-transparent border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
         <span><i class="bi bi-send text-primary me-2"></i>Recent Referrals</span>
         <a href="{{ url_for('jobseeker_referrals') }}" class="small text-primary">View all</a>
@@ -117,33 +190,5 @@
     </div>
   </div>
 
-</div>
-
-<!-- Quick links -->
-<div class="row g-3 mt-2">
-  <div class="col-sm-3">
-    <a href="{{ url_for('jobseeker_profile') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
-      <i class="bi bi-person-circle text-primary fs-4"></i>
-      <span class="fw-semibold small">Edit Profile</span>
-    </a>
-  </div>
-  <div class="col-sm-3">
-    <a href="{{ url_for('jobseeker_recommendations') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
-      <i class="bi bi-stars text-success fs-4"></i>
-      <span class="fw-semibold small">Recommendations</span>
-    </a>
-  </div>
-  <div class="col-sm-3">
-    <a href="{{ url_for('jobseeker_referrals') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
-      <i class="bi bi-send-fill text-warning fs-4"></i>
-      <span class="fw-semibold small">My Referrals</span>
-    </a>
-  </div>
-  <div class="col-sm-3">
-    <a href="{{ url_for('jobseeker_jobs') }}" class="card border shadow-sm text-decoration-none p-3 d-flex flex-row align-items-center gap-2" style="border-radius:10px;">
-      <i class="bi bi-list-task text-info fs-4"></i>
-      <span class="fw-semibold small">Browse Jobs</span>
-    </a>
-  </div>
 </div>
 {% endblock %}

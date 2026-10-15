@@ -21,8 +21,7 @@
       <div class="row g-3">
         <div class="col-sm-6">
           <label class="form-label fw-semibold">TIN <span class="text-danger">*</span></label>
-          <input type="text" name="tin" class="form-control" value="{{ emp.get('tin','') }}" required placeholder="000-000-000-000"
-                 maxlength="20" inputmode="numeric" pattern="[0-9\-]{9,20}" title="TIN, e.g. 000-000-000-000" />
+          <input type="text" name="tin" data-mask="tin" class="form-control" value="{{ emp.get('tin','') }}" required />
         </div>
         <div class="col-sm-6">
           <label class="form-label fw-semibold">Business Name <span class="text-danger">*</span></label>
@@ -79,23 +78,24 @@
       <p class="fw-semibold text-muted mb-3" style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Address</p>
       <div class="row g-3">
         <div class="col-12">
+          <div class="row g-3" data-location data-psgc-base="{{ url_for('static', filename='data/psgc/') }}">
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold">Province <span class="text-danger">*</span></label>
+              <input type="text" name="province" data-loc="province" class="form-control" value="{{ emp.get('province') or 'Bulacan' }}" required maxlength="60" placeholder="Type to search" autocomplete="off" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold">City / Municipality <span class="text-danger">*</span></label>
+              <input type="text" name="city" data-loc="city" class="form-control" value="{{ emp.get('city') or 'City of San Jose del Monte' }}" required maxlength="60" placeholder="Select province first" autocomplete="off" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold">Barangay <span class="text-danger">*</span></label>
+              <input type="text" name="barangay" data-loc="barangay" class="form-control" value="{{ emp.get('barangay','') }}" required maxlength="60" placeholder="Select city / municipality first" autocomplete="off" />
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
           <label class="form-label fw-semibold">House/Building No., Street, Village <span class="text-danger">*</span></label>
           <input type="text" name="address_line" class="form-control" value="{{ emp.get('address_line','') }}" required maxlength="150" />
-        </div>
-        <div class="col-sm-4">
-          <label class="form-label fw-semibold">Barangay <span class="text-danger">*</span></label>
-          <input type="text" list="brgy-list" name="barangay" class="form-control" value="{{ emp.get('barangay','') }}" required maxlength="60" placeholder="Type to search" autocomplete="off" />
-          <datalist id="brgy-list">
-            {% for b in barangays %}<option value="{{ b|title }}"></option>{% endfor %}
-          </datalist>
-        </div>
-        <div class="col-sm-4">
-          <label class="form-label fw-semibold">City / Municipality <span class="text-danger">*</span></label>
-          <input type="text" name="city" class="form-control" value="{{ emp.get('city') or 'City of San Jose del Monte' }}" required maxlength="60" />
-        </div>
-        <div class="col-sm-4">
-          <label class="form-label fw-semibold">Province <span class="text-danger">*</span></label>
-          <input type="text" name="province" class="form-control" value="{{ emp.get('province') or 'Bulacan' }}" required maxlength="60" />
         </div>
       </div>
     </div>
@@ -120,8 +120,7 @@
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Mobile No. <span class="text-danger">*</span></label>
-          <input type="text" name="mobile" class="form-control" value="{{ emp.get('mobile','') }}" required placeholder="09XXXXXXXXX"
-                 maxlength="11" inputmode="numeric" pattern="09[0-9]{9}" title="11-digit mobile number (09XXXXXXXXX)" />
+          <input type="text" name="mobile" data-mask="mobile" class="form-control" value="{{ emp.get('mobile','') }}" required />
         </div>
         <div class="col-sm-4">
           <label class="form-label fw-semibold">Fax No.</label>

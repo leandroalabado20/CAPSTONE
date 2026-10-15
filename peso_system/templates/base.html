@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}PESO CSJDM{% endblock %} &mdash; Job Recommendation System</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/peso_logo.png') }}" />
-  <script>
-  (function(){try{if(localStorage.getItem('peso-theme')==='dark'){var r=document.documentElement;r.setAttribute('data-theme','dark');r.setAttribute('data-bs-theme','dark');r.setAttribute('data-coreui-theme','dark');}}catch(e){}})();
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
@@ -17,7 +14,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="admin-portal">
 
 <!-- ── SIDEBAR ─────────────────────────────────────────────────────────────── -->
 <div class="sidebar sidebar-dark sidebar-fixed hide" id="sidebar">
@@ -132,9 +129,6 @@
   </div>
   {% endif %}
 
-  <button class="sidebar-toggler" type="button"
-          data-coreui-toggle="unfoldable"
-          aria-label="Toggle sidebar width"></button>
 </div>
 
 <div id="sidebar-backdrop"></div>
@@ -154,9 +148,6 @@
       </button>
       <span class="topbar-page-title">{% block page_title %}{% endblock %}</span>
       <div class="ms-auto d-flex align-items-center gap-2">
-        <button type="button" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
-          <i class="bi bi-moon-stars-fill"></i>
-        </button>
         <div class="topbar-user">
           <i class="bi bi-person-circle me-1"></i>
           {{ session.get('full_name', 'Admin') }}
@@ -173,7 +164,7 @@
         {% for category, message in messages %}
         <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
           {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" data-coreui-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
       {% endwith %}
@@ -186,23 +177,23 @@
 </div>
 
 <!-- Logout Confirmation Modal -->
-<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-body text-center px-4 pt-4 pb-3">
-        <div class="mb-3">
-          <span style="display:inline-flex;align-items:center;justify-content:center;
-                       width:56px;height:56px;border-radius:50%;background:#fff3cd;">
-            <i class="bi bi-box-arrow-right" style="font-size:1.6rem;color:#856404;"></i>
-          </span>
-        </div>
-        <h5 class="fw-bold mb-1">Log out?</h5>
-        <p class="text-muted small mb-0">You will be returned to the login screen.</p>
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+    <div class="modal-content border-0" style="border-radius:24px;background:#fff;box-shadow:0 18px 48px rgba(15,23,42,.18);">
+      <div class="modal-body text-center px-4 pt-5 pb-3">
+        <span class="d-inline-flex align-items-center justify-content-center mb-3"
+              style="width:76px;height:76px;border-radius:50%;background:#e0ebff;">
+          <i class="bi bi-box-arrow-right" style="font-size:2rem;color:#2563eb;"></i>
+        </span>
+        <h4 class="fw-bold mb-2">Log out?</h4>
+        {% if session.get('full_name') %}<div class="fw-semibold mb-1" style="font-size:.95rem;">{{ session.get('full_name') }}</div>{% endif %}
+        <p class="text-muted mb-1" style="font-size:1rem;">You will be returned to the login screen.</p>
+        <p class="text-muted mb-0" style="font-size:.85rem;"><i class="bi bi-shield-check me-1"></i>Your profile and applications are saved.</p>
       </div>
-      <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
-        <button type="button" class="btn btn-outline-secondary px-4"
+      <div class="modal-footer border-0 d-flex gap-2 px-4 pb-4 pt-3">
+        <button type="button" class="btn btn-outline-secondary flex-fill fw-semibold py-2" style="border-radius:12px;"
                 data-coreui-dismiss="modal">Cancel</button>
-        <a href="{{ url_for('logout') }}" class="btn btn-danger px-4 fw-semibold">
+        <a href="{{ url_for('logout') }}" class="btn flex-fill fw-semibold py-2 text-white" style="background:#ef6b6b;border:1px solid #ef6b6b;border-radius:12px;">
           <i class="bi bi-box-arrow-right me-1"></i>Log out
         </a>
       </div>
@@ -211,7 +202,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/js/coreui.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script src="{{ url_for('static', filename='js/forms.js') }}"></script>
 <script>
 (function () {
@@ -263,5 +253,28 @@
 }());
 </script>
 {% block scripts %}{% endblock %}
+<script>
+// Back-button guard: if a private page is restored from history (Back/Forward / bfcache) after the
+// session has ended, hide it, wipe client-side data and send the user to the sign-in page.
+(function () {
+  var LOGIN = "{{ url_for('login') }}", CHECK = "{{ url_for('session_check') }}";
+  function wipe() {
+    try { sessionStorage.clear(); } catch (e) {}
+    try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('peso_') === 0) localStorage.removeItem(k); }); } catch (e) {}
+  }
+  function verify(hide) {
+    if (hide) document.documentElement.style.visibility = 'hidden';
+    fetch(CHECK, { cache: 'no-store', credentials: 'same-origin' }).then(function (r) {
+      if (r.status === 401) { wipe(); location.replace(LOGIN); }
+      else document.documentElement.style.visibility = '';
+    }).catch(function () { document.documentElement.style.visibility = ''; });
+  }
+  window.addEventListener('pageshow', function (e) {
+    var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {};
+    if (e.persisted || nav.type === 'back_forward') verify(true);
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) verify(false); });
+})();
+</script>
 </body>
 </html>

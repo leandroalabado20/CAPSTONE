@@ -4,47 +4,47 @@
 {% block content %}
 <div class="mb-4">
   <h4 class="fw-bold mb-0">Referred Applicants</h4>
-  <p class="text-muted small">Applicants matched to your vacancies through the PESO online job-matching portal.</p>
+  <p class="text-muted small mb-0">Applicants matched to your vacancies through the PESO online job-matching portal.</p>
 </div>
 
 {% if referrals %}
-<div class="card shadow-sm border-0" style="border-radius:12px;overflow:hidden;">
+<div class="card apps-card" style="overflow:hidden;">
   <div class="table-responsive">
-  <table class="table table-hover mb-0">
-    <thead style="background:#f8fafc;font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">
+  <table class="table table-hover mb-0 apps-table">
+    <thead>
       <tr>
-        <th class="px-3 py-2">Applicant</th>
-        <th class="py-2">Vacancy</th>
-        <th class="py-2">ML Match</th>
-        <th class="py-2">Referred</th>
-        <th class="py-2">Actions</th>
+        <th class="px-3">Applicant</th>
+        <th>Vacancy</th>
+        <th>ML Match</th>
+        <th>Referred</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for r in referrals %}
       <tr>
-        <td class="px-3 py-2">
-          <a href="{{ url_for('employer_referred_detail', rid=r.id) }}" class="fw-semibold small text-decoration-none">
+        <td class="px-3">
+          <a href="{{ url_for('employer_referred_detail', rid=r.referral_id) }}" class="fw-semibold small text-decoration-none">
             {{ r.first_name }} {{ r.last_name }}
           </a>
         </td>
-        <td class="py-2 small text-muted">{{ r.job_title }}</td>
-        <td class="py-2">
+        <td class="small text-muted">{{ r.job_title }}</td>
+        <td>
           {% if r.suitability_score is not none %}
           <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.68rem;">{{ '%.0f'|format(r.suitability_score * 100) }}%</span>
           {% else %}
           <span class="text-muted small">—</span>
           {% endif %}
         </td>
-        <td class="py-2 small text-muted">{{ r.referred_at|friendly_dt }}</td>
-        <td class="py-2">
-          <div class="d-flex gap-1">
-            <a href="{{ url_for('employer_referred_detail', rid=r.id) }}"
-               class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.72rem;">
+        <td class="small text-muted">{{ r.referred_at|friendly_dt }}</td>
+        <td>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('employer_referred_detail', rid=r.referral_id) }}"
+               class="btn btn-sm btn-outline-primary">
               <i class="bi bi-eye me-1"></i>View
             </a>
-            <a href="{{ url_for('referral_slip', rid=r.id) }}" target="_blank"
-               class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.72rem;">
+            <a href="{{ url_for('referral_slip', rid=r.referral_id) }}" target="_blank"
+               class="btn btn-sm btn-outline-secondary">
               <i class="bi bi-file-earmark-text me-1"></i>Slip
             </a>
           </div>
@@ -56,17 +56,36 @@
   </div>
 </div>
 
-<div class="alert alert-info d-flex gap-2 mt-3">
+<div class="apps-note">
   <i class="bi bi-info-circle-fill flex-shrink-0"></i>
-  <span class="small">Applicant contact details are shown on each referral slip. To receive more referred applicants, make sure your vacancies are active.</span>
+  <span>Applicant contact details are shown on each referral slip. To receive more referred applicants, make sure your vacancies are active.</span>
 </div>
 
 {% else %}
-<div class="text-center py-5 text-muted">
-  <i class="bi bi-people" style="font-size:2.5rem;opacity:.25;"></i>
-  <p class="mt-3">No referred applicants yet.</p>
-  <p class="small">Jobseekers will be matched and referred to your vacancies once they are active.</p>
-  <a href="{{ url_for('employer_vacancy_add') }}" class="btn btn-primary btn-sm">Post a Vacancy</a>
+<div class="card apps-card empty-state">
+  <div class="card-body text-center px-4 py-5">
+    <span class="d-inline-flex align-items-center justify-content-center mb-4"
+          style="width:88px;height:88px;border-radius:50%;background:#eff6ff;box-shadow:0 0 0 10px #f5f9ff;">
+      <i class="bi bi-people" style="font-size:2.4rem;color:#2563eb;"></i>
+    </span>
+    <h5 class="fw-bold mb-2">No referred applicants yet</h5>
+    <p class="text-muted mb-4 mx-auto" style="max-width:460px;line-height:1.6;">
+      When jobseekers apply to your active vacancies, they will appear here with their match score and referral slip.
+    </p>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+      <a href="{{ url_for('employer_vacancy_add') }}" class="btn btn-primary px-4"><i class="bi bi-plus-circle me-1"></i>Post a Vacancy</a>
+      <a href="{{ url_for('employer_vacancies') }}" class="btn btn-outline-secondary px-4"><i class="bi bi-list-task me-1"></i>My Vacancies</a>
+    </div>
+    <div class="row g-3 mt-4 pt-4 text-start mx-auto" style="max-width:640px;border-top:1px solid #eef2f7;">
+      <div class="col-sm-4"><div class="fw-semibold small"><span class="step-dot">1</span>Post a vacancy</div><div class="text-muted small mt-1">Add the requirements, schedule and venue.</div></div>
+      <div class="col-sm-4"><div class="fw-semibold small"><span class="step-dot">2</span>Jobseekers apply</div><div class="text-muted small mt-1">Matched applicants get a referral slip.</div></div>
+      <div class="col-sm-4"><div class="fw-semibold small"><span class="step-dot">3</span>Review them here</div><div class="text-muted small mt-1">See profiles and contact details.</div></div>
+    </div>
+  </div>
 </div>
+<style>
+  .empty-state .step-dot { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; margin-right:.5rem;
+    border-radius:50%; background:#dbeafe; color:#1d4ed8; font-size:.75rem; font-weight:700; }
+</style>
 {% endif %}
 {% endblock %}

@@ -529,17 +529,7 @@
                 placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ (ap.skills or '').split(',') | map('trim') | reject('equalto','') | unique | join(', ') }}</textarea>
 
       <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5)</span></label>
-      <div class="row g-1">
-        {% for sk in other_skills_choices %}
-        <div class="col-sm-4 col-6">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="other_skills" value="{{ sk }}" id="os_{{ loop.index }}" {% if sk in ap.other_skills %}checked{% endif %} />
-            <label class="form-check-label small" for="os_{{ loop.index }}">{{ sk }}</label>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      <input type="text" name="other_skills_other" class="form-control form-control-sm mt-2" maxlength="120" placeholder="Others (specify)" />
+      <input type="text" name="other_skills_other" class="form-control form-control-sm" maxlength="120" placeholder="e.g. Driving, Cooking, Carpentry" />
     </div>
   </div>
 

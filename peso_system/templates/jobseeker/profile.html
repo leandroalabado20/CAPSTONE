@@ -529,7 +529,7 @@
                 placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ (ap.skills or '').split(',') | map('trim') | reject('equalto','') | unique | join(', ') }}</textarea>
 
       <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5)</span></label>
-      <input type="text" name="other_skills_other" class="form-control form-control-sm" maxlength="120" placeholder="e.g. Driving, Cooking, Carpentry" />
+      <input type="text" id="other-skills-input" name="other_skills_other" class="form-control form-control-sm" maxlength="120" data-ac-mode="token" autocomplete="off" placeholder="e.g. Driving, Cooking, Carpentry" />
     </div>
   </div>
 
@@ -738,15 +738,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
-  function limitOtherSkills() {
-    var boxes = document.querySelectorAll('input[name="other_skills"]');
-    var checked = 0;
-    boxes.forEach(function (b) { if (b.checked) checked++; });
-    boxes.forEach(function (b) { b.disabled = (!b.checked && checked >= SKILL_LIMIT); });
-  }
-  document.addEventListener('change', function (e) {
-    if (e.target && e.target.name === 'other_skills') limitOtherSkills();
-  });
+  // Other skills autocomplete
+  (function () {
+    var ta = document.getElementById('other-skills-input');
+    if (!ta || !window.PesoAC) return;
+    var OTHER = {{ other_skills_choices | tojson }};
+    window.PesoAC.attach(ta, function () { return OTHER; });
+  })();
   // Education rows: Course only for Vocational / College / Post-Graduate; Year is a dropdown.
   // edu_course[] stays in the DOM (just hidden) so the parallel edu_* arrays keep their alignment.
   var COURSE_LEVELS = /^(Vocational|College|Post-Graduate)/;

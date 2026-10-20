@@ -54,6 +54,20 @@
 .match-row.hi  { border-left-color:#22c55e; background:rgba(34,197,94,.05); }
 .match-row.mid { border-left-color:#f59e0b; background:rgba(245,158,11,.05); }
 .match-row.lo  { border-left-color:#ef4444; background:rgba(239,68,68,.05); }
+.match-col-hdr { display:flex; align-items:center; padding:.1rem 0 .4rem; border-bottom:1px solid #e8edf4; margin-bottom:.2rem; }
+.match-val-row { display:flex; align-items:center; flex:1; min-width:0; }
+/* On small phones: stack label+score on top, values below */
+@media (max-width: 575px) {
+  .match-row { flex-wrap:wrap; padding:.4rem .55rem .4rem .65rem; }
+  .match-col-hdr { display:none !important; }
+  .match-val-row { flex-basis:100%; margin-top:.25rem; gap:.3rem; }
+  .match-val-you,.match-val-req { flex:1; font-size:.72rem !important; }
+  .match-val-prefix { display:inline !important; font-size:.62rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; margin-right:.15rem; }
+  .match-val-sep { display:none !important; }
+}
+@media (min-width: 576px) {
+  .match-val-prefix { display:none; }
+}
 /* Feat card body content area */
 .feat-body-inner { padding: 1rem 1.4rem 1.1rem; }
 /* Feat card action buttons */
@@ -245,8 +259,8 @@ function showVacancy(idx) {
     // Match rows (You vs Required) with colored left-border accents
     var rows = '';
     if (v.fields && v.fields.length) {
-      // Column header
-      rows = '<div style="display:flex;align-items:center;padding:.1rem 0 .4rem;border-bottom:1px solid #e8edf4;margin-bottom:.2rem;">'
+      // Column header (hidden on mobile via CSS)
+      rows = '<div class="match-col-hdr">'
         +'<div style="width:72px;"></div>'
         +'<div style="width:92px;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Score</div>'
         +'<div style="flex:1;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;padding-left:6px;">Your Profile</div>'
@@ -262,7 +276,9 @@ function showVacancy(idx) {
                 :         '<i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:.75rem;"></i>';
         rows +=
           '<div class="match-row '+cls+'">'
+          // label
           +'<div style="width:72px;font-size:.73rem;color:#64748b;flex-shrink:0;font-weight:500;">'+_e(f.label)+'</div>'
+          // score bar + pct + icon
           +'<div style="display:flex;align-items:center;gap:3px;width:92px;flex-shrink:0;">'
           +'<div style="flex:1;height:5px;border-radius:3px;background:#e2e8f0;overflow:hidden;">'
           +'<div class="progress-bar '+bc+'" data-w="'+p+'%" style="height:100%;width:0%;transition:width .55s ease;"></div>'
@@ -270,9 +286,14 @@ function showVacancy(idx) {
           +'<span style="font-size:.7rem;font-weight:700;color:'+sc+';width:24px;text-align:right;flex-shrink:0;">'+p+'%</span>'
           +'<span style="width:16px;text-align:center;flex-shrink:0;">'+ic+'</span>'
           +'</div>'
-          +'<div style="flex:1;min-width:0;padding:0 4px 0 6px;font-size:.77rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.ap_val)+'">'+_e(f.ap_val)+'</div>'
-          +'<div style="width:1px;background:#e2e8f0;align-self:stretch;flex-shrink:0;"></div>'
-          +'<div style="flex:1;min-width:0;padding:0 4px 0 10px;font-size:.77rem;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.vac_val)+'">'+_e(f.vac_val)+'</div>'
+          // values row (side-by-side on desktop, stacked on mobile)
+          +'<div class="match-val-row">'
+          +'<div class="match-val-you" style="flex:1;min-width:0;padding:0 4px 0 6px;font-size:.77rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.ap_val)+'">'
+          +'<span class="match-val-prefix">You</span>'+_e(f.ap_val)+'</div>'
+          +'<div class="match-val-sep" style="width:1px;background:#e2e8f0;align-self:stretch;flex-shrink:0;"></div>'
+          +'<div class="match-val-req" style="flex:1;min-width:0;padding:0 4px 0 10px;font-size:.77rem;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.vac_val)+'">'
+          +'<span class="match-val-prefix">Required</span>'+_e(f.vac_val)+'</div>'
+          +'</div>'
           +'</div>';
       });
     } else {

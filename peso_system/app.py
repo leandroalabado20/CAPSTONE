@@ -2048,6 +2048,63 @@ def jobseeker_recommendations():
         if hi:          return f'Up to ₱{hi:,} / {per}'
         return None
 
+    def _ap_skills_str():
+        raw   = [s.strip() for s in (ap['skills'] or '').split(',') if s.strip()]
+        other = [s for s in _parse_other_skills(ap) if s.strip()]
+        merged = list(dict.fromkeys(raw + other))
+        if not merged: return '—'
+        base = ', '.join(merged[:3])
+        return base + (f' +{len(merged)-3} more' if len(merged) > 3 else '')
+
+    def _build_fields(r):
+        bd   = r.get('breakdown', {})
+        info = r['info']
+        out  = []
+        if 'title' in bd:
+            out.append({'key':'title','label':'Position',
+                        'ap_val': ap['preferred_position'] or '—',
+                        'vac_val': info.get('job_title') or '—',
+                        'score': bd['title']})
+        if 'skills' in bd:
+            vac_sk = [s.strip() for s in (info.get('req_skills') or '').split(',') if s.strip()]
+            vac_str = ', '.join(vac_sk[:3]) + (f' +{len(vac_sk)-3} more' if len(vac_sk) > 3 else '')
+            out.append({'key':'skills','label':'Skills',
+                        'ap_val': _ap_skills_str(), 'vac_val': vac_str or '—',
+                        'score': bd['skills']})
+        if 'education' in bd:
+            out.append({'key':'education','label':'Education',
+                        'ap_val': ap['educ_level'] or '—',
+                        'vac_val': info.get('req_education') or '—',
+                        'score': bd['education']})
+        if 'experience' in bd:
+            have_mo = _total_exp_months(ap)
+            req_mo  = info.get('req_experience_months') or 0
+            out.append({'key':'experience','label':'Experience',
+                        'ap_val':  f'{have_mo} mo.' if have_mo else 'No exp.',
+                        'vac_val': f'{req_mo} mo. min.',
+                        'score': bd['experience']})
+        if 'location' in bd:
+            ap_loc  = ((ap['pref_work_local'] or '') or (ap['pref_work_overseas'] or '') or '—').strip()
+            out.append({'key':'location','label':'Location',
+                        'ap_val': ap_loc, 'vac_val': _vacancy_location(info) or '—',
+                        'score': bd['location']})
+        if 'gender' in bd:
+            out.append({'key':'gender','label':'Gender',
+                        'ap_val': ap['sex'] or '—',
+                        'vac_val': info.get('req_gender') or '—',
+                        'score': bd['gender']})
+        if 'age' in bd:
+            lo_a, hi_a = info.get('req_age_min'), info.get('req_age_max')
+            if lo_a and hi_a: vac_age = f'{lo_a}–{hi_a} yrs'
+            elif lo_a:        vac_age = f'{lo_a}+ yrs'
+            elif hi_a:        vac_age = f'Up to {hi_a} yrs'
+            else:             vac_age = '—'
+            out.append({'key':'age','label':'Age',
+                        'ap_val': f'{ap["age"]} yrs' if ap['age'] else '—',
+                        'vac_val': vac_age,
+                        'score': bd['age']})
+        return out
+
     vacancies_json = [
         {
             'vacancy_id':        r['vacancy_id'],
@@ -2057,7 +2114,7 @@ def jobseeker_recommendations():
             'icon':              r['icon'],
             'suitability_score': r['suitability_score'],
             'suitability_pct':   r['suitability_pct'],
-            'breakdown':         r.get('breakdown', {}),
+            'fields':            _build_fields(r) if ap else [],
             'warns_list':        r.get('warns_list', []),
             'qualified':         r['qualified'],
             'req_unmet':         r['req_unmet'],

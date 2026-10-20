@@ -135,16 +135,63 @@ YOUTH_AGE_MAX  = 30
 SENIOR_AGE_MIN = 60
 
 PREFERRED_POSITIONS = [
+    # Warehouse and Logistics
     'Warehouse Helper', 'Stock Clerk', 'Inventory Clerk', 'Forklift Operator',
-    'Delivery Driver / Courier', 'Packer / Sorter',
+    'Delivery Driver / Courier', 'Packer / Sorter', 'Logistics Coordinator',
+    'Dispatcher', 'Supply Chain Officer', 'Shipping / Receiving Clerk',
+    # Production and Manufacturing
     'Production Worker', 'Machine Operator', 'Quality Control Inspector',
-    'Assembler', 'Welder', 'Factory Worker',
+    'Assembler', 'Welder', 'Factory Worker', 'Sewer / Seamstress',
+    'Process Technician', 'Line Leader',
+    # Sales / Service / Retail
     'Cashier', 'Sales Associate', 'Store Clerk', 'Customer Service Representative',
     'Barista', 'Waiter / Waitress', 'Service Crew', 'Food Service Worker',
+    'Sales Representative', 'Telemarketer', 'Call Center Agent',
+    'Account Executive', 'Brand Ambassador', 'Promoter',
+    # Clerical and Administrative
     'Data Encoder', 'Office Clerk', 'Administrative Assistant',
     'Receptionist', 'Secretary', 'Bookkeeper', 'Payroll Clerk',
+    'Billing Clerk', 'Document Controller', 'Executive Assistant',
+    'Records Officer', 'Encoder / Data Analyst',
+    # General Services and Security
     'Security Guard', 'Janitor / Janitress', 'Utility Worker',
     'Maintenance Staff', 'Building Attendant', 'Messengerial Staff',
+    'Housekeeper', 'Caretaker', 'Groundskeeper',
+    # IT / Technology
+    'IT Support Technician', 'Computer Technician', 'Software Developer',
+    'Web Developer', 'Graphic Designer', 'Network Administrator',
+    'Data Analyst', 'Systems Analyst', 'Database Administrator',
+    'Cybersecurity Analyst', 'UI/UX Designer', 'Programmer',
+    'Technical Support Specialist', 'Mobile App Developer',
+    # Healthcare
+    'Nurse', 'Nursing Aide', 'Medical Technologist', 'Pharmacist',
+    'Caregiver', 'Midwife', 'Dental Assistant', 'Radiologic Technologist',
+    'Physical Therapist', 'Medical Records Clerk', 'Pharmacy Assistant',
+    'Barangay Health Worker',
+    # Education
+    'Teacher', 'Instructor', 'Tutor', 'School Librarian',
+    'Guidance Counselor', 'Teacher Aide', 'Day Care Worker',
+    # Engineering
+    'Civil Engineer', 'Electrical Engineer', 'Mechanical Engineer',
+    'Industrial Engineer', 'Electronics Technician', 'Draftsman',
+    'AutoCAD Operator', 'Project Engineer',
+    # Finance / Accounting
+    'Accountant', 'Auditor', 'Financial Analyst', 'Accounting Clerk',
+    'Credit Investigator', 'Bank Teller', 'Insurance Agent',
+    'Tax Compliance Officer', 'Accounts Payable Clerk',
+    # Construction / Trades
+    'Carpenter', 'Electrician', 'Plumber', 'Mason', 'Painter',
+    'HVAC Technician', 'Tile Setter', 'Steel Fabricator',
+    # Marketing / Creative
+    'Marketing Officer', 'Social Media Manager', 'Content Writer',
+    'Photographer', 'Videographer', 'Copywriter', 'Digital Marketing Specialist',
+    # HR / Management
+    'HR Officer', 'Recruitment Specialist', 'Training Officer',
+    'Operations Supervisor', 'Team Leader', 'Branch Manager',
+    'HR Assistant', 'Labor Relations Officer',
+    # Hospitality / Tourism
+    'Front Desk Officer', 'Hotel Receptionist', 'Event Coordinator',
+    'Cook', 'Chef', 'Tour Guide', 'Housekeeping Attendant',
 ]
 
 SKILLS_LIST = [
@@ -157,6 +204,42 @@ SKILLS_LIST = [
     'Communication Skills', 'Computer Literacy', 'Microsoft Office',
     'Teamwork', 'Time Management', 'Basic Accounting',
 ]
+
+ALL_SKILLS_AC = sorted(set(SKILLS_LIST + [
+    # Office / Admin
+    'Microsoft Excel', 'Microsoft Word', 'Microsoft PowerPoint', 'Google Workspace',
+    'Data Entry', 'Typing', 'Encoding', 'Records Management', 'Payroll Processing',
+    'Scheduling', 'Email Correspondence', 'Office Administration',
+    # IT / Technical
+    'Programming', 'Web Development', 'HTML / CSS', 'JavaScript', 'Python',
+    'Java', 'PHP', 'SQL', 'Database Management', 'Networking',
+    'Graphic Design', 'Adobe Photoshop', 'Adobe Illustrator', 'Video Editing',
+    'AutoCAD', 'Technical Support', 'Hardware Troubleshooting',
+    'Software Installation', 'Cybersecurity', 'Social Media Management',
+    # Sales / Marketing
+    'Telemarketing', 'Account Management', 'Lead Generation',
+    'Digital Marketing', 'Content Writing', 'Copywriting',
+    'Product Demonstration', 'Negotiation',
+    # Finance
+    'Accounting', 'Auditing', 'Taxation', 'Financial Reporting',
+    'Accounts Payable', 'Accounts Receivable', 'Bank Reconciliation',
+    'Credit Analysis', 'Petty Cash Management',
+    # Healthcare / Caregiving
+    'Patient Care', 'Caregiving', 'First Aid', 'CPR',
+    'Medical Transcription', 'Phlebotomy', 'Vital Signs Monitoring',
+    # Trades / Manual
+    'Carpentry', 'Electrical Works', 'Plumbing', 'Masonry',
+    'Painting', 'HVAC', 'Tile Setting', 'Steel Fabrication',
+    'Sewing / Dressmaking', 'Auto Mechanics',
+    # Soft Skills
+    'Leadership', 'Problem Solving', 'Critical Thinking',
+    'Adaptability', 'Multitasking', 'Attention to Detail',
+    'Customer Relations', 'Conflict Resolution', 'Report Writing',
+    # From OTHER_SKILLS_CHOICES
+    'Auto Mechanic', 'Beautician', 'Carpentry Work', 'Computer Literate',
+    'Domestic Chores', 'Gardening', 'Electrician Work', 'Embroidery',
+    'Masonry Work', 'Photography', 'Tailoring', 'Stenography',
+]))
 
 WORK_EXPERIENCE_LIST = [
     'No work experience',
@@ -959,59 +1042,128 @@ def _location_matches(v, ap):
 app.jinja_env.globals['req_summary'] = req_summary
 app.jinja_env.globals['req_warnings'] = req_warnings
 
+_TITLE_STOP = {'the','a','an','of','and','for','in','at','to','or','as','is','on','by','with'}
+
+def _token_set(text):
+    """Lowercase word tokens from a free-text field, filtering common stop words."""
+    return {w for w in re.split(r'[\s/\-,]+', (text or '').lower())
+            if w and w not in _TITLE_STOP}
+
+def _ap_skills_set(ap):
+    """Combined skill tokens from the applicant's skills + other_skills fields."""
+    s1 = {s.strip().lower() for s in (_g(ap, 'skills') or '').split(',') if s.strip()}
+    s2 = {s.strip().lower() for s in (_g(ap, 'other_skills') or '').split(',') if s.strip()}
+    return s1 | s2
+
+def vacancy_content_score(v, ap):
+    """Content-based match score for one vacancy against one applicant.
+    Returns (cb_score 0-1, filled_count) where filled_count is how many of
+    the 7 possible fields the vacancy/applicant pair actually contributed."""
+    scores, filled = [], 0
+    TOTAL = 7  # noqa: F841  (kept for clarity; completeness = filled / 7 at call site)
+
+    # 1. Gender
+    req_g = _g(v, 'req_gender')
+    if req_g and req_g != 'Any':
+        filled += 1
+        scores.append(1.0 if (_g(ap, 'sex') or '') == req_g else 0.0)
+
+    # 2. Age range (min and/or max counts as one field)
+    lo, hi = _g(v, 'req_age_min'), _g(v, 'req_age_max')
+    if lo or hi:
+        filled += 1
+        age = _g(ap, 'age')
+        if age is None:
+            scores.append(0.0)
+        else:
+            scores.append(1.0 if (not lo or age >= lo) and (not hi or age <= hi) else 0.0)
+
+    # 3. Education
+    req_edu = _g(v, 'req_education')
+    if req_edu:
+        filled += 1
+        have = (_g(ap, 'educ_level') or '')
+        if req_edu in EDUC_RANK and have in EDUC_RANK:
+            scores.append(1.0 if EDUC_RANK[have] >= EDUC_RANK[req_edu] else 0.0)
+        else:
+            scores.append(1.0 if have == req_edu else 0.0)
+
+    # 4. Work experience (partial credit: applicant_months / required_months)
+    req_mo = _g(v, 'req_experience_months')
+    if req_mo:
+        filled += 1
+        have_mo = _total_exp_months(ap)
+        scores.append(1.0 if have_mo >= req_mo else round(have_mo / req_mo, 4))
+
+    # 5. Skills — Jaccard: |applicant ∩ required| / |required|
+    req_s = _g(v, 'req_skills')
+    if req_s:
+        req_set = {s.strip().lower() for s in req_s.split(',') if s.strip()}
+        if req_set:
+            filled += 1
+            have_set = _ap_skills_set(ap)
+            scores.append(round(len(req_set & have_set) / len(req_set), 4))
+
+    # 6. Job title vs preferred position — always present (both fields are required)
+    filled += 1
+    title_tok = _token_set(_g(v, 'job_title'))
+    pref_tok  = _token_set(_g(ap, 'preferred_position'))
+    union = title_tok | pref_tok
+    scores.append(round(len(title_tok & pref_tok) / len(union), 4) if union else 0.0)
+
+    # 7. Location — only counted when the applicant has set a location preference
+    pref_local = (_g(ap, 'pref_work_local') or '').strip()
+    pref_ovs   = (_g(ap, 'pref_work_overseas') or '').strip()
+    if pref_local or pref_ovs:
+        filled += 1
+        scores.append(1.0 if _location_matches(v, ap) else 0.0)
+
+    cb_score = round(sum(scores) / len(scores), 4) if scores else 0.0
+    return cb_score, filled
+
+
 def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies,
                         applicant=None):
-    """Two-layer hybrid recommender.
-    Layer 1 (ML): rank the 5 occupational categories by predicted suitability.
-    Layer 2 (rule-based): within each category, order the individual vacancies by
-    how well the applicant meets their stated requirements (fewest unmet first).
-    Layer 2 only reorders — it never hides or blocks a vacancy (soft-gate)."""
+    """Hybrid recommender: ML category suitability (Layer 1) + content-based vacancy
+    matching (Layer 2), combined via confidence-weighted blending.
+    Returns a flat list of vacancy dicts sorted by suitability_score descending."""
     if pipeline is None:
         return []
     vec   = pipeline['vectorizer']
     model = pipeline['model']
     text  = _clean_profile(educ_level, preferred_position, skills, work_experience)
     proba = model.predict_proba(vec.transform([text]))[0]
-    cat_scores = sorted(
-        [(CATEGORIES[i], round(float(proba[i]), 4)) for i in range(len(CATEGORIES))],
-        key=lambda x: x[1], reverse=True,
-    )
-    vac_by_cat = {}
-    for v in vacancies:
-        unmet = len(req_warnings(v, applicant)) if applicant is not None else 0
-        vac_by_cat.setdefault(v['occupational_category'], []).append({
-            'vacancy_id': v['vacancy_id'],
-            'title':      v['job_title'],
-            'employer':   v['employer_name'],
-            'info':       v,
-            'req_unmet':  unmet,
-            'qualified':  unmet == 0,
-            'location':   _vacancy_location(v),
-            'loc_match':  _location_matches(v, applicant),
-        })
-    # Layer 2: within each category, best requirement-fit first, then preferred-location matches
-    for cat_vacs in vac_by_cat.values():
-        cat_vacs.sort(key=lambda x: (x['req_unmet'], 0 if x['loc_match'] else 1))
+    cat_ml = {CATEGORIES[i]: round(float(proba[i]), 4) for i in range(len(CATEGORIES))}
+
     results = []
-    for rank, (cat_name, score) in enumerate(cat_scores, 1):
+    for v in vacancies:
+        ml_score = cat_ml.get(v['occupational_category'], 0.0)
+        if applicant is not None:
+            cb_score, filled = vacancy_content_score(v, applicant)
+        else:
+            cb_score, filled = 0.0, 0
+        completeness = filled / 7
+        final = round(completeness * cb_score + (1 - completeness) * ml_score, 4)
+        warns = req_warnings(v, applicant) if applicant is not None else []
         results.append({
-            'rank':              rank,
-            'category':          cat_name,
-            'icon':              CAT_ICONS.get(cat_name, 'bi-briefcase'),
-            'suitability_score': score,
-            'suitability_pct':   f'{score * 100:.1f}%',
-            'vacancies':         vac_by_cat.get(cat_name, []),
+            'vacancy_id':        v['vacancy_id'],
+            'title':             v['job_title'],
+            'employer':          v['employer_name'],
+            'category':          v['occupational_category'],
+            'icon':              CAT_ICONS.get(v['occupational_category'], 'bi-briefcase'),
+            'info':              v,
+            'suitability_score': final,
+            'suitability_pct':   f'{final * 100:.1f}%',
+            'ml_score':          ml_score,
+            'cb_score':          cb_score,
+            'completeness':      completeness,
+            'req_unmet':         len(warns),
+            'qualified':         len(warns) == 0,
+            'location':          _vacancy_location(v),
+            'loc_match':         _location_matches(v, applicant),
         })
-    # Vacancies posted under a custom ("Others") category are not scored by the model; list them last
-    known = set(CATEGORIES.values())
-    other_vacs = [x for cat, lst in vac_by_cat.items() if cat not in known for x in lst]
-    if other_vacs:
-        other_vacs.sort(key=lambda x: (x['req_unmet'], 0 if x['loc_match'] else 1))
-        results.append({
-            'rank': len(results) + 1, 'category': 'Other Openings', 'icon': 'bi-briefcase',
-            'suitability_score': 0.0, 'suitability_pct': '', 'unscored': True,
-            'vacancies': other_vacs,
-        })
+
+    results.sort(key=lambda x: x['suitability_score'], reverse=True)
     return results
 
 # ── AUTH HELPERS ──────────────────────────────────────────────────────────────
@@ -1777,6 +1929,7 @@ def jobseeker_profile():
                            barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
                            barangay_district_map=BARANGAY_DISTRICT,
                            positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
+                           all_skills_ac=ALL_SKILLS_AC,
                            suffixes=SUFFIX_CHOICES, civil_statuses=CIVIL_STATUS_CHOICES,
                            elig_types=ELIG_TYPES, religions=RELIGION_CHOICES, disability_types=DISABILITY_TYPES,
                            languages_list=LANGUAGE_CHOICES, employed_types=EMPLOYED_TYPES,
@@ -1849,13 +2002,12 @@ def jobseeker_recommendations():
         generated = True
         # Keep only the latest generated set for this applicant
         db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['applicant_id'],))
-        for cat in results:
-            for vac in cat['vacancies']:
-                db.execute(
-                    'INSERT INTO recommendations '
-                    '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
-                    (ap['applicant_id'], vac['vacancy_id'], cat['suitability_score'], cat['rank'], session['user_id'])
-                )
+        for rank, vac in enumerate(results, 1):
+            db.execute(
+                'INSERT INTO recommendations '
+                '(applicant_id,vacancy_id,suitability_score,rank,generated_by) VALUES (?,?,?,?,?)',
+                (ap['applicant_id'], vac['vacancy_id'], vac['suitability_score'], rank, session['user_id'])
+            )
         db.commit()
     applied_ids = set()
     active = None
@@ -1952,10 +2104,8 @@ def jobseeker_apply_confirm(vid):
             ap['educ_level'], ap['preferred_position'],
             ap['skills'], ap['work_experience'] or '', [dict(jv)], applicant=ap
         )
-        for cat in recs:
-            if cat['category'] == jv['occupational_category']:
-                score = cat['suitability_score']
-                break
+        if recs:
+            score = recs[0]['suitability_score']
     return render_template('jobseeker/apply_confirm.html', ap=ap, v=jv,
                            score=score, warnings=req_warnings(jv, ap))
 
@@ -1991,17 +2141,14 @@ def jobseeker_apply():
         flash(f'You already have an active referral for "{active["job_title"]}". '
               'Withdraw it from My Applications before applying to another job.', 'warning')
         return redirect(url_for('jobseeker_referrals'))
-    # Capture the ML suitability score for this vacancy's category (soft-gate signal)
     score = None
     if pipeline:
         recs = get_recommendations(
             ap['educ_level'], ap['preferred_position'],
-            ap['skills'], ap['work_experience'] or '', [dict(jv)]
+            ap['skills'], ap['work_experience'] or '', [dict(jv)], applicant=ap
         )
-        for cat in recs:
-            if cat['category'] == jv['occupational_category']:
-                score = cat['suitability_score']
-                break
+        if recs:
+            score = recs[0]['suitability_score']
     try:
         cur = db.execute(
             'INSERT INTO referrals (applicant_id, vacancy_id, referred_by, status, suitability_score) '
@@ -2352,7 +2499,8 @@ def employer_vacancy_add():
             return render_template('employer/vacancy_form.html', emp=emp,
                                    vacancy=f, categories=CATEGORY_LIST, action='add',
                                    educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                                   salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
+                                   salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
+                                   all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
         get_db().execute(
             'INSERT INTO job_vacancies (employer_name, job_title, occupational_category, '
             'is_local, location_type, employer_id, ' + ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,?,?,' +
@@ -2368,7 +2516,8 @@ def employer_vacancy_add():
     return render_template('employer/vacancy_form.html', emp=emp,
                            vacancy=None, categories=CATEGORY_LIST, action='add',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                           salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
+                           salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
+                           all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
 
 @app.route('/employer/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @employer_required
@@ -2399,7 +2548,8 @@ def employer_vacancy_edit(vid):
             return render_template('employer/vacancy_form.html', emp=emp,
                                    vacancy={**dict(v), **f.to_dict()}, categories=CATEGORY_LIST,
                                    action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                                   salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
+                                   salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
+                                   all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
         db.execute(
             'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, location_type=?, ' +
             ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE vacancy_id=?',
@@ -2412,7 +2562,8 @@ def employer_vacancy_edit(vid):
     return render_template('employer/vacancy_form.html', emp=emp,
                            vacancy=dict(v), categories=CATEGORY_LIST, action='edit',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
-                           salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST)
+                           salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
+                           all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
 
 @app.route('/employer/vacancies/<int:vid>/toggle', methods=['POST'])
 @employer_required

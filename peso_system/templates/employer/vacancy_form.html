@@ -15,8 +15,12 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Job Title <span class="text-danger">*</span></label>
             <input type="text" name="job_title" class="form-control" required maxlength="100"
+                   list="job-title-list" autocomplete="off"
                    value="{{ vacancy.job_title if vacancy else '' }}"
                    placeholder="e.g. Production Worker, Cashier, Security Guard" />
+            <datalist id="job-title-list">
+              {% for p in positions %}<option value="{{ p }}">{% endfor %}
+            </datalist>
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Occupational Category <span class="text-danger">*</span></label>

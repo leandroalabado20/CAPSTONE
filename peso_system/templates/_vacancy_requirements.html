@@ -187,8 +187,13 @@
 <div class="mb-4" style="max-width:560px;">
   {% set other_list = (vacancy.req_skills.split(',') if vacancy and vacancy.req_skills else []) | reject('in', skills_list) | list %}
   <label class="form-label fw-semibold small" for="req-skills-other">Others <span class="text-muted fw-normal">(skills not in the list, separated by commas)</span></label>
-  <input type="text" name="req_skills_other" id="req-skills-other" class="form-control" maxlength="200" placeholder="e.g. Baking, Pallet Jack Operation"
+  <input type="text" name="req_skills_other" id="req-skills-other" class="form-control" maxlength="200"
+         placeholder="e.g. Baking, Pallet Jack Operation"
+         list="skills-ac-list" data-ac-mode="token" autocomplete="off"
          value="{{ (vacancy.req_skills_other if vacancy and vacancy.req_skills_other is defined else other_list|join(', ')) }}" />
+  <datalist id="skills-ac-list">
+    {% for s in all_skills_ac %}<option value="{{ s }}">{% endfor %}
+  </datalist>
 </div>
 {% endif %}
 

@@ -33,8 +33,20 @@
       active = i;
       if (i >= 0 && lis[i]) { lis[i].classList.add('active'); lis[i].scrollIntoView({ block: 'nearest' }); }
     }
+    var tokenMode = input.getAttribute('data-ac-mode') === 'token';
+    function getQuery() {
+      if (!tokenMode) return input.value.trim().toLowerCase();
+      var parts = input.value.split(',');
+      return parts[parts.length - 1].trim().toLowerCase();
+    }
     function choose(v) {
-      input.value = v;
+      if (tokenMode) {
+        var parts = input.value.split(',');
+        parts[parts.length - 1] = parts.length === 1 ? v : ' ' + v;
+        input.value = parts.join(',');
+      } else {
+        input.value = v;
+      }
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       close();
@@ -42,7 +54,7 @@
     function render() {
       if (input.disabled || input.readOnly) { close(); return; }
       var items = getItems() || [];
-      var q = input.value.trim().toLowerCase();
+      var q = getQuery();
       shown = items.filter(function (v) { return !q || v.toLowerCase().indexOf(q) !== -1; });
       menu.innerHTML = '';
       if (!shown.length) { close(); return; }

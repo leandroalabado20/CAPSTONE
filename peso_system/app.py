@@ -2022,7 +2022,8 @@ def jobseeker_recommendations():
                            profile_ok=profile_ok, identity_ok=identity_ok,
                            identity_lock_msg=IDENTITY_LOCK_MSG, applied_ids=applied_ids,
                            has_active_referral=bool(active), active_referral=active,
-                           pipeline_loaded=pipeline is not None)
+                           pipeline_loaded=pipeline is not None,
+                           total_exp_months=_total_exp_months(ap) if ap else 0)
 
 @app.route('/jobseeker/referrals')
 @jobseeker_required

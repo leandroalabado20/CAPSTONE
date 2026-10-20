@@ -148,12 +148,17 @@
 <!-- Profile summary -->
 <div class="card shadow-sm border mb-4 reco-profile" style="border-radius:10px;">
   <div class="card-body py-3 px-4">
-    <div class="small text-muted fw-semibold mb-2" style="font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;">Profile Used</div>
+    <div class="small text-muted fw-semibold mb-2" style="font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;">Profile Used for Matching</div>
     <div class="row row-cols-1 row-cols-md-2 g-2 small reco-profile-grid">
-      <div class="col d-flex gap-2"><i class="bi bi-mortarboard text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Education</div><div>{{ ap.educ_level }}</div></div></div>
-      <div class="col d-flex gap-2"><i class="bi bi-bullseye text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Preferred Occupation</div><div>{{ ap.preferred_position }}</div></div></div>
-      <div class="col d-flex gap-2"><i class="bi bi-tools text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Skills</div><div>{{ (ap.skills or '').split(',') | map('trim') | reject('equalto','') | unique | join(', ') }}</div></div></div>
-      <div class="col d-flex gap-2"><i class="bi bi-briefcase text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Work Experience</div><div>{{ ap.work_experience or 'No experience' }}</div></div></div>
+      <div class="col d-flex gap-2"><i class="bi bi-person text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Sex &amp; Age</div><div>{{ ap.sex or '—' }}{% if ap.age %}, {{ ap.age }} years old{% endif %}</div></div></div>
+      <div class="col d-flex gap-2"><i class="bi bi-mortarboard text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Education</div><div>{{ ap.educ_level or '—' }}</div></div></div>
+      <div class="col d-flex gap-2"><i class="bi bi-briefcase text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Work Experience</div><div>{% if total_exp_months %}{{ total_exp_months }} month{{ 's' if total_exp_months != 1 }}{% else %}No experience{% endif %}</div></div></div>
+      <div class="col d-flex gap-2"><i class="bi bi-bullseye text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Preferred Occupation</div><div>{{ ap.preferred_position or '—' }}</div></div></div>
+      <div class="col d-flex gap-2"><i class="bi bi-tools text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Skills</div>
+        {% set all_skills = ((ap.skills or '') + (',' + ap.other_skills | join(',') if ap.other_skills else '')).split(',') | map('trim') | reject('equalto','') | unique | list %}
+        <div>{{ all_skills | join(', ') if all_skills else '—' }}</div>
+      </div></div>
+      <div class="col d-flex gap-2"><i class="bi bi-geo-alt text-secondary mt-1"></i><div><div class="text-muted" style="font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Preferred Location</div><div>{{ ap.pref_work_local or ap.pref_work_overseas or '—' }}</div></div></div>
     </div>
   </div>
 </div>

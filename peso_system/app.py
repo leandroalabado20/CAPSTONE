@@ -1049,10 +1049,21 @@ def _token_set(text):
     return {w for w in re.split(r'[\s/\-,]+', (text or '').lower())
             if w and w not in _TITLE_STOP}
 
+def _parse_other_skills(ap):
+    """Parse other_skills — stored as a JSON array string — into a plain list."""
+    raw = _g(ap, 'other_skills') or ''
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+        return parsed if isinstance(parsed, list) else [raw]
+    except (ValueError, TypeError):
+        return [s.strip() for s in raw.split(',') if s.strip()]
+
 def _ap_skills_set(ap):
     """Combined skill tokens from the applicant's skills + other_skills fields."""
     s1 = {s.strip().lower() for s in (_g(ap, 'skills') or '').split(',') if s.strip()}
-    s2 = {s.strip().lower() for s in (_g(ap, 'other_skills') or '').split(',') if s.strip()}
+    s2 = {s.strip().lower() for s in _parse_other_skills(ap) if s.strip()}
     return s1 | s2
 
 def vacancy_content_score(v, ap):
@@ -1109,7 +1120,8 @@ def vacancy_content_score(v, ap):
     title_tok = _token_set(_g(v, 'job_title'))
     pref_tok  = _token_set(_g(ap, 'preferred_position'))
     union = title_tok | pref_tok
-    scores.append(round(len(title_tok & pref_tok) / len(union), 4) if union else 0.0)
+    title_score = round(len(title_tok & pref_tok) / len(union), 4) if union else 0.0
+    scores.append(title_score)
 
     # 7. Location — only counted when the applicant has set a location preference
     pref_local = (_g(ap, 'pref_work_local') or '').strip()
@@ -1119,7 +1131,7 @@ def vacancy_content_score(v, ap):
         scores.append(1.0 if _location_matches(v, ap) else 0.0)
 
     cb_score = round(sum(scores) / len(scores), 4) if scores else 0.0
-    return cb_score, filled
+    return cb_score, filled, title_score
 
 
 def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies,
@@ -1139,9 +1151,9 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     for v in vacancies:
         ml_score = cat_ml.get(v['occupational_category'], 0.0)
         if applicant is not None:
-            cb_score, filled = vacancy_content_score(v, applicant)
+            cb_score, filled, title_score = vacancy_content_score(v, applicant)
         else:
-            cb_score, filled = 0.0, 0
+            cb_score, filled, title_score = 0.0, 0, 0.0
         completeness = filled / 7
         final = round(completeness * cb_score + (1 - completeness) * ml_score, 4)
         warns = req_warnings(v, applicant) if applicant is not None else []
@@ -1161,6 +1173,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
             'qualified':         len(warns) == 0,
             'location':          _vacancy_location(v),
             'loc_match':         _location_matches(v, applicant),
+            'title_score':       title_score,
         })
 
     results.sort(key=lambda x: x['suitability_score'], reverse=True)
@@ -2023,7 +2036,13 @@ def jobseeker_recommendations():
                            identity_lock_msg=IDENTITY_LOCK_MSG, applied_ids=applied_ids,
                            has_active_referral=bool(active), active_referral=active,
                            pipeline_loaded=pipeline is not None,
-                           total_exp_months=_total_exp_months(ap) if ap else 0)
+                           total_exp_months=_total_exp_months(ap) if ap else 0,
+                           all_skills_display=', '.join(
+                               dict.fromkeys(s.strip() for s in
+                                   (ap['skills'] or '').split(',') +
+                                   _parse_other_skills(ap)
+                                   if s.strip())
+                           ) if ap else '')
 
 @app.route('/jobseeker/referrals')
 @jobseeker_required
@@ -3338,4 +3357,4 @@ if __name__ == '__main__':
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     print("PESO CSJDM running at: http://localhost:5000")
-    app.run(debug=os.environ.get('PESO_DEBUG', '0') == '1', host=os.environ.get('PESO_HOST', '127.0.0.1'), port=5000)
+    app.run(debug=True, host='127.0.0.1', port=5000)

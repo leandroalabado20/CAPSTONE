@@ -1068,26 +1068,25 @@ def _ap_skills_set(ap):
 
 def vacancy_content_score(v, ap):
     """Content-based match score for one vacancy against one applicant.
-    Returns (cb_score 0-1, filled_count) where filled_count is how many of
-    the 7 possible fields the vacancy/applicant pair actually contributed."""
+    Returns (cb_score 0-1, filled_count, title_score, breakdown) where
+    breakdown maps each applicable field key to its individual 0-1 score."""
     scores, filled = [], 0
-    TOTAL = 7  # noqa: F841  (kept for clarity; completeness = filled / 7 at call site)
+    breakdown = {}
 
     # 1. Gender
     req_g = _g(v, 'req_gender')
     if req_g and req_g != 'Any':
         filled += 1
-        scores.append(1.0 if (_g(ap, 'sex') or '') == req_g else 0.0)
+        s = 1.0 if (_g(ap, 'sex') or '') == req_g else 0.0
+        scores.append(s); breakdown['gender'] = s
 
     # 2. Age range (min and/or max counts as one field)
     lo, hi = _g(v, 'req_age_min'), _g(v, 'req_age_max')
     if lo or hi:
         filled += 1
         age = _g(ap, 'age')
-        if age is None:
-            scores.append(0.0)
-        else:
-            scores.append(1.0 if (not lo or age >= lo) and (not hi or age <= hi) else 0.0)
+        s = 0.0 if age is None else (1.0 if (not lo or age >= lo) and (not hi or age <= hi) else 0.0)
+        scores.append(s); breakdown['age'] = s
 
     # 3. Education
     req_edu = _g(v, 'req_education')
@@ -1095,25 +1094,28 @@ def vacancy_content_score(v, ap):
         filled += 1
         have = (_g(ap, 'educ_level') or '')
         if req_edu in EDUC_RANK and have in EDUC_RANK:
-            scores.append(1.0 if EDUC_RANK[have] >= EDUC_RANK[req_edu] else 0.0)
+            s = 1.0 if EDUC_RANK[have] >= EDUC_RANK[req_edu] else 0.0
         else:
-            scores.append(1.0 if have == req_edu else 0.0)
+            s = 1.0 if have == req_edu else 0.0
+        scores.append(s); breakdown['education'] = s
 
     # 4. Work experience (partial credit: applicant_months / required_months)
     req_mo = _g(v, 'req_experience_months')
     if req_mo:
         filled += 1
         have_mo = _total_exp_months(ap)
-        scores.append(1.0 if have_mo >= req_mo else round(have_mo / req_mo, 4))
+        s = 1.0 if have_mo >= req_mo else round(have_mo / req_mo, 4)
+        scores.append(s); breakdown['experience'] = s
 
     # 5. Skills — Jaccard: |applicant ∩ required| / |required|
     req_s = _g(v, 'req_skills')
     if req_s:
-        req_set = {s.strip().lower() for s in req_s.split(',') if s.strip()}
+        req_set = {sk.strip().lower() for sk in req_s.split(',') if sk.strip()}
         if req_set:
             filled += 1
             have_set = _ap_skills_set(ap)
-            scores.append(round(len(req_set & have_set) / len(req_set), 4))
+            s = round(len(req_set & have_set) / len(req_set), 4)
+            scores.append(s); breakdown['skills'] = s
 
     # 6. Job title vs preferred position — always present (both fields are required)
     filled += 1
@@ -1122,16 +1124,18 @@ def vacancy_content_score(v, ap):
     union = title_tok | pref_tok
     title_score = round(len(title_tok & pref_tok) / len(union), 4) if union else 0.0
     scores.append(title_score)
+    breakdown['title'] = title_score
 
     # 7. Location — only counted when the applicant has set a location preference
     pref_local = (_g(ap, 'pref_work_local') or '').strip()
     pref_ovs   = (_g(ap, 'pref_work_overseas') or '').strip()
     if pref_local or pref_ovs:
         filled += 1
-        scores.append(1.0 if _location_matches(v, ap) else 0.0)
+        s = 1.0 if _location_matches(v, ap) else 0.0
+        scores.append(s); breakdown['location'] = s
 
     cb_score = round(sum(scores) / len(scores), 4) if scores else 0.0
-    return cb_score, filled, title_score
+    return cb_score, filled, title_score, breakdown
 
 
 def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies,
@@ -1151,9 +1155,9 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
     for v in vacancies:
         ml_score = cat_ml.get(v['occupational_category'], 0.0)
         if applicant is not None:
-            cb_score, filled, title_score = vacancy_content_score(v, applicant)
+            cb_score, filled, title_score, breakdown = vacancy_content_score(v, applicant)
         else:
-            cb_score, filled, title_score = 0.0, 0, 0.0
+            cb_score, filled, title_score, breakdown = 0.0, 0, 0.0, {}
         completeness = filled / 7
         final = round(completeness * cb_score + (1 - completeness) * ml_score, 4)
         warns = req_warnings(v, applicant) if applicant is not None else []
@@ -1169,6 +1173,8 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
             'ml_score':          ml_score,
             'cb_score':          cb_score,
             'completeness':      completeness,
+            'breakdown':         breakdown,
+            'warns_list':        warns,
             'req_unmet':         len(warns),
             'qualified':         len(warns) == 0,
             'location':          _vacancy_location(v),
@@ -2030,6 +2036,39 @@ def jobseeker_recommendations():
             (ap['applicant_id'],)
         ).fetchall()}
         active = _active_referral(ap['applicant_id'])
+    def _fmt_salary(info):
+        try:
+            lo = int(info.get('salary_min') or 0) or None
+            hi = int(info.get('salary_max') or 0) or None
+        except (ValueError, TypeError):
+            lo = hi = None
+        per = (info.get('salary_period') or 'month').lower()
+        if lo and hi:   return f'₱{lo:,} – ₱{hi:,} / {per}'
+        if lo:          return f'₱{lo:,}+ / {per}'
+        if hi:          return f'Up to ₱{hi:,} / {per}'
+        return None
+
+    vacancies_json = [
+        {
+            'vacancy_id':        r['vacancy_id'],
+            'title':             r['title'],
+            'employer':          r['employer'],
+            'category':          r['category'],
+            'icon':              r['icon'],
+            'suitability_score': r['suitability_score'],
+            'suitability_pct':   r['suitability_pct'],
+            'breakdown':         r.get('breakdown', {}),
+            'warns_list':        r.get('warns_list', []),
+            'qualified':         r['qualified'],
+            'req_unmet':         r['req_unmet'],
+            'location':          r['location'],
+            'title_score':       r['title_score'],
+            'salary':            _fmt_salary(r['info']),
+            'deadline':          str(r['info'].get('application_deadline') or '') or None,
+            'details_url':       url_for('public_job_detail', vid=r['vacancy_id'], src='rec'),
+        }
+        for r in results
+    ]
     return render_template('jobseeker/recommendations.html',
                            ap=ap, results=results, generated=generated,
                            profile_ok=profile_ok, identity_ok=identity_ok,
@@ -2037,6 +2076,7 @@ def jobseeker_recommendations():
                            has_active_referral=bool(active), active_referral=active,
                            pipeline_loaded=pipeline is not None,
                            total_exp_months=_total_exp_months(ap) if ap else 0,
+                           vacancies_json=vacancies_json,
                            all_skills_display=', '.join(
                                dict.fromkeys(s.strip() for s in
                                    (ap['skills'] or '').split(',') +

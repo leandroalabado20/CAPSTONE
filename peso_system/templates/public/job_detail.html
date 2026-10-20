@@ -85,10 +85,7 @@
         {% elif v.expired %}
         <button class="btn btn-secondary" disabled>Applications closed</button>
         {% elif is_jobseeker %}
-        <p class="small text-muted mb-2">Applying is done from your matched jobs. If this job appears in your recommendations, you can apply there.</p>
-        <a href="{{ url_for('jobseeker_recommendations') }}" class="btn btn-primary">
-          <i class="bi bi-stars me-1"></i>Go to My Recommendations
-        </a>
+        <p class="small text-muted mb-0">Applying is done from your matched jobs. Use the back link above to return to your recommendations and apply there.</p>
         {% elif logged_in %}
         <p class="small text-muted mb-0">Log in as a jobseeker to view your matched jobs.</p>
         {% else %}

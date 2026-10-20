@@ -96,7 +96,7 @@
 {% block content %}
 <div class="mb-4">
   <h4 class="fw-bold mb-0 reco-title">My Job Recommendations</h4>
-  <p class="text-muted small">Get job vacancies ranked by how well they match your profile. Pick a job you're interested in and click Apply to get your referral slip instantly.</p>
+  <p class="text-muted small">Generate job recommendations from your profile, pick a job you're interested in, and click Apply to get your referral slip instantly.</p>
 </div>
 
 {% if not ap %}
@@ -109,9 +109,9 @@
   <div class="card-body p-4">
     <div class="fw-semibold mb-3">How it works</div>
     <ol class="small text-muted ps-3 mb-4">
-      <li class="mb-1"><strong>Generate:</strong> the system matches your profile against all open vacancies using your preferred position, skills, education, and work experience.</li>
-      <li class="mb-1"><strong>Browse:</strong> vacancies are ranked by match score — the best-fitting jobs appear first.</li>
-      <li><strong>Apply:</strong> click Apply on any job and your referral slip is generated immediately.</li>
+      <li class="mb-1"><strong>Generate:</strong> the system scores your profile against all five occupational categories.</li>
+      <li class="mb-1"><strong>Choose</strong> a job you're interested in from the ranked categories.</li>
+      <li><strong>Apply:</strong> click Apply and your referral slip is generated immediately.</li>
     </ol>
     <div class="small text-muted mb-4 reco-reqs">
       <div class="fw-semibold text-body mb-1">Make sure these fields are filled in your <a href="{{ url_for('jobseeker_profile') }}" class="fw-semibold">Profile</a> to get recommendations:</div>
@@ -120,7 +120,7 @@
         <li><strong>Educational Background</strong> (your highest education level)</li>
         <li><strong>Preferred Occupation</strong></li>
         <li><strong>Skills</strong></li>
-        <li><strong>Work Experience</strong> (optional — improves match accuracy)</li>
+        <li><strong>Work Experience</strong> (optional)</li>
       </ul>
     </div>
     {% if identity_ok and profile_ok %}

@@ -1159,7 +1159,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
         else:
             cb_score, filled, title_score, breakdown = 0.0, 0, 0.0, {}
         completeness = filled / 7
-        final = round(completeness * cb_score + (1 - completeness) * ml_score, 4)
+        final = round(0.80 * cb_score + 0.20 * ml_score, 4)
         warns = req_warnings(v, applicant) if applicant is not None else []
         results.append({
             'vacancy_id':        v['vacancy_id'],

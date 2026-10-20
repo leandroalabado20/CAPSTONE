@@ -78,13 +78,13 @@
 #featured-inner .btn-success:hover { transform:translateY(-1px) !important; box-shadow:0 6px 16px rgba(22,163,74,.4) !important; }
 #featured-inner .btn-secondary:disabled { display:flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important; width:100% !important; padding:.55rem 0 !important; border-radius:10px !important; font-size:.83rem !important; font-weight:600 !important; background:#f1f5f9 !important; color:#94a3b8 !important; border:1.5px solid #e2e8f0 !important; white-space:nowrap !important; }
 /* Strip */
-.strip-outer { overflow-x: auto; padding-bottom: 4px; }
+.strip-outer { overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
 .strip-outer::-webkit-scrollbar { height: 8px; }
 .strip-outer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 6px; }
 .strip-outer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
 .strip-outer::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 .strip-track { padding: 4px 2px 2px; }
-.strip-card { width: 130px; min-height: 115px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; padding: .6rem .65rem .5rem; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; position: relative; overflow: hidden; flex-shrink: 0; }
+.strip-card { width: 130px; min-height: 115px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; padding: .6rem .65rem .5rem; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; position: relative; overflow: hidden; flex-shrink: 0; scroll-snap-align: start; }
 .strip-card:hover { border-color: #93c5fd; box-shadow: 0 4px 12px rgba(37,99,235,.13); transform: translateY(-2px); }
 .strip-card.strip-active { border-color: #2563eb !important; box-shadow: 0 4px 16px rgba(37,99,235,.22) !important; background: #f0f7ff !important; }
 .strip-indicator { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 10px 10px; }
@@ -234,7 +234,7 @@ function showVacancy(idx) {
 
   document.querySelectorAll('.strip-card').forEach(function(c,i){ c.classList.toggle('strip-active', i===idx); });
   var ac = document.querySelector('.strip-card.strip-active');
-  if (ac) ac.scrollIntoView({behavior:'smooth', inline:'nearest', block:'nearest'});
+  if (ac) ac.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
 
   setTimeout(function(){
     var v   = VACANCIES[idx];

@@ -154,6 +154,17 @@
   </div>
 </div>
 
+<!-- Prev / Next navigation -->
+<div class="d-flex align-items-center justify-content-between px-3 px-md-4 mb-3">
+  <button id="btn-prev" onclick="stepVacancy(-1)" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius:8px;font-size:.82rem;padding:.38rem .9rem;">
+    <i class="bi bi-arrow-left"></i> Previous
+  </button>
+  <span id="nav-indicator" class="text-muted" style="font-size:.78rem;"></span>
+  <button id="btn-next" onclick="stepVacancy(1)" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius:8px;font-size:.82rem;padding:.38rem .9rem;">
+    Next <i class="bi bi-arrow-right"></i>
+  </button>
+</div>
+
 <!-- Strip label -->
 <div class="d-flex align-items-center justify-content-between mb-2">
   <div class="text-muted fw-semibold" style="font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;">
@@ -322,6 +333,31 @@ function showVacancy(idx) {
       });
     });
   }, 180);
+}
+
+var _currentIdx = 0;
+
+function _updateNav(idx) {
+  var total = VACANCIES.length;
+  var ind = document.getElementById('nav-indicator');
+  if (ind) ind.textContent = (idx + 1) + ' of ' + total;
+  var bp = document.getElementById('btn-prev');
+  var bn = document.getElementById('btn-next');
+  if (bp) bp.disabled = idx === 0;
+  if (bn) bn.disabled = idx === total - 1;
+}
+
+var _origShow = showVacancy;
+showVacancy = function(idx) {
+  _currentIdx = idx;
+  _updateNav(idx);
+  _origShow(idx);
+};
+
+function stepVacancy(dir) {
+  var next = _currentIdx + dir;
+  if (next < 0 || next >= VACANCIES.length) return;
+  showVacancy(next);
 }
 
 document.addEventListener('DOMContentLoaded', function(){ if (VACANCIES.length) showVacancy(0); });

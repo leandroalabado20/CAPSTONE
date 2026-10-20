@@ -3106,7 +3106,7 @@ def referral_slip(rid):
         flash('Referral slip not found.', 'danger')
         return redirect(_role_home())
     back_url = {
-        ROLE_JOBSEEKER: url_for('jobseeker_referrals'),
+        ROLE_JOBSEEKER: url_for('jobseeker_recommendations', generate=1),
         ROLE_EMPLOYER:  url_for('employer_referred'),
     }.get(role, url_for('referrals_list'))
     return render_template('referral_slip.html', r=r, back_url=back_url)

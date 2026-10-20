@@ -35,14 +35,33 @@
 /* Warn row inside featured card */
 .reco-warn { background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px; padding: .28rem .5rem; margin-bottom: .22rem; }
 /* Featured card */
-.feat-card { border: 1px solid #e2e8f0 !important; border-radius: 14px !important; box-shadow: 0 2px 4px rgba(15,23,42,.05), 0 12px 32px rgba(15,23,42,.08) !important; }
-#featured-inner { transition: opacity .18s ease, transform .18s ease; min-height: 220px; }
+.feat-card { border: none !important; border-radius: 16px !important; box-shadow: 0 4px 6px rgba(15,23,42,.06), 0 20px 44px rgba(15,23,42,.12) !important; overflow: hidden; }
+.feat-card > .card-body { padding: 0 !important; }
+#featured-inner { transition: opacity .2s ease, transform .2s ease; min-height: 240px; padding: 0; }
+/* Feat card header band */
+.feat-header-band { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); padding: 1.25rem 1.4rem 1.1rem; position: relative; overflow: hidden; }
+.feat-header-band::after { content:''; position:absolute; right:-40px; top:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.07); pointer-events:none; }
+.feat-header-band::before { content:''; position:absolute; right:40px; bottom:-60px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,.05); pointer-events:none; }
+/* Score box inside header */
+.feat-score-box { background: rgba(255,255,255,.15); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: .5rem .85rem; text-align: center; min-width: 78px; flex-shrink: 0; }
+/* Meta pills */
+.feat-pill { display:inline-flex; align-items:center; gap:.3rem; border-radius:999px; padding:.24rem .75rem; font-size:.77rem; font-weight:500; border:1px solid; }
+.feat-pill-loc  { background:#f0f7ff; border-color:#bfdbfe; color:#1d4ed8; }
+.feat-pill-sal  { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+.feat-pill-date { background:#fafafa; border-color:#e2e8f0; color:#64748b; }
+/* Match row */
+.match-row { display:flex; align-items:center; padding:.34rem .55rem .34rem .65rem; border-radius:0 8px 8px 0; margin-bottom:.15rem; border-left:3px solid; }
+.match-row.hi  { border-left-color:#22c55e; background:rgba(34,197,94,.05); }
+.match-row.mid { border-left-color:#f59e0b; background:rgba(245,158,11,.05); }
+.match-row.lo  { border-left-color:#ef4444; background:rgba(239,68,68,.05); }
+/* Feat card body content area */
+.feat-body-inner { padding: 1rem 1.4rem 1.1rem; }
 /* Feat card action buttons */
-#featured-inner .btn-outline-secondary { background: var(--peso-brand-grad) !important; color: #fff !important; border: 1px solid #1e3a5f !important; border-radius: 8px; font-weight: 600; font-size: .82rem; }
-#featured-inner .btn-outline-secondary:hover { background: #1e3a5f !important; }
-#featured-inner .btn-success { background: #16a34a !important; border: 1px solid #15803d !important; color: #fff !important; border-radius: 8px; font-weight: 600; font-size: .82rem; box-shadow: 0 3px 8px rgba(22,163,74,.25); }
-#featured-inner .btn-success:hover { background: #15803d !important; }
-#featured-inner .btn-secondary:disabled { background: #e2e8f0 !important; color: #64748b !important; border: 1px solid #cbd5e1 !important; border-radius: 8px; font-size: .82rem; white-space: nowrap; }
+#featured-inner .btn-outline-secondary { background: var(--peso-brand-grad) !important; color: #fff !important; border: 1px solid #1e3a5f !important; border-radius: 8px; font-weight: 600; font-size: .82rem; padding: .42rem 1rem; }
+#featured-inner .btn-outline-secondary:hover { background: #1e3a5f !important; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(30,58,95,.25); }
+#featured-inner .btn-success { background: linear-gradient(135deg,#22c55e,#15803d) !important; border: 1px solid #15803d !important; color: #fff !important; border-radius: 8px; font-weight: 600; font-size: .82rem; padding: .42rem 1rem; box-shadow: 0 3px 8px rgba(22,163,74,.28); }
+#featured-inner .btn-success:hover { background: #15803d !important; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(22,163,74,.38); }
+#featured-inner .btn-secondary:disabled { background: #e2e8f0 !important; color: #64748b !important; border: 1px solid #cbd5e1 !important; border-radius: 8px; font-size: .82rem; padding: .42rem 1rem; white-space: nowrap; }
 /* Strip */
 .strip-outer { overflow-x: auto; padding-bottom: 4px; }
 .strip-outer::-webkit-scrollbar { height: 5px; }
@@ -180,113 +199,117 @@ function _e(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function showVacancy(idx) {
   var inner = document.getElementById('featured-inner');
   inner.style.opacity = '0';
-  inner.style.transform = 'translateY(6px)';
+  inner.style.transform = 'translateY(8px)';
 
   document.querySelectorAll('.strip-card').forEach(function(c,i){ c.classList.toggle('strip-active', i===idx); });
   var ac = document.querySelector('.strip-card.strip-active');
   if (ac) ac.scrollIntoView({behavior:'smooth', inline:'nearest', block:'nearest'});
 
   setTimeout(function(){
-    var v = VACANCIES[idx];
+    var v   = VACANCIES[idx];
     var pct = Math.round(v.suitability_score * 100);
-    var scoreColor = pct>=60 ? '#16a34a' : pct>=35 ? '#d97706' : '#dc2626';
+    var scoreColor = pct>=60 ? '#22c55e' : pct>=35 ? '#f59e0b' : '#ef4444';
     var barCls     = pct>=60 ? 'bg-success' : pct>=35 ? 'bg-warning' : 'bg-danger';
 
+    // Rank + alt badges
     var rankBadge = idx===0
-      ? '<span class="badge bg-success" style="font-size:.75rem;padding:.38em .7em;"><i class="bi bi-trophy-fill me-1"></i>Best Match</span>'
-      : '<span class="badge bg-light text-dark border" style="font-size:.75rem;padding:.38em .7em;">#'+(idx+1)+'</span>';
-    var altTag = v.title_score===0 ? '<span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:.68rem;">Alternative</span>' : '';
+      ? '<span class="badge" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:.72rem;padding:.38em .75em;"><i class="bi bi-trophy-fill me-1" style="color:#fde047;"></i>Best Match</span>'
+      : '<span class="badge" style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.25);font-size:.72rem;padding:.38em .75em;">#'+(idx+1)+'</span>';
+    var altTag = v.title_score===0
+      ? '<span class="badge ms-1" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:.65rem;padding:.3em .6em;">Alternative</span>'
+      : '';
 
-    // Meta row: location · salary · deadline
-    var metaParts = [];
-    if (v.location) metaParts.push('<span><i class="bi bi-geo-alt text-secondary me-1"></i>'+_e(v.location)+'</span>');
-    if (v.salary)   metaParts.push('<span style="color:#16a34a;"><i class="bi bi-cash-coin me-1"></i>'+_e(v.salary)+'</span>');
-    if (v.deadline) metaParts.push('<span class="text-muted"><i class="bi bi-calendar-event me-1"></i>Deadline: '+_e(v.deadline)+'</span>');
-    var meta = metaParts.join('<span class="text-muted mx-1">·</span>');
+    // Meta pills (rendered in body section)
+    var pills = '';
+    if (v.location) pills += '<span class="feat-pill feat-pill-loc"><i class="bi bi-geo-alt-fill" style="font-size:.72rem;"></i>'+_e(v.location)+'</span>';
+    if (v.salary)   pills += '<span class="feat-pill feat-pill-sal"><i class="bi bi-cash-coin" style="font-size:.72rem;"></i>'+_e(v.salary)+'</span>';
+    if (v.deadline) pills += '<span class="feat-pill feat-pill-date"><i class="bi bi-calendar-event" style="font-size:.72rem;"></i>Deadline: '+_e(v.deadline)+'</span>';
 
-    // Match details comparison rows (You vs Required)
+    // Match rows (You vs Required) with colored left-border accents
     var rows = '';
     if (v.fields && v.fields.length) {
-      rows += '<div class="d-flex align-items-center gap-0 mb-1" style="padding-bottom:.25rem;border-bottom:1px solid #e2e8f0;">'
-        +'<div style="width:68px;"></div>'
-        +'<div style="width:88px;font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;padding-left:2px;">Score</div>'
-        +'<div style="width:14px;"></div>'
-        +'<div style="flex:1;font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;padding-left:4px;">Your Profile</div>'
-        +'<div style="flex:1;font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;padding-left:8px;border-left:1px solid #e2e8f0;">Vacancy Requires</div>'
+      // Column header
+      rows = '<div style="display:flex;align-items:center;padding:.1rem 0 .4rem;border-bottom:1px solid #e8edf4;margin-bottom:.2rem;">'
+        +'<div style="width:72px;"></div>'
+        +'<div style="width:92px;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Score</div>'
+        +'<div style="flex:1;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;padding-left:6px;">Your Profile</div>'
+        +'<div style="flex:1;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;padding-left:10px;border-left:1px solid #e2e8f0;">Vacancy Requires</div>'
         +'</div>';
       v.fields.forEach(function(f){
-        var p  = Math.round(f.score * 100);
-        var bc = p>=80 ? 'bg-success' : p>=50 ? 'bg-warning' : 'bg-danger';
-        var sc = p>=80 ? '#16a34a'    : p>=50 ? '#d97706'    : '#dc2626';
-        var ic = p>=80 ? '<i class="bi bi-check-circle-fill text-success" style="font-size:.75rem;"></i>'
-               : p>=50 ? '<i class="bi bi-exclamation-triangle-fill text-warning" style="font-size:.75rem;"></i>'
-               :         '<i class="bi bi-x-circle-fill text-danger" style="font-size:.75rem;"></i>';
+        var p   = Math.round(f.score * 100);
+        var cls = p>=80 ? 'hi' : p>=50 ? 'mid' : 'lo';
+        var bc  = p>=80 ? 'bg-success' : p>=50 ? 'bg-warning' : 'bg-danger';
+        var sc  = p>=80 ? '#16a34a'    : p>=50 ? '#d97706'    : '#dc2626';
+        var ic  = p>=80 ? '<i class="bi bi-check-circle-fill" style="color:#22c55e;font-size:.75rem;"></i>'
+                : p>=50 ? '<i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;font-size:.75rem;"></i>'
+                :         '<i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:.75rem;"></i>';
         rows +=
-          '<div class="d-flex align-items-center gap-0 py-2" style="border-top:1px solid #f8fafc;">'
-          // label
-          +'<div style="width:68px;font-size:.72rem;color:#64748b;flex-shrink:0;">'+_e(f.label)+'</div>'
-          // bar + pct
-          +'<div class="d-flex align-items-center gap-1 flex-shrink-0" style="width:88px;">'
-          +'<div class="progress flex-grow-1" style="height:6px;border-radius:3px;background:#e2e8f0;">'
-          +'<div class="progress-bar '+bc+'" data-w="'+p+'%" style="width:0%;border-radius:3px;transition:width .55s ease;"></div>'
+          '<div class="match-row '+cls+'">'
+          +'<div style="width:72px;font-size:.73rem;color:#64748b;flex-shrink:0;font-weight:500;">'+_e(f.label)+'</div>'
+          +'<div style="display:flex;align-items:center;gap:3px;width:92px;flex-shrink:0;">'
+          +'<div style="flex:1;height:5px;border-radius:3px;background:#e2e8f0;overflow:hidden;">'
+          +'<div class="progress-bar '+bc+'" data-w="'+p+'%" style="height:100%;width:0%;transition:width .55s ease;"></div>'
           +'</div>'
-          +'<span style="font-size:.71rem;font-weight:700;color:'+sc+';width:26px;text-align:right;">'+p+'%</span>'
+          +'<span style="font-size:.7rem;font-weight:700;color:'+sc+';width:24px;text-align:right;flex-shrink:0;">'+p+'%</span>'
+          +'<span style="width:16px;text-align:center;flex-shrink:0;">'+ic+'</span>'
           +'</div>'
-          // icon
-          +'<div style="width:14px;text-align:center;flex-shrink:0;margin:0 2px;">'+ic+'</div>'
-          // applicant value
-          +'<div style="flex:1;min-width:0;padding-left:4px;">'
-          +'<div class="text-truncate" style="font-size:.78rem;color:#1e293b;" title="'+_e(f.ap_val)+'">'+_e(f.ap_val)+'</div>'
-          +'</div>'
-          // vacancy requirement
-          +'<div style="flex:1;min-width:0;padding-left:8px;border-left:1px solid #e2e8f0;">'
-          +'<div class="text-truncate" style="font-size:.78rem;color:#475569;" title="'+_e(f.vac_val)+'">'+_e(f.vac_val)+'</div>'
-          +'</div>'
+          +'<div style="flex:1;min-width:0;padding:0 4px 0 6px;font-size:.77rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.ap_val)+'">'+_e(f.ap_val)+'</div>'
+          +'<div style="width:1px;background:#e2e8f0;align-self:stretch;flex-shrink:0;"></div>'
+          +'<div style="flex:1;min-width:0;padding:0 4px 0 10px;font-size:.77rem;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.vac_val)+'">'+_e(f.vac_val)+'</div>'
           +'</div>';
       });
     } else {
       rows = '<div class="text-muted small fst-italic py-2">No specific requirements posted — scored by ML category and job title match.</div>';
     }
 
-    // Qualification / warning messages
+    // Qualification / warning footer
     var warns = '';
     if (v.warns_list && v.warns_list.length) {
       v.warns_list.forEach(function(w){ warns += '<div class="reco-warn" style="font-size:.77rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>'+_e(w)+'</div>'; });
     } else if (v.qualified) {
-      warns = '<div class="text-success" style="font-size:.77rem;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>';
+      warns = '<div style="font-size:.77rem;color:#16a34a;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>';
     }
 
-    var referEl  = document.getElementById('refer-btn-'+v.vacancy_id);
+    var referEl   = document.getElementById('refer-btn-'+v.vacancy_id);
     var referHtml = referEl ? referEl.innerHTML : '';
 
     inner.innerHTML =
-      // ── header: rank + score bar ──
-      '<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">'
-      +'<div>'+rankBadge+altTag+'</div>'
-      +'<div class="d-flex align-items-center gap-2">'
-      +'<div class="progress" style="height:9px;width:110px;border-radius:5px;background:#e2e8f0;">'
-      +'<div class="progress-bar '+barCls+'" data-w="'+pct+'%" style="width:0%;border-radius:5px;transition:width .6s ease;"></div>'
-      +'</div>'
-      +'<span class="fw-bold" style="font-size:1.35rem;color:'+scoreColor+';">'+_e(v.suitability_pct)+'</span>'
+      // ── HEADER BAND: dark gradient with job identity + score ──
+      '<div class="feat-header-band">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;position:relative;z-index:1;">'
+      // left: icon + title/employer + badges
+      +'<div style="display:flex;gap:.85rem;align-items:center;min-width:0;">'
+      +'<div style="width:52px;height:52px;border-radius:13px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+      +'<i class="bi '+_e(v.icon)+'" style="font-size:1.45rem;color:#fff;"></i></div>'
+      +'<div style="min-width:0;">'
+      +'<div style="font-size:1.08rem;font-weight:700;color:#fff;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_e(v.title)+'</div>'
+      +'<div style="font-size:.83rem;color:rgba(255,255,255,.75);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_e(v.employer)+'</div>'
+      +'<div style="font-size:.72rem;color:rgba(255,255,255,.55);">'+_e(v.category)+'</div>'
+      +'<div style="margin-top:.45rem;display:flex;gap:.3rem;flex-wrap:wrap;">'+rankBadge+altTag+'</div>'
       +'</div></div>'
-      // ── job identity ──
-      +'<div class="d-flex gap-3 align-items-start mb-2">'
-      +'<div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,#e8f0ff,#d6e4ff);">'
-      +'<i class="bi '+_e(v.icon)+' text-primary" style="font-size:1.3rem;"></i></div>'
-      +'<div class="overflow-hidden"><div class="fw-bold" style="font-size:1.05rem;line-height:1.3;">'+_e(v.title)+'</div>'
-      +'<div class="text-muted" style="font-size:.85rem;">'+_e(v.employer)+'</div>'
-      +'<div class="text-muted" style="font-size:.75rem;">'+_e(v.category)+'</div></div></div>'
-      // ── meta row ──
-      +(meta ? '<div class="d-flex flex-wrap align-items-center gap-1 small mb-3" style="color:#475569;">'+meta+'</div>' : '')
-      // ── match details table ──
-      +'<hr style="margin:.4rem 0 .6rem;border-color:#f1f5f9;">'
-      +'<div class="text-muted fw-semibold mb-2" style="font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;">Match Details</div>'
+      // right: score box
+      +'<div class="feat-score-box" style="position:relative;z-index:1;">'
+      +'<div style="font-size:1.9rem;font-weight:800;color:'+scoreColor+';line-height:1;text-shadow:0 1px 4px rgba(0,0,0,.15);">'+pct+'%</div>'
+      +'<div style="font-size:.58rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.07em;margin-top:.15rem;">Match</div>'
+      +'<div style="height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin-top:.4rem;overflow:hidden;">'
+      +'<div class="progress-bar '+barCls+'" data-w="'+pct+'%" style="height:100%;width:0%;transition:width .7s ease;"></div>'
+      +'</div></div>'
+      +'</div></div>'
+
+      // ── BODY ──
+      +'<div class="feat-body-inner">'
+      // meta pills
+      +(pills ? '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem;">'+pills+'</div>' : '')
+      // match details section
+      +'<div style="font-size:.67rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">Match Details</div>'
       +rows
-      // ── footer ──
-      +(warns ? '<div class="mt-3">'+warns+'</div>' : '')
-      +'<div class="d-flex gap-2 flex-wrap mt-3">'
+      // footer: warns + buttons
+      +'<div style="margin-top:.8rem;padding-top:.75rem;border-top:1px solid #f1f5f9;">'
+      +(warns ? '<div style="margin-bottom:.6rem;">'+warns+'</div>' : '')
+      +'<div class="d-flex gap-2 flex-wrap">'
       +'<a href="'+_e(v.details_url)+'" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye me-1"></i>Details</a>'
-      +referHtml+'</div>';
+      +referHtml+'</div></div>'
+      +'</div>';
 
     requestAnimationFrame(function(){
       inner.style.opacity = '1';

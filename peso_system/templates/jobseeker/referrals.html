@@ -29,8 +29,8 @@
 .apps-table .btn-sm { display: inline-flex; align-items: center; justify-content: center; gap: .1rem; min-height: 34px; padding: .4rem .95rem !important; font-size: .8rem !important; letter-spacing: .01em; white-space: nowrap; border-radius: 10px; }
 .apps-table .btn-outline-secondary { background: var(--peso-brand-grad); color: #fff; border: 1px solid #1e3a5f; box-shadow: 0 3px 8px rgba(30,58,95,.22); }
 .apps-table .btn-outline-secondary:hover, .apps-table .btn-outline-secondary:focus { background: #1e3a5f; color: #fff; border-color: #1e3a5f; box-shadow: 0 7px 16px rgba(30,58,95,.33); transform: translateY(-1px); }
-.apps-table .btn-outline-danger { background: #fff; color: #dc2626; border: 1.5px solid #f1a5a5; box-shadow: none; }
-.apps-table .btn-outline-danger:hover, .apps-table .btn-outline-danger:focus { background: #dc2626; color: #fff; border-color: #dc2626; box-shadow: 0 7px 16px rgba(220,38,38,.32); transform: translateY(-1px); }
+.apps-table .btn-outline-danger { background: linear-gradient(135deg,#ef4444,#b91c1c); color: #fff; border: 1px solid #b91c1c; box-shadow: 0 3px 8px rgba(185,28,28,.28); }
+.apps-table .btn-outline-danger:hover, .apps-table .btn-outline-danger:focus { background: #991b1b; color: #fff; border-color: #991b1b; box-shadow: 0 7px 16px rgba(153,27,27,.38); transform: translateY(-1px); }
 .apps-table .btn-sm:active { transform: none; box-shadow: none; }
 .apps-table .btn-sm:focus-visible { outline: 3px solid rgba(37,99,235,.3); outline-offset: 2px; }
 </style>
@@ -60,7 +60,7 @@
         <th class="py-2">ML Match</th>
         <th class="py-2">Applied</th>
         <th class="py-2">Status</th>
-        <th class="py-2">Slip</th>
+        <th class="py-2">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -82,6 +82,9 @@
         <td class="py-2">
           {% if r.status == 'cancelled' %}
           <span class="badge bg-danger-subtle text-danger-emphasis">Cancelled</span>
+          {% elif r.status == 'rejected' %}
+          <span class="badge bg-danger-subtle text-danger-emphasis" title="{{ r.reject_reason or '' }}">Not selected</span>
+          {% if r.reject_reason %}<div class="text-muted" style="font-size:.68rem;">{{ r.reject_reason }}</div>{% endif %}
           {% elif r.status == 'referred' %}
           <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle-fill me-1"></i>Applied</span>
           {% else %}
@@ -93,6 +96,10 @@
           <span class="text-muted small">—</span>
           {% else %}
           <div class="d-flex gap-1">
+            <a href="{{ url_for('public_job_detail', vid=r.vacancy_id, src='apps') }}"
+               class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.72rem;">
+              <i class="bi bi-info-circle me-1"></i>Details
+            </a>
             <a href="{{ url_for('referral_slip', rid=r.referral_id) }}"
                class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:.72rem;">
               <i class="bi bi-file-earmark-text me-1"></i>View Slip

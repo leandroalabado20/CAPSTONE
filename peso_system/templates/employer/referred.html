@@ -7,15 +7,42 @@
   <p class="text-muted small mb-0">Applicants matched to your vacancies through the PESO online job-matching portal.</p>
 </div>
 
+<style>
+  .fit-tabs { display:flex; flex-wrap:nowrap; gap:.5rem; overflow-x:auto; padding:.15rem .1rem .5rem; margin-bottom:.5rem; -webkit-overflow-scrolling:touch; scrollbar-width:thin; }
+  .fit-tab { display:inline-flex; align-items:center; gap:.5rem; flex:0 0 auto; padding:.45rem .9rem; border-radius:999px; border:1.5px solid #cbd5e1;
+    background:#f8fafc; color:#334155; font-size:.85rem; font-weight:600; text-decoration:none; white-space:nowrap;
+    transition:background .15s, border-color .15s, color .15s, box-shadow .15s; }
+  .fit-tab:hover { background:#eff6ff; border-color:#2563eb; color:#1d4ed8; }
+  .fit-tab:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+  .fit-tab .fit-count { min-width:1.5rem; padding:.05rem .45rem; border-radius:999px; background:#e2e8f0; color:#334155; font-size:.72rem; font-weight:700; text-align:center; }
+  .fit-tab.active { background:#2563eb; border-color:#2563eb; color:#fff; box-shadow:0 2px 8px rgba(37,99,235,.3); }
+  .fit-tab.active .fit-count { background:#fff; color:#2563eb; }
+  .fit-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .55rem; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+  .fit-strong  { background:#dcfce7; color:#166534; }
+  .fit-partial { background:#fef3c7; color:#92400e; }
+  .fit-low     { background:#fee2e2; color:#991b1b; }
+  .fit-unknown { background:#f1f5f9; color:#475569; }
+</style>
+<nav class="fit-tabs" aria-label="Filter applicants by fit">
+  {% for key, label in [('all','All'),('strong','Strong fit'),('partial','Partial fit'),('low','Low fit'),('rejected','Not selected')] %}
+  <a class="fit-tab {{ 'active' if fit == key else '' }}" href="{{ url_for('employer_referred', fit=key) }}"{% if fit == key %} aria-current="page"{% endif %}>
+    {{ label }}<span class="fit-count">{{ counts[key] }}</span>
+  </a>
+  {% endfor %}
+</nav>
+
 {% if referrals %}
+<form method="POST" action="{{ url_for('employer_referred_reject') }}" id="bulk-form">
+<input type="hidden" name="fit" value="{{ fit }}">
 <div class="card apps-card" style="overflow:hidden;">
   <div class="table-responsive">
   <table class="table table-hover mb-0 apps-table">
     <thead>
       <tr>
-        <th class="px-3">Applicant</th>
+        <th class="ps-3" style="width:34px;"><input type="checkbox" class="form-check-input" id="chk-all" aria-label="Select all"></th>
+        <th>Applicant</th>
         <th>Vacancy</th>
-        <th>ML Match</th>
+        <th>Fit</th>
         <th>Referred</th>
         <th>Actions</th>
       </tr>
@@ -23,15 +50,24 @@
     <tbody>
       {% for r in referrals %}
       <tr>
-        <td class="px-3">
+        <td class="ps-3">
+          {% if r.status == 'referred' %}<input type="checkbox" class="form-check-input row-chk" name="ids" value="{{ r.referral_id }}" aria-label="Select {{ r.first_name }} {{ r.last_name }}">{% endif %}
+        </td>
+        <td>
           <a href="{{ url_for('employer_referred_detail', rid=r.referral_id) }}" class="fw-semibold small text-decoration-none">
             {{ r.first_name }} {{ r.last_name }}
           </a>
+          {% if r.status == 'rejected' %}<div class="text-muted" style="font-size:.7rem;">Not selected{% if r.reject_reason %}: {{ r.reject_reason }}{% endif %}</div>{% endif %}
+          {% if r.status == 'cancelled' %}<div class="text-muted" style="font-size:.7rem;">Withdrawn by applicant</div>{% endif %}
         </td>
         <td class="small text-muted">{{ r.job_title }}</td>
         <td>
           {% if r.suitability_score is not none %}
-          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.68rem;">{{ '%.0f'|format(r.suitability_score * 100) }}%</span>
+          <span class="fit-badge fit-{{ r.fit_key }}">
+            <i class="bi {{ 'bi-check-circle-fill' if r.fit_key == 'strong' else 'bi-dash-circle-fill' if r.fit_key == 'partial' else 'bi-x-circle-fill' }}"></i>
+            {{ r.fit_label }} &middot; {{ '%.0f'|format(r.suitability_score * 100) }}%
+          </span>
+          {% if r.fit_reason %}<div class="text-muted" style="font-size:.7rem;margin-top:.15rem;">{{ r.fit_reason }}</div>{% endif %}
           {% else %}
           <span class="text-muted small">—</span>
           {% endif %}
@@ -56,11 +92,53 @@
   </div>
 </div>
 
-<div class="apps-note">
+<div class="card border-0 shadow-sm mt-3" id="bulk-bar" style="border-radius:12px;">
+  <div class="card-body py-2 px-3 d-flex flex-wrap align-items-center gap-2">
+    <span class="small text-muted"><strong id="sel-count">0</strong> selected</span>
+    <select name="reason" id="reject-reason" class="form-select form-select-sm" style="max-width:240px;">
+      {% for rr in reject_reasons %}<option value="{{ rr }}">{{ rr }}</option>{% endfor %}
+    </select>
+    <input type="text" name="note" id="reject-note" class="form-control form-control-sm d-none" maxlength="200" placeholder="Type the reason" style="max-width:240px;">
+    <button type="button" class="btn btn-sm btn-outline-danger" id="bulk-btn" disabled>
+      <i class="bi bi-x-circle me-1"></i>Reject selected
+    </button>
+    {% if fit == 'low' %}<button type="button" class="btn btn-sm btn-link" id="sel-low">Select all low-fit</button>{% endif %}
+  </div>
+</div>
+</form>
+
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content border-0" style="border-radius:24px;background:#fff;box-shadow:0 18px 48px rgba(15,23,42,.18);">
+      <div class="modal-body text-center px-4 pt-5 pb-3">
+        <span class="d-inline-flex align-items-center justify-content-center mb-3"
+              style="width:76px;height:76px;border-radius:50%;background:#fee2e2;">
+          <i class="bi bi-person-x-fill" style="font-size:2rem;color:#dc2626;"></i>
+        </span>
+        <h4 class="fw-bold mb-2">Reject applicant<span id="rm-plural">(s)</span>?</h4>
+        <p class="mb-1" style="font-size:1rem;">Are you sure you want to reject <strong id="rm-count">0</strong> selected applicant<span id="rm-plural2">(s)</span>?</p>
+        <p class="text-muted mb-1" style="font-size:.9rem;">Reason: <strong id="rm-reason">—</strong></p>
+        <p class="text-muted mb-2" style="font-size:.85rem;">The applicants will see this on their applications page.</p>
+        <p class="mb-0 fw-semibold text-danger" style="font-size:.85rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>This cannot be undone.</p>
+      </div>
+      <div class="modal-footer border-0 d-flex gap-2 px-4 pb-4 pt-3">
+        <button type="button" class="btn btn-outline-secondary flex-fill fw-semibold py-2" style="border-radius:12px;"
+                data-coreui-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="rm-confirm" class="btn flex-fill fw-semibold py-2 text-white" style="background:#dc2626;border:1px solid #dc2626;border-radius:12px;">
+          <i class="bi bi-x-circle me-1"></i>Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="apps-note mt-3">
   <i class="bi bi-info-circle-fill flex-shrink-0"></i>
   <span>Applicant contact details are shown on each referral slip. To receive more referred applicants, make sure your vacancies are active.</span>
 </div>
 
+{% elif fit != 'all' %}
+<div class="card apps-card"><div class="card-body text-center text-muted py-5 small">No applicants in this group.</div></div>
 {% else %}
 <div class="card apps-card empty-state">
   <div class="card-body text-center px-4 py-5">
@@ -88,4 +166,45 @@
     border-radius:50%; background:#dbeafe; color:#1d4ed8; font-size:.75rem; font-weight:700; }
 </style>
 {% endif %}
+<script>
+(function () {
+  var all = document.getElementById('chk-all'), btn = document.getElementById('bulk-btn');
+  if (!all || !btn) return;
+  var rows = function () { return Array.prototype.slice.call(document.querySelectorAll('.row-chk')); };
+  function sync() {
+    var n = rows().filter(function (c) { return c.checked; }).length;
+    document.getElementById('sel-count').textContent = n;
+    btn.disabled = n === 0;
+  }
+  all.addEventListener('change', function () { rows().forEach(function (c) { c.checked = all.checked; }); sync(); });
+  rows().forEach(function (c) { c.addEventListener('change', sync); });
+  var sel = document.getElementById('reject-reason'), note = document.getElementById('reject-note');
+  sel.addEventListener('change', function () { note.classList.toggle('d-none', sel.value !== 'Other'); });
+  // Custom confirmation modal (replaces the native confirm())
+  var modalEl = document.getElementById('rejectModal'), form = document.getElementById('bulk-form'), modal = null;
+  function getModal() {
+    if (!modal && window.coreui && window.coreui.Modal) modal = new window.coreui.Modal(modalEl);
+    return modal;
+  }
+  btn.addEventListener('click', function () {
+    var n = rows().filter(function (c) { return c.checked; }).length;
+    if (!n) return;
+    var reason = sel.value === 'Other' && note.value.trim() ? note.value.trim() : sel.value;
+    document.getElementById('rm-count').textContent = n;
+    document.getElementById('rm-plural').textContent = n === 1 ? '' : 's';
+    document.getElementById('rm-plural2').textContent = n === 1 ? '' : 's';
+    document.getElementById('rm-reason').textContent = reason;
+    var m = getModal();
+    if (m) m.show(); else form.submit();      // no modal library: submit directly rather than block the action
+  });
+  document.getElementById('rm-confirm').addEventListener('click', function () {
+    this.disabled = true;
+    form.submit();
+  });
+  if (modalEl) modalEl.addEventListener('hidden.coreui.modal', function () { document.getElementById('rm-confirm').disabled = false; });
+  var low = document.getElementById('sel-low');
+  if (low) low.addEventListener('click', function () { rows().forEach(function (c) { c.checked = true; }); all.checked = true; sync(); });
+  sync();
+})();
+</script>
 {% endblock %}

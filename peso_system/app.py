@@ -546,13 +546,29 @@ def init_db():
             except sqlite3.OperationalError:
                 pass  # older SQLite without DROP COLUMN support — harmless to keep
 
+    # An applicant may now hold several active referrals (capped in app code by
+    # MAX_ACTIVE_REFERRALS); only the same applicant+vacancy pair must stay unique.
+    db.execute("DROP INDEX IF EXISTS ux_referrals_one_active")
     try:
-        db.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_referrals_one_active ON referrals(applicant_id) WHERE status != 'cancelled'")
+        db.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_referrals_applicant_vacancy ON referrals(applicant_id, vacancy_id) WHERE status != 'cancelled'")
     except sqlite3.IntegrityError:
         pass   # existing duplicate data: leave the app-level check in place
     rcols = [r[1] for r in db.execute("PRAGMA table_info(referrals)").fetchall()]
     if 'suitability_score' not in rcols:
         db.execute('ALTER TABLE referrals ADD COLUMN suitability_score REAL')
+    if 'reject_reason' not in rcols:
+        db.execute('ALTER TABLE referrals ADD COLUMN reject_reason TEXT')
+    db.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        notif_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id    INTEGER NOT NULL,
+        title      TEXT    NOT NULL,
+        message    TEXT    NOT NULL,
+        link       TEXT,
+        is_read    INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )''')
+    db.execute('CREATE INDEX IF NOT EXISTS ix_notifications_user ON notifications(user_id, is_read, notif_id)')
 
     reccols = [r[1] for r in db.execute("PRAGMA table_info(recommendations)").fetchall()]
     for col, ddl in [('generated_by', 'INTEGER'), ('status', "TEXT DEFAULT 'pending'")]:
@@ -1007,6 +1023,16 @@ def req_warnings(v, ap, viewer='jobseeker'):
                      else 'None of the required skills match your profile')
     return w
 
+def meets_hard_requirements(v, ap):
+    """Mandatory education and experience. Unknown/unrankable education or no applicant -> not excluded."""
+    if not ap:
+        return True
+    need, have = _g(v, 'req_education'), (_g(ap, 'educ_level') or '')
+    if need in EDUC_RANK and have in EDUC_RANK and EDUC_RANK[have] < EDUC_RANK[need]:
+        return False
+    need_m = _g(v, 'req_experience_months')
+    return not (need_m and _total_exp_months(ap) < need_m)
+
 def _vacancy_location(v):
     """Location string for a vacancy: the employer-specified job location when given,
     otherwise CSJDM if flagged local, else the employer's city/province (when joined
@@ -1177,6 +1203,7 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
             'warns_list':        warns,
             'req_unmet':         len(warns),
             'qualified':         len(warns) == 0,
+            'hard_ok':           meets_hard_requirements(v, applicant),
             'location':          _vacancy_location(v),
             'loc_match':         _location_matches(v, applicant),
             'title_score':       title_score,
@@ -1184,6 +1211,25 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
 
     results.sort(key=lambda x: x['suitability_score'], reverse=True)
     return results
+
+def explain_match(r, fields):
+    """One-paragraph, human-readable reason for the score (rule-based, uses data already computed)."""
+    bd, pct = r['breakdown'], round(r['suitability_score'] * 100)
+    label = {'title': 'job title', 'skills': 'skills', 'location': 'preferred location',
+             'experience': 'work experience', 'education': 'education',
+             'age': 'age range', 'gender': 'gender requirement'}
+    band = 'Strong' if pct >= 80 else 'Moderate' if pct >= 50 else 'Low'
+    strong = [label[k] for k, sc in bd.items() if sc >= 0.8 and k in label]
+    weak = sorted(((k, sc) for k, sc in bd.items() if sc < 0.5 and k in label), key=lambda x: x[1])[:2]
+    parts = [f'{band} match ({pct}%).']
+    if strong:
+        parts.append('Strongest fit: ' + ', '.join(strong[:3]) + '.')
+    for k, sc in weak:
+        f = next((x for x in fields if x['key'] == k), None)
+        parts.append(f'Held back by {label[k]}' + (f' ({f["ap_val"]} vs {f["vac_val"]} required).' if f else '.'))
+    if r['ml_score'] >= 0.5:
+        parts.append(f'Your profile also fits the {r["category"]} category.')
+    return ' '.join(parts)
 
 # ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 @app.before_request
@@ -1269,12 +1315,38 @@ def current_user():
         return get_db().execute('SELECT * FROM users WHERE user_id = ?', (session['user_id'],)).fetchone()
     return None
 
+def add_notification(db, user_id, title, message, link=None):
+    """Insert an in-app notification for one user (caller commits)."""
+    db.execute('INSERT INTO notifications (user_id, title, message, link) VALUES (?,?,?,?)',
+               (user_id, title, message, link))
+
+@app.route('/jobseeker/notifications/<int:nid>/open')
+@jobseeker_required
+def jobseeker_notification_open(nid):
+    db = get_db()
+    row = db.execute('SELECT link FROM notifications WHERE notif_id=? AND user_id=?',
+                     (nid, session['user_id'])).fetchone()
+    if not row:
+        return redirect(url_for('jobseeker_referrals'))
+    db.execute('UPDATE notifications SET is_read=1 WHERE notif_id=?', (nid,))
+    db.commit()
+    return redirect(row['link'] or url_for('jobseeker_referrals'))
+
+@app.route('/jobseeker/notifications/read-all', methods=['POST'])
+@jobseeker_required
+def jobseeker_notifications_read_all():
+    db = get_db()
+    db.execute('UPDATE notifications SET is_read=1 WHERE user_id=? AND is_read=0', (session['user_id'],))
+    db.commit()
+    return redirect(request.referrer or url_for('jobseeker_dashboard'))
+
 # ── CONTEXT PROCESSOR ─────────────────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
     pending_employers_count = 0
     employer_approved = False
     user_photo = ''
+    notif_unread, notif_items = 0, []
     role = session.get('role')
     if role == ROLE_ADMIN:
         try:
@@ -1289,6 +1361,13 @@ def inject_globals():
                 'SELECT photo FROM applicants WHERE user_id=?', (session.get('user_id'),)
             ).fetchone()
             user_photo = (row['photo'] if row else '') or ''
+            notif_unread = get_db().execute(
+                'SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0', (session.get('user_id'),)
+            ).fetchone()[0]
+            notif_items = get_db().execute(
+                'SELECT * FROM notifications WHERE user_id=? ORDER BY notif_id DESC LIMIT 8',
+                (session.get('user_id'),)
+            ).fetchall()
         except Exception:
             pass
     elif role == ROLE_EMPLOYER:
@@ -1305,6 +1384,8 @@ def inject_globals():
         'pending_employers_count': pending_employers_count,
         'employer_approved':       employer_approved,
         'user_photo':             user_photo,
+        'notif_unread':           notif_unread,
+        'notif_items':            notif_items,
     }
 
 # ── TEMPLATE FILTERS ──────────────────────────────────────────────────────────
@@ -1379,6 +1460,13 @@ def public_jobs():
         f'SELECT * FROM job_vacancies WHERE {" AND ".join(conds)} ORDER BY created_at DESC',
         params
     ).fetchall()
+    if session.get('role') == ROLE_JOBSEEKER:
+        me = _get_my_applicant()
+        if me:
+            mine = {r['vacancy_id'] for r in db.execute(
+                "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
+                (me['applicant_id'],)).fetchall()}
+            vacancies = [v for v in vacancies if v['vacancy_id'] in mine or meets_hard_requirements(v, me)]
     return render_template('public/jobs.html', vacancies=vacancies,
                            search=search, category=category,
                            categories=CATEGORY_LIST)
@@ -1399,18 +1487,23 @@ def public_job_detail(vid):
         flash('That job is no longer available.', 'danger')
         return redirect(url_for('public_jobs'))
     is_jobseeker = session.get('role') == ROLE_JOBSEEKER
-    applied, profile_ok = False, True
+    applied, profile_ok, app_status, reject_reason = False, True, '', ''
     if is_jobseeker:
         ap = _get_my_applicant()
         if ap:
             profile_ok = bool(ap['educ_level'] and ap['preferred_position'] and ap['skills'])
-            applied = bool(db.execute(
-                "SELECT 1 FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status!='cancelled'",
-                (ap['applicant_id'], vid)).fetchone())
+            row = db.execute(
+                "SELECT status, reject_reason FROM referrals WHERE applicant_id=? AND vacancy_id=? AND status!='cancelled'",
+                (ap['applicant_id'], vid)).fetchone()
+            applied = bool(row)
+            app_status = row['status'] if row else ''
+            reject_reason = (row['reject_reason'] if row else '') or ''
     # Back link reflects where the visitor came from
     src = request.args.get('src', '')
     if is_jobseeker and src == 'rec':
         back_url, back_label = url_for('jobseeker_recommendations', generate=1), 'Back to recommendations'
+    elif is_jobseeker and src == 'apps':
+        back_url, back_label = url_for('jobseeker_referrals'), 'Back to my applications'
     elif is_jobseeker and src == 'jobs':
         back_url, back_label = url_for('jobseeker_jobs'), 'Back to jobs'
     else:
@@ -1419,6 +1512,7 @@ def public_job_detail(vid):
     layout = 'base_jobseeker.html' if is_jobseeker else 'base_public.html'
     return render_template('public/job_detail.html', v=v, is_jobseeker=is_jobseeker, layout=layout,
                            logged_in=('user_id' in session), applied=applied, profile_ok=profile_ok,
+                           app_status=app_status, reject_reason=reject_reason,
                            back_url=back_url, back_label=back_label)
 
 # ── AUTH ROUTES ───────────────────────────────────────────────────────────────
@@ -1700,15 +1794,15 @@ def certificate_file(filename):
 def profile_photo(filename):
     return send_from_directory(PHOTO_DIR, os.path.basename(filename))
 
-def _active_referral(applicant_id):
-    """The applicant's current active (not-withdrawn) referral, if any.
-    An applicant may hold only one active referral at a time."""
+MAX_ACTIVE_REFERRALS = 3
+
+def _active_referral_count(applicant_id):
+    """Number of the applicant's active (not-withdrawn) referrals.
+    An applicant may hold up to MAX_ACTIVE_REFERRALS at a time."""
     return get_db().execute(
-        "SELECT r.referral_id, r.vacancy_id, jv.job_title "
-        "FROM referrals r JOIN job_vacancies jv ON r.vacancy_id = jv.vacancy_id "
-        "WHERE r.applicant_id=? AND r.status != 'cancelled' "
-        "ORDER BY r.referred_at DESC LIMIT 1", (applicant_id,)
-    ).fetchone()
+        "SELECT COUNT(*) FROM referrals WHERE applicant_id=? AND status NOT IN ('cancelled','rejected')",
+        (applicant_id,)
+    ).fetchone()[0]
 
 @app.route('/jobseeker/dashboard')
 @jobseeker_required
@@ -1736,6 +1830,7 @@ def jobseeker_dashboard():
                 ap['skills'], ap['work_experience'] or '',
                 [dict(v) for v in vacancies], applicant=ap
             )
+            recs = [r for r in recs if r['hard_ok']]
             top_rec = recs[0] if recs else None
 
     active_vacancies = db.execute(
@@ -2004,6 +2099,7 @@ def jobseeker_recommendations():
     db  = get_db()
     ap  = _get_my_applicant()
     results = []
+    hidden_count = 0
     generated = False
     identity_ok = identity_complete(ap)
     profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
@@ -2018,6 +2114,8 @@ def jobseeker_recommendations():
             ap['skills'], ap['work_experience'] or '',
             [dict(v) for v in vacancies], applicant=ap
         )
+        hidden_count = sum(1 for r in results if not r['hard_ok'])
+        results = [r for r in results if r['hard_ok']]
         generated = True
         # Keep only the latest generated set for this applicant
         db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['applicant_id'],))
@@ -2029,13 +2127,17 @@ def jobseeker_recommendations():
             )
         db.commit()
     applied_ids = set()
-    active = None
+    rejected_ids = set()
+    active_count = 0
     if ap:
         applied_ids = {r['vacancy_id'] for r in db.execute(
             "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
             (ap['applicant_id'],)
         ).fetchall()}
-        active = _active_referral(ap['applicant_id'])
+        active_count = _active_referral_count(ap['applicant_id'])
+        rejected_ids = {r['vacancy_id'] for r in db.execute(
+            "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status='rejected'",
+            (ap['applicant_id'],)).fetchall()}
     def _fmt_salary(info):
         try:
             lo = int(info.get('salary_min') or 0) or None
@@ -2105,6 +2207,7 @@ def jobseeker_recommendations():
                         'score': bd['age']})
         return out
 
+    fields_by_id = {r['vacancy_id']: (_build_fields(r) if ap else []) for r in results}
     vacancies_json = [
         {
             'vacancy_id':        r['vacancy_id'],
@@ -2114,7 +2217,8 @@ def jobseeker_recommendations():
             'icon':              r['icon'],
             'suitability_score': r['suitability_score'],
             'suitability_pct':   r['suitability_pct'],
-            'fields':            _build_fields(r) if ap else [],
+            'fields':            fields_by_id[r['vacancy_id']],
+            'explanation':       explain_match(r, fields_by_id[r['vacancy_id']]) if ap else '',
             'warns_list':        r.get('warns_list', []),
             'qualified':         r['qualified'],
             'req_unmet':         r['req_unmet'],
@@ -2127,10 +2231,12 @@ def jobseeker_recommendations():
         for r in results
     ]
     return render_template('jobseeker/recommendations.html',
-                           ap=ap, results=results, generated=generated,
+                           ap=ap, results=results, generated=generated, hidden_count=hidden_count,
                            profile_ok=profile_ok, identity_ok=identity_ok,
-                           identity_lock_msg=IDENTITY_LOCK_MSG, applied_ids=applied_ids,
-                           has_active_referral=bool(active), active_referral=active,
+                           identity_lock_msg=IDENTITY_LOCK_MSG, applied_ids=applied_ids, rejected_ids=rejected_ids,
+                           at_referral_limit=active_count >= MAX_ACTIVE_REFERRALS,
+                           active_referral_count=active_count,
+                           max_active_referrals=MAX_ACTIVE_REFERRALS,
                            pipeline_loaded=pipeline is not None,
                            total_exp_months=_total_exp_months(ap) if ap else 0,
                            vacancies_json=vacancies_json,
@@ -2181,6 +2287,8 @@ def jobseeker_jobs():
             "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
             (ap['applicant_id'],)
         ).fetchall()}
+    # hide jobs whose mandatory education/experience the applicant doesn't meet (keep ones already applied to)
+    vacancies = [v for v in vacancies if v['vacancy_id'] in applied_ids or meets_hard_requirements(v, ap)]
     profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
     return render_template('jobseeker/jobs.html', ap=ap, vacancies=vacancies,
                            applied_ids=applied_ids, profile_ok=profile_ok,
@@ -2210,11 +2318,13 @@ def jobseeker_apply_confirm(vid):
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
         return redirect(url_for('referral_slip', rid=existing['referral_id']))
-    active = _active_referral(ap['applicant_id'])
-    if active:
-        flash(f'You already have an active referral for "{active["job_title"]}". '
-              'Withdraw it from My Applications before applying to another job.', 'warning')
+    if _active_referral_count(ap['applicant_id']) >= MAX_ACTIVE_REFERRALS:
+        flash(f'You already have {MAX_ACTIVE_REFERRALS} active applications. '
+              'Withdraw one from My Applications before applying to another job.', 'warning')
         return redirect(url_for('jobseeker_referrals'))
+    if not meets_hard_requirements(jv, ap):
+        flash('You do not yet meet the required education or experience for this job.', 'warning')
+        return redirect(url_for('jobseeker_recommendations'))
     score = None
     if pipeline:
         recs = get_recommendations(
@@ -2253,11 +2363,13 @@ def jobseeker_apply():
     if existing:
         flash(f'You have already applied for "{jv["job_title"]}".', 'info')
         return redirect(url_for('referral_slip', rid=existing['referral_id']))
-    active = _active_referral(ap['applicant_id'])
-    if active:
-        flash(f'You already have an active referral for "{active["job_title"]}". '
-              'Withdraw it from My Applications before applying to another job.', 'warning')
+    if _active_referral_count(ap['applicant_id']) >= MAX_ACTIVE_REFERRALS:
+        flash(f'You already have {MAX_ACTIVE_REFERRALS} active applications. '
+              'Withdraw one from My Applications before applying to another job.', 'warning')
         return redirect(url_for('jobseeker_referrals'))
+    if not meets_hard_requirements(jv, ap):
+        flash('You do not yet meet the required education or experience for this job.', 'warning')
+        return redirect(url_for('jobseeker_recommendations'))
     score = None
     if pipeline:
         recs = get_recommendations(
@@ -2273,9 +2385,9 @@ def jobseeker_apply():
             (ap['applicant_id'], vacancy_id, session['user_id'], 'referred', score)
         )
     except sqlite3.IntegrityError:
-        # Double-click / two tabs: the database already holds this applicant's active referral
+        # Double-click / two tabs: the database already holds this applicant's referral for this vacancy
         db.rollback()
-        flash('You already have an active application. Withdraw it from My Applications first.', 'warning')
+        flash(f'You have already applied for "{jv["job_title"]}".', 'info')
         return redirect(url_for('jobseeker_referrals'))
     rid = cur.lastrowid
     db.commit()
@@ -2301,6 +2413,9 @@ def jobseeker_cancel_referral(rid):
         return redirect(url_for('jobseeker_referrals'))
     if r['status'] == 'cancelled':
         flash('That application is already cancelled.', 'info')
+        return redirect(url_for('jobseeker_referrals'))
+    if r['status'] == 'rejected':
+        flash('This application was rejected by the employer and can no longer be changed.', 'warning')
         return redirect(url_for('jobseeker_referrals'))
     db.execute("UPDATE referrals SET status='cancelled' WHERE referral_id=?", (rid,))
     db.commit()
@@ -2713,6 +2828,73 @@ def employer_vacancy_delete(vid):
     flash(f'Vacancy "{v["job_title"]}" has been deleted.', 'success')
     return redirect(url_for('employer_vacancies'))
 
+REJECT_REASONS = ['Requirements not matched', 'Position already filled', 'Incomplete requirements', 'Not qualified for the role', 'Other']
+
+def fit_tier(score):
+    """(key, label) for a 0-1 suitability score."""
+    if score is None:
+        return 'unknown', 'No score'
+    if score >= 0.80:
+        return 'strong', 'Strong fit'
+    if score >= 0.50:
+        return 'partial', 'Partial fit'
+    return 'low', 'Low fit'
+
+def fit_reason(v, ap):
+    """Short reason chip for the worst mismatch (skills / position), or ''."""
+    _, _, _, bd = vacancy_content_score(v, ap)
+    if bd.get('skills') == 0:
+        return 'No matching skills'
+    if bd.get('title') == 0:
+        return 'Different position'
+    if bd.get('skills') is not None and bd['skills'] < 0.5:
+        return 'Few matching skills'
+    return ''
+
+def employer_comparison(v, ap, score):
+    """Requirement-vs-applicant rows for the employer's profile preview, missing items first.
+    Returns (rows, summary, extra_skills, past_positions); row = (requirement, applicant_has, state)."""
+    cb, _, title_score, bd = vacancy_content_score(v, ap)
+    rows = []
+    have_set = _ap_skills_set(ap)
+    pos_state = 'ok' if title_score >= 0.5 else 'partial' if title_score > 0 else 'miss'
+    rows.append(('Position: ' + (_g(v, 'job_title') or '-'), _g(ap, 'preferred_position') or '-', pos_state))
+    req_raw = [x.strip() for x in (_g(v, 'req_skills') or '').split(',') if x.strip()]
+    for sk in req_raw:
+        hit = sk.lower() in have_set
+        rows.append(('Skill: ' + sk, 'Has it' if hit else 'None listed', 'ok' if hit else 'miss'))
+    need_edu = _g(v, 'req_education')
+    if need_edu:
+        have = _g(ap, 'educ_level') or '-'
+        okay = have in EDUC_RANK and need_edu in EDUC_RANK and EDUC_RANK[have] >= EDUC_RANK[need_edu]
+        rows.append(('Education: ' + need_edu, have, 'ok' if okay else 'miss'))
+    need_m = _g(v, 'req_experience_months')
+    if need_m:
+        have_m = _total_exp_months(ap)
+        rows.append((f'Experience: {need_m} mo.', f'{have_m} mo.', 'ok' if have_m >= need_m else 'miss'))
+    if 'location' in bd:
+        rows.append(('Location: ' + (_vacancy_location(v) or '-'),
+                     ((_g(ap, 'pref_work_local') or _g(ap, 'pref_work_overseas')) or '-'),
+                     'ok' if bd['location'] else 'miss'))
+    order = {'miss': 0, 'partial': 1, 'ok': 2}
+    rows.sort(key=lambda r: order[r[2]])
+    missing_skills = [r[0] for r in rows if r[0].startswith('Skill:') and r[2] == 'miss']
+    key, label = fit_tier(score)
+    pct = f'{round(score * 100)}%' if score is not None else 'n/a'
+    bits = []
+    if req_raw and missing_skills:
+        bits.append(f'{len(missing_skills)} of {len(req_raw)} required skills missing')
+    if pos_state == 'miss':
+        bits.append('preferred position is "' + (_g(ap, 'preferred_position') or 'not set') + '"')
+    summary = f'{label} ({pct})' + (': ' + '; '.join(bits) + '.' if bits else '.')
+    req_lower = {x.lower() for x in req_raw}
+    extra = sorted(sk for sk in have_set if sk not in req_lower)[:8]
+    try:
+        past = [w.get('position') for w in json.loads(_g(ap, 'work_history') or '[]') if w.get('position')]
+    except (ValueError, TypeError, AttributeError):
+        past = []
+    return rows, summary, extra, past
+
 @app.route('/employer/referred')
 @employer_required
 def employer_referred():
@@ -2721,12 +2903,13 @@ def employer_referred():
         return redirect(url_for('employer_profile'))
     db     = get_db()
     status = request.args.get('status', 'all')
+    fit    = request.args.get('fit', 'all')
     conds  = ['jv.employer_id=?']
     params = [session['user_id']]
     if status != 'all':
         conds.append('r.status=?')
         params.append(status)
-    referrals = db.execute(f'''
+    rows = db.execute(f'''
         SELECT r.*, a.first_name, a.last_name, jv.job_title
         FROM referrals r
         JOIN applicants a ON r.applicant_id=a.applicant_id
@@ -2734,8 +2917,68 @@ def employer_referred():
         WHERE {" AND ".join(conds)}
         ORDER BY r.referred_at DESC
     ''', params).fetchall()
-    return render_template('employer/referred.html', emp=emp,
-                           referrals=referrals, status=status)
+    referrals, counts = [], {'all': 0, 'strong': 0, 'partial': 0, 'low': 0, 'rejected': 0}
+    for r in rows:
+        d = dict(r)
+        d['fit_key'], d['fit_label'] = fit_tier(d['suitability_score'])
+        d['fit_reason'] = ''
+        if d['fit_key'] in ('low', 'partial'):
+            ap = db.execute('SELECT * FROM applicants WHERE applicant_id=?', (d['applicant_id'],)).fetchone()
+            vac = db.execute('SELECT * FROM job_vacancies WHERE vacancy_id=?', (d['vacancy_id'],)).fetchone()
+            if ap and vac:
+                d['fit_reason'] = fit_reason(vac, ap)
+        counts['all'] += 1
+        if d['status'] == 'rejected':
+            counts['rejected'] += 1
+        elif d['fit_key'] in counts:
+            counts[d['fit_key']] += 1
+        referrals.append(d)
+    if fit == 'rejected':
+        referrals = [d for d in referrals if d['status'] == 'rejected']
+    elif fit in ('strong', 'partial', 'low'):
+        referrals = [d for d in referrals if d['fit_key'] == fit and d['status'] != 'rejected']
+    # best fit first; rejected and withdrawn sink to the bottom
+    referrals.sort(key=lambda d: (d['status'] in ('rejected', 'cancelled'), -(d['suitability_score'] or 0)))
+    return render_template('employer/referred.html', emp=emp, referrals=referrals,
+                           status=status, fit=fit, counts=counts, reject_reasons=REJECT_REASONS)
+
+@app.route('/employer/referred/reject', methods=['POST'])
+@employer_required
+def employer_referred_reject():
+    emp = _get_my_employer()
+    if not emp or not emp['is_approved']:
+        return redirect(url_for('employer_profile'))
+    ids = [int(x) for x in request.form.getlist('ids') if x.isdigit()]
+    reason = request.form.get('reason', '').strip()
+    if reason not in REJECT_REASONS:
+        reason = REJECT_REASONS[0]
+    note = request.form.get('note', '').strip()[:200]
+    if reason == 'Other' and note:
+        reason = note
+    back = request.form.get('fit', 'all')
+    if not ids:
+        flash('Select at least one applicant first.', 'warning')
+        return redirect(url_for('employer_referred', fit=back))
+    db = get_db()
+    marks = ','.join('?' * len(ids))
+    # who gets notified: only referrals that are about to change (still 'referred' and owned by this employer)
+    targets = db.execute(
+        "SELECT r.referral_id, a.user_id, jv.job_title FROM referrals r "
+        "JOIN applicants a ON a.applicant_id=r.applicant_id "
+        "JOIN job_vacancies jv ON jv.vacancy_id=r.vacancy_id "
+        f"WHERE r.status='referred' AND r.referral_id IN ({marks}) AND jv.employer_id=?",
+        ids + [session['user_id']]).fetchall()
+    cur = db.execute(
+        f"UPDATE referrals SET status='rejected', reject_reason=? WHERE status='referred' AND referral_id IN ({marks}) "
+        "AND vacancy_id IN (SELECT vacancy_id FROM job_vacancies WHERE employer_id=?)",
+        [reason] + ids + [session['user_id']])
+    for t in targets:
+        add_notification(db, t['user_id'], 'Application Update',
+                         f'Your application for {t["job_title"]} was not selected. Reason: {reason}.',
+                         url_for('jobseeker_referrals'))
+    db.commit()
+    flash(f'{cur.rowcount} applicant(s) marked as not selected.', 'success')
+    return redirect(url_for('employer_referred', fit=back))
 
 @app.route('/employer/referred/<int:rid>')
 @employer_required
@@ -2746,7 +2989,7 @@ def employer_referred_detail(rid):
     db = get_db()
     r = db.execute('''
         SELECT r.referral_id, r.suitability_score AS score,
-               r.status AS ref_status, r.referred_at AS ref_at,
+               r.status AS ref_status, r.referred_at AS ref_at, r.reject_reason,
                a.first_name, a.last_name, a.sex, a.age, a.barangay, a.district,
                a.employment_status, a.is_pwd, a.educ_level, a.preferred_position,
                a.skills, a.work_experience, a.work_history, a.contact_number,
@@ -2763,8 +3006,14 @@ def employer_referred_detail(rid):
     if not r:
         flash('Referred applicant not found.', 'danger')
         return redirect(url_for('employer_referred'))
+    ids = db.execute('SELECT applicant_id, vacancy_id FROM referrals WHERE referral_id=?', (rid,)).fetchone()
+    ap_full = db.execute('SELECT * FROM applicants WHERE applicant_id=?', (ids['applicant_id'],)).fetchone()
+    vac_full = db.execute('SELECT * FROM job_vacancies WHERE vacancy_id=?', (ids['vacancy_id'],)).fetchone()
+    cmp_rows, cmp_summary, extra_skills, past_positions = employer_comparison(vac_full, ap_full, r['score'])
     return render_template('employer/referred_detail.html', r=r,
-                           chips=req_summary(r), warnings=req_warnings(r, r, viewer='employer'))
+                           chips=req_summary(r), warnings=req_warnings(r, r, viewer='employer'),
+                           fit_key=fit_tier(r['score'])[0], cmp_rows=cmp_rows, cmp_summary=cmp_summary,
+                           extra_skills=extra_skills, past_positions=past_positions)
 
 # ── HOME / OVERVIEW (admin) ──────────────────────────────────────────────────
 @app.route('/home')

@@ -48,7 +48,7 @@
 {% set done = checks|selectattr(1)|list|length %}
 {% set pct = (done * 100 / checks|length)|int %}
 {% set profile_ok = identity_ok and ap.educ_level and ap.preferred_position and ap.skills %}
-{% set active_ref = referrals|selectattr('status', 'ne', 'cancelled')|list|first %}
+{% set active_ref = referrals|selectattr('status', 'equalto', 'referred')|list|first %}
 
 <!-- Profile completeness -->
 {% if pct < 100 %}
@@ -175,6 +175,8 @@
           </div>
           {% if r.status == 'cancelled' %}
           <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0">Cancelled</span>
+          {% elif r.status == 'rejected' %}
+          <span class="badge bg-danger-subtle text-danger-emphasis flex-shrink-0" title="{{ r.reject_reason or '' }}">Not selected</span>
           {% else %}
           <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0">Referred</span>
           {% endif %}

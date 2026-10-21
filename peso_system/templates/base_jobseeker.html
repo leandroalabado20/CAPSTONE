@@ -13,6 +13,22 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
   {% block head %}{% endblock %}
+<style>
+  .notif-wrap { position:relative; }
+  .notif-bell { position:relative; width:36px; height:36px; border-radius:50%; border:1px solid #e2e8f0; background:#fff; color:#475569; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+  .notif-bell:hover { background:#eff6ff; color:#2563eb; border-color:#bfdbfe; }
+  .notif-dot { position:absolute; top:-4px; right:-4px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:#dc2626; color:#fff; font-size:.65rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .notif-menu { width:340px; max-width:92vw; border-radius:14px; box-shadow:0 12px 32px rgba(15,23,42,.16); overflow:hidden; }
+  .notif-list { max-height:340px; overflow-y:auto; }
+  .notif-item { display:flex; gap:.65rem; padding:.7rem .9rem; text-decoration:none; color:#1e293b; border-bottom:1px solid #f1f5f9; }
+  .notif-item:hover { background:#f8fafc; }
+  .notif-item.unread { background:#eff6ff; }
+  .notif-ico { color:#2563eb; padding-top:.1rem; }
+  .notif-body { display:flex; flex-direction:column; min-width:0; }
+  .notif-title { font-weight:700; font-size:.82rem; }
+  .notif-msg { font-size:.8rem; color:#475569; white-space:normal; }
+  .notif-time { font-size:.7rem; color:#94a3b8; margin-top:.15rem; }
+</style>
 </head>
 <body class="jobseeker-portal">
 
@@ -108,6 +124,38 @@
       </button>
       <span class="topbar-page-title">{% block page_title %}{% endblock %}</span>
       <div class="ms-auto d-flex align-items-center gap-2">
+        <div class="dropdown notif-wrap">
+          <button type="button" class="notif-bell" data-coreui-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+            <i class="bi bi-bell-fill"></i>
+            {% if notif_unread %}<span class="notif-dot">{{ notif_unread if notif_unread < 10 else '9+' }}</span>{% endif %}
+          </button>
+          <div class="dropdown-menu dropdown-menu-end notif-menu p-0">
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+              <span class="fw-bold small">Notifications</span>
+              {% if notif_unread %}
+              <form method="POST" action="{{ url_for('jobseeker_notifications_read_all') }}" class="m-0">
+                <button type="submit" class="btn btn-link btn-sm p-0" style="font-size:.75rem;">Mark all as read</button>
+              </form>
+              {% endif %}
+            </div>
+            {% if notif_items %}
+            <div class="notif-list">
+              {% for n in notif_items %}
+              <a href="{{ url_for('jobseeker_notification_open', nid=n.notif_id) }}" class="notif-item {{ '' if n.is_read else 'unread' }}">
+                <span class="notif-ico"><i class="bi bi-info-circle-fill"></i></span>
+                <span class="notif-body">
+                  <span class="notif-title">{{ n.title }}</span>
+                  <span class="notif-msg">{{ n.message }}</span>
+                  <span class="notif-time">{{ n.created_at|friendly_dt }}</span>
+                </span>
+              </a>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted small py-4"><i class="bi bi-bell-slash d-block mb-1" style="font-size:1.4rem;opacity:.5;"></i>No notifications yet</div>
+            {% endif %}
+          </div>
+        </div>
         {% set _name = session.get('full_name', 'Jobseeker') %}
         <div class="topbar-user">
           {% if user_photo %}<img class="topbar-avatar" src="{{ url_for('profile_photo', filename=user_photo) }}" alt="" />

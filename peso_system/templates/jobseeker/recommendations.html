@@ -32,8 +32,14 @@
 .alert.alert-warning i { color: #d97706; margin-top: .2rem; }
 .alert.alert-warning a { color: #1d4ed8; font-weight: 600; }
 .alert.alert-info { border-radius: 12px; }
+/* Notices inside the card: plain coloured text, same look as "You meet the listed requirements" */
+#featured-inner .alert { padding: 0; background: none; border: 0; border-radius: 0; line-height: 1.4; align-items: center !important; gap: .35rem !important; }
+#featured-inner .alert.alert-warning { color: #d97706; }
+#featured-inner .alert.alert-info { color: #2563eb; }
+#featured-inner .alert .small { font-size: .84rem; }
+#featured-inner .alert i { font-size: .84rem; margin: 0; color: inherit; }
 /* Warn row inside featured card */
-.reco-warn { background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px; padding: .28rem .5rem; margin-bottom: .22rem; }
+.reco-warn { color: #d97706; margin-bottom: .22rem; }
 /* Featured card */
 .feat-card { border: none !important; border-radius: 16px !important; box-shadow: 0 4px 6px rgba(15,23,42,.06), 0 20px 44px rgba(15,23,42,.12) !important; overflow: hidden; }
 .feat-card > .card-body { padding: 0 !important; }
@@ -43,62 +49,115 @@
 .feat-header-band::after { content:''; position:absolute; right:-40px; top:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.07); pointer-events:none; }
 .feat-header-band::before { content:''; position:absolute; right:40px; bottom:-60px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,.05); pointer-events:none; }
 /* Score box inside header */
-.feat-score-box { background: rgba(255,255,255,.15); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: .5rem .85rem; text-align: center; min-width: 78px; flex-shrink: 0; }
+.feat-score-box { background: rgba(8,20,52,.55); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.4); border-radius: 12px; padding: .6rem .95rem .65rem; text-align: center; min-width: 92px; flex-shrink: 0; box-shadow: 0 4px 14px rgba(8,20,52,.3); }
 /* Meta pills */
-.feat-pill { display:inline-flex; align-items:center; gap:.3rem; border-radius:999px; padding:.24rem .75rem; font-size:.77rem; font-weight:500; border:1px solid; }
+.feat-pill { display:inline-flex; align-items:center; gap:.3rem; border-radius:999px; padding:.24rem .75rem; font-size:.84rem; font-weight:500; border:1px solid; }
 .feat-pill-loc  { background:#f0f7ff; border-color:#bfdbfe; color:#1d4ed8; }
 .feat-pill-sal  { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
 .feat-pill-date { background:#fafafa; border-color:#e2e8f0; color:#64748b; }
 /* Match row */
-.match-row { display:flex; align-items:center; padding:.34rem .55rem .34rem .65rem; border-radius:0 8px 8px 0; margin-bottom:.15rem; border-left:3px solid; }
+.match-grid { display:grid; grid-template-columns:84px 124px minmax(0,1.35fr) minmax(0,1fr); column-gap:14px; align-items:center; padding:.5rem .7rem .5rem .75rem; border-left:3px solid transparent; }
+.match-table { max-width: 1100px; }
+.match-row { border-radius:0 8px 8px 0; margin-bottom:.25rem; }
 .match-row.hi  { border-left-color:#22c55e; background:rgba(34,197,94,.05); }
 .match-row.mid { border-left-color:#f59e0b; background:rgba(245,158,11,.05); }
 .match-row.lo  { border-left-color:#ef4444; background:rgba(239,68,68,.05); }
-.match-col-hdr { display:flex; align-items:center; padding:.1rem 0 .4rem; border-bottom:1px solid #e8edf4; margin-bottom:.2rem; }
-.match-val-row { display:flex; align-items:center; flex:1; min-width:0; }
-/* On small phones: stack label+score on top, values below */
+.match-col-hdr { padding-top:.1rem; padding-bottom:.45rem; border-bottom:1px solid #e8edf4; margin-bottom:.35rem; font-size:.65rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; }
+.match-val-row { display:contents; }
+.mc-label { font-size:.8rem; font-weight:500; color:#64748b; }
+.mc-score { display:flex; align-items:center; gap:5px; }
+.mc-bar { flex:1; height:6px; border-radius:3px; background:#e2e8f0; overflow:hidden; }
+.mc-pct { width:40px; white-space:nowrap; text-align:right; font-size:.78rem; font-weight:700; flex-shrink:0; }
+.mc-ico { width:16px; text-align:center; flex-shrink:0; }
+.mc-val { min-width:0; font-size:.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mc-you { color:#1e293b; }
+.mc-req { color:#475569; padding-left:14px; border-left:1px solid #e2e8f0; }
+.match-col-hdr .mc-you, .match-col-hdr .mc-req { color:#94a3b8; }
+/* On small phones: label+score on one line, values stacked below */
 @media (max-width: 575px) {
-  .match-row { flex-wrap:wrap; padding:.4rem .55rem .4rem .65rem; }
+  .match-grid { grid-template-columns:84px minmax(0,1fr); row-gap:.3rem; }
   .match-col-hdr { display:none !important; }
-  .match-val-row { flex-basis:100%; margin-top:.25rem; gap:.3rem; }
-  .match-val-you,.match-val-req { flex:1; font-size:.72rem !important; }
-  .match-val-prefix { display:inline !important; font-size:.62rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; margin-right:.15rem; }
-  .match-val-sep { display:none !important; }
+  .match-val-row { display:flex; grid-column:1 / -1; flex-direction:column; gap:.15rem; }
+  .mc-req { padding-left:0; border-left:0; }
+  .mc-val { font-size:.8rem; }
+  .match-val-prefix { display:inline; font-size:.65rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; margin-right:.3rem; }
 }
 @media (min-width: 576px) {
   .match-val-prefix { display:none; }
 }
 /* Feat card body content area */
-.feat-body-inner { padding: 1rem 1.4rem 1.1rem; }
+.feat-body-inner { padding: 1.1rem 1.5rem 1.2rem; }
 /* Feat card action buttons */
-.feat-footer { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:.85rem; padding-top:.8rem; border-top:1px solid #f1f5f9; }
-.feat-btn-details { display:flex; align-items:center; justify-content:center; gap:.4rem; padding:.55rem 0; border-radius:10px; font-size:.83rem; font-weight:600; background:#f8fafc; border:1.5px solid #e2e8f0; color:#475569; text-decoration:none; transition:background .15s,border-color .15s,transform .15s,box-shadow .15s; }
+.match-why { display:flex; gap:.5rem; align-items:flex-start; padding:.6rem .8rem; margin-bottom:.7rem; background:#f0f7ff; border:1px solid #dbeafe; border-radius:10px; font-size:.84rem; color:#1e3a5f; }
+.match-why i { color:#2563eb; margin-top:.1rem; }
+.feat-footer { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); justify-content:center; gap:.6rem; margin-top:.85rem; padding-top:.8rem; border-top:1px solid #f1f5f9; }
+.feat-btn-details { display:flex; align-items:center; justify-content:center; gap:.4rem; padding:.62rem 0; border-radius:10px; font-size:.9rem; font-weight:600; background:#f8fafc; border:1.5px solid #e2e8f0; color:#475569; text-decoration:none; transition:background .15s,border-color .15s,transform .15s,box-shadow .15s; }
 .feat-btn-details:hover { background:#f1f5f9; border-color:#94a3b8; color:#1e293b; transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.07); }
-#featured-inner .btn-success { display:flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important; width:100% !important; padding:.55rem 0 !important; border-radius:10px !important; font-size:.83rem !important; font-weight:600 !important; background:linear-gradient(135deg,#22c55e,#15803d) !important; border:none !important; color:#fff !important; box-shadow:0 3px 10px rgba(22,163,74,.3) !important; transition:transform .15s,box-shadow .15s !important; }
+#featured-inner .btn-success { display:flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important; width:100% !important; padding:.62rem 0 !important; border-radius:10px !important; font-size:.9rem !important; font-weight:600 !important; background:linear-gradient(135deg,#22c55e,#15803d) !important; border:none !important; color:#fff !important; box-shadow:0 3px 10px rgba(22,163,74,.3) !important; transition:transform .15s,box-shadow .15s !important; }
+#featured-inner .feat-footer .badge { display:flex !important; align-items:center; justify-content:center; gap:.4rem; width:100%; padding:.62rem 0 !important; border-radius:10px; font-size:.9rem !important; font-weight:600; }
 #featured-inner .btn-success:hover { transform:translateY(-1px) !important; box-shadow:0 6px 16px rgba(22,163,74,.4) !important; }
-#featured-inner .btn-secondary:disabled { display:flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important; width:100% !important; padding:.55rem 0 !important; border-radius:10px !important; font-size:.83rem !important; font-weight:600 !important; background:#f1f5f9 !important; color:#94a3b8 !important; border:1.5px solid #e2e8f0 !important; white-space:nowrap !important; }
+#featured-inner .btn-secondary:disabled { display:flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important; width:100% !important; padding:.62rem 0 !important; border-radius:10px !important; font-size:.9rem !important; font-weight:600 !important; background:#f1f5f9 !important; color:#94a3b8 !important; border:1.5px solid #e2e8f0 !important; white-space:nowrap !important; }
 /* Strip */
 .strip-outer { overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
 .strip-outer::-webkit-scrollbar { height: 8px; }
 .strip-outer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 6px; }
 .strip-outer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
 .strip-outer::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-.strip-track { padding: 4px 2px 2px; }
-.strip-card { width: 130px; min-height: 115px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; padding: .6rem .65rem .5rem; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; position: relative; overflow: hidden; flex-shrink: 0; scroll-snap-align: start; }
-.strip-card:hover { border-color: #93c5fd; box-shadow: 0 4px 12px rgba(37,99,235,.13); transform: translateY(-2px); }
-.strip-card.strip-active { border-color: #2563eb !important; box-shadow: 0 4px 16px rgba(37,99,235,.22) !important; background: #f0f7ff !important; }
+.strip-track { padding: 6px 6px 8px; gap: 1rem !important; }
+.strip-card { width: 140px; min-height: 118px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: .65rem .7rem .55rem; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease, background .15s ease; position: relative; overflow: hidden; flex-shrink: 0; scroll-snap-align: start; }
+.strip-card:hover { border-color: #93c5fd; transform: translateY(-2px); }
+.strip-card.strip-active { border: 2px solid #2563eb !important; padding: calc(.65rem - 1px) calc(.7rem - 1px) calc(.55rem - 1px); box-shadow: 0 0 0 4px rgba(37,99,235,.14), 0 8px 20px rgba(37,99,235,.22) !important; background: linear-gradient(180deg,#f5f9ff,#eaf2ff) !important; transform: translateY(-2px); }
 .strip-indicator { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 10px 10px; }
+.reco-nav { display:flex; align-items:center; justify-content:center; gap:.75rem; margin-top:auto; }
+.reco-nav-btn { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; height:40px; padding:0 1.15rem; border-radius:10px; border:1.5px solid #e2e8f0; background:#fff; color:#1e293b; font-size:.88rem; font-weight:600; line-height:1; cursor:pointer; transition:background .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s; }
+.reco-nav-btn:hover:not(:disabled) { background:#f0f7ff; border-color:#2563eb; color:#1d4ed8; box-shadow:0 3px 10px rgba(37,99,235,.15); transform:translateY(-1px); }
+.reco-nav-btn:disabled { opacity:.45; cursor:not-allowed; background:#f8fafc; color:#94a3b8; }
+.reco-nav-count { display:inline-flex; align-items:center; justify-content:center; height:40px; min-width:84px; padding:0 .9rem; border-radius:10px; background:#f1f5f9; color:#475569; font-size:.85rem; font-weight:600; }
 .reco-title { font-size: 1.6rem; }
+/* Fill the screen exactly: the card grows to take any spare height, so no empty space is left below */
+@media (min-width: 576px) {
+  .reco-fill { display:flex; flex-direction:column; min-height: calc(100vh - 54px - 2.5rem); }
+  .reco-card-wrap { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
+  .reco-card-wrap > .feat-card { flex:1 1 auto; display:flex; flex-direction:column; }
+  .reco-card-wrap > .feat-card > .card-body { flex:1 1 auto; display:flex; flex-direction:column; }
+  #featured-inner { display:flex; flex-direction:column; }
+  #featured-inner .feat-body-inner { flex:1 1 auto; display:flex; flex-direction:column; }
+  #featured-inner .feat-body-inner > .apply-note-wrap { margin-top:auto; }
+}
+/* Keep the whole recommendation view inside one screen (no page scroll) */
+@media (min-width: 576px) {
+  .strip-outer { margin-bottom: .75rem !important; }
+  .feat-card { margin-bottom: .6rem !important; }
+  .reco-nav { padding-bottom: .25rem; }
+}
+@media (min-width: 576px) and (min-height: 901px) {
+  .strip-outer { margin-bottom: 1rem !important; }
+}
+@media (min-width: 576px) and (max-height: 900px) {
+  .strip-card { min-height: 100px; padding-top: .45rem; padding-bottom: .4rem; }
+  .feat-header-band { padding: .8rem 1.4rem .75rem; }
+  .feat-body-inner { padding: .8rem 1.4rem .9rem; }
+  .match-grid { padding-top: .32rem; padding-bottom: .32rem; }
+  .feat-footer { margin-top: .6rem; padding-top: .6rem; }
+  #featured-inner .btn-success, #featured-inner .feat-btn-details, #featured-inner .feat-footer .badge { padding-top: .5rem !important; padding-bottom: .5rem !important; }
+  .reco-nav-btn, .reco-nav-count { height: 34px; }
+}
+@media (min-width: 576px) and (max-height: 800px) {
+  .strip-card { min-height: 88px; }
+  .strip-card .mb-1 { margin-bottom: .15rem !important; }
+  .feat-header-band { padding: .6rem 1.4rem .55rem; }
+  .feat-body-inner { padding: .6rem 1.4rem .7rem; }
+  .feat-body-inner > div:first-child { margin-bottom: .55rem !important; }
+  .match-grid { padding-top: .2rem; padding-bottom: .2rem; }
+  .match-row { margin-bottom: .15rem; }
+  .feat-footer { margin-top: .45rem; padding-top: .45rem; }
+  .strip-outer { margin-bottom: .5rem !important; }
+}
 .reco-title + p { color: #475569 !important; font-size: .95rem; margin-top: .25rem; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-  <h4 class="fw-bold mb-0 reco-title">My Job Recommendations</h4>
-  <p class="text-muted small">Generate job recommendations from your profile, pick a job you're interested in, and click Apply to get your referral slip instantly.</p>
-</div>
-
 {% if not ap %}
 <div class="alert alert-warning">Profile not found. Contact PESO admin.</div>
 {% elif identity_ok and profile_ok and not pipeline_loaded %}
@@ -138,18 +197,28 @@
 </div>
 
 {% elif results %}
+<div class="reco-fill">
 
-{% if has_active_referral %}
-<div class="alert alert-warning d-flex gap-2 mb-4">
+<!-- Apply/limit notice (rendered inside Match Details by JS) -->
+<div hidden id="apply-note">
+{% if at_referral_limit %}
+<div class="alert alert-warning d-flex gap-2 mb-0">
   <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-  <span class="small">You have an active referral for <strong>{{ active_referral.job_title }}</strong>. You can only hold one referral at a time. To apply to a different job, withdraw it from My Applications first.</span>
+  <span class="small">You have {{ active_referral_count }} of {{ max_active_referrals }} active applications. To apply to a different job, withdraw one from My Applications first.</span>
 </div>
 {% else %}
-<div class="alert alert-info d-flex gap-2 mb-4">
+<div class="alert alert-info d-flex gap-2 mb-0">
   <i class="bi bi-info-circle-fill flex-shrink-0"></i>
   <span class="small">Click <strong>Apply</strong> on a job you're interested in. Your referral slip will be generated immediately.</span>
 </div>
 {% endif %}
+{% if hidden_count %}
+<div class="alert alert-secondary d-flex gap-2 mt-2 mb-0">
+  <i class="bi bi-eye-slash-fill flex-shrink-0"></i>
+  <span class="small">{{ hidden_count }} job{{ 's' if hidden_count != 1 }} hidden because you don't yet meet the required education or experience.</span>
+</div>
+{% endif %}
+</div>
 
 <!-- No-match alert -->
 {% set matched_count = results | selectattr('title_score', 'gt', 0) | list | length %}
@@ -163,26 +232,6 @@
 </div>
 {% endif %}
 
-<!-- Featured card (populated by JS) -->
-<div class="px-3 px-md-4">
-  <div class="card feat-card mb-3">
-    <div class="card-body p-4" id="featured-inner"></div>
-  </div>
-</div>
-
-<!-- Prev / Next navigation -->
-<div class="d-flex justify-content-center mb-3">
-  <div class="d-flex align-items-center gap-2">
-    <button id="btn-prev" onclick="stepVacancy(-1)" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius:8px;font-size:.82rem;padding:.38rem .9rem;">
-      <i class="bi bi-arrow-left"></i> Previous
-    </button>
-    <span id="nav-indicator" class="text-muted" style="font-size:.78rem;min-width:48px;text-align:center;"></span>
-    <button id="btn-next" onclick="stepVacancy(1)" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius:8px;font-size:.82rem;padding:.38rem .9rem;">
-      Next <i class="bi bi-arrow-right"></i>
-    </button>
-  </div>
-</div>
-
 <!-- Strip label -->
 <div class="d-flex align-items-center justify-content-between mb-2">
   <div class="text-muted fw-semibold" style="font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;">
@@ -195,8 +244,8 @@
 </div>
 
 <!-- Horizontal scrollable strip -->
-<div class="strip-outer mb-5">
-  <div class="strip-track d-flex gap-2">
+<div class="strip-outer mb-4">
+  <div class="strip-track d-flex">
     {% for vac in results %}
     {% set score_pct = (vac.suitability_score * 100)|round(0)|int %}
     <div class="strip-card" data-idx="{{ loop.index0 }}" onclick="showVacancy({{ loop.index0 }})">
@@ -213,6 +262,20 @@
     </div>
     {% endfor %}
   </div>
+</div>
+
+<!-- Featured card (populated by JS) -->
+<div class="reco-card-wrap">
+  <div class="card feat-card mb-3">
+    <div class="card-body p-4" id="featured-inner"></div>
+  </div>
+</div>
+
+<!-- Prev / Next navigation -->
+<div class="reco-nav">
+  <button id="btn-prev" onclick="stepVacancy(-1)" class="reco-nav-btn"><i class="bi bi-arrow-left"></i> Previous</button>
+  <span id="nav-indicator" class="reco-nav-count"></span>
+  <button id="btn-next" onclick="stepVacancy(1)" class="reco-nav-btn">Next <i class="bi bi-arrow-right"></i></button>
 </div>
 
 <!-- Hidden pre-rendered refer buttons (swapped in by JS) -->
@@ -239,7 +302,7 @@ function showVacancy(idx) {
   setTimeout(function(){
     var v   = VACANCIES[idx];
     var pct = Math.round(v.suitability_score * 100);
-    var scoreColor = pct>=60 ? '#22c55e' : pct>=35 ? '#f59e0b' : '#ef4444';
+    var scoreColor = pct>=60 ? '#4ade80' : pct>=35 ? '#fbbf24' : '#f87171';
     var barCls     = pct>=60 ? 'bg-success' : pct>=35 ? 'bg-warning' : 'bg-danger';
 
     // Rank + alt badges
@@ -259,40 +322,30 @@ function showVacancy(idx) {
     // Match rows (You vs Required) with colored left-border accents
     var rows = '';
     if (v.fields && v.fields.length) {
-      // Column header (hidden on mobile via CSS)
-      rows = '<div class="match-col-hdr">'
-        +'<div style="width:72px;"></div>'
-        +'<div style="width:92px;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">Score</div>'
-        +'<div style="flex:1;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;padding-left:6px;">Your Profile</div>'
-        +'<div style="flex:1;font-size:.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;padding-left:10px;border-left:1px solid #e2e8f0;">Vacancy Requires</div>'
+      // Column header (hidden on mobile via CSS) - same grid as the rows so columns line up
+      rows = '<div class="match-grid match-col-hdr">'
+        +'<div></div><div>Score</div><div class="mc-you">Your Profile</div><div class="mc-req">Vacancy Requires</div>'
         +'</div>';
       v.fields.forEach(function(f){
         var p   = Math.round(f.score * 100);
         var cls = p>=80 ? 'hi' : p>=50 ? 'mid' : 'lo';
         var bc  = p>=80 ? 'bg-success' : p>=50 ? 'bg-warning' : 'bg-danger';
         var sc  = p>=80 ? '#16a34a'    : p>=50 ? '#d97706'    : '#dc2626';
-        var ic  = p>=80 ? '<i class="bi bi-check-circle-fill" style="color:#22c55e;font-size:.75rem;"></i>'
-                : p>=50 ? '<i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;font-size:.75rem;"></i>'
-                :         '<i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:.75rem;"></i>';
+        var ic  = p>=80 ? '<i class="bi bi-check-circle-fill" style="color:#22c55e;font-size:.82rem;"></i>'
+                : p>=50 ? '<i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;font-size:.82rem;"></i>'
+                :         '<i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:.82rem;"></i>';
         rows +=
-          '<div class="match-row '+cls+'">'
-          // label
-          +'<div style="width:72px;font-size:.73rem;color:#64748b;flex-shrink:0;font-weight:500;">'+_e(f.label)+'</div>'
-          // score bar + pct + icon
-          +'<div style="display:flex;align-items:center;gap:3px;width:92px;flex-shrink:0;">'
-          +'<div style="flex:1;height:5px;border-radius:3px;background:#e2e8f0;overflow:hidden;">'
-          +'<div class="progress-bar '+bc+'" data-w="'+p+'%" style="height:100%;width:0%;transition:width .55s ease;"></div>'
+          '<div class="match-grid match-row '+cls+'">'
+          +'<div class="mc-label">'+_e(f.label)+'</div>'
+          +'<div class="mc-score">'
+          +'<div class="mc-bar"><div class="progress-bar '+bc+'" data-w="'+p+'%" style="height:100%;width:0%;transition:width .55s ease;"></div></div>'
+          +'<span class="mc-pct" style="color:'+sc+';">'+p+'%</span>'
+          +'<span class="mc-ico">'+ic+'</span>'
           +'</div>'
-          +'<span style="font-size:.7rem;font-weight:700;color:'+sc+';width:24px;text-align:right;flex-shrink:0;">'+p+'%</span>'
-          +'<span style="width:16px;text-align:center;flex-shrink:0;">'+ic+'</span>'
-          +'</div>'
-          // values row (side-by-side on desktop, stacked on mobile)
+          // values (side-by-side on desktop, stacked on mobile); long text is cut with an ellipsis, full text in the tooltip
           +'<div class="match-val-row">'
-          +'<div class="match-val-you" style="flex:1;min-width:0;padding:0 4px 0 6px;font-size:.77rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.ap_val)+'">'
-          +'<span class="match-val-prefix">You</span>'+_e(f.ap_val)+'</div>'
-          +'<div class="match-val-sep" style="width:1px;background:#e2e8f0;align-self:stretch;flex-shrink:0;"></div>'
-          +'<div class="match-val-req" style="flex:1;min-width:0;padding:0 4px 0 10px;font-size:.77rem;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+_e(f.vac_val)+'">'
-          +'<span class="match-val-prefix">Required</span>'+_e(f.vac_val)+'</div>'
+          +'<div class="mc-val mc-you" title="'+_e(f.ap_val)+'"><span class="match-val-prefix">You</span>'+_e(f.ap_val)+'</div>'
+          +'<div class="mc-val mc-req" title="'+_e(f.vac_val)+'"><span class="match-val-prefix">Required</span>'+_e(f.vac_val)+'</div>'
           +'</div>'
           +'</div>';
       });
@@ -303,11 +356,16 @@ function showVacancy(idx) {
     // Qualification / warning footer
     var warns = '';
     if (v.warns_list && v.warns_list.length) {
-      v.warns_list.forEach(function(w){ warns += '<div class="reco-warn" style="font-size:.77rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>'+_e(w)+'</div>'; });
+      v.warns_list.forEach(function(w){ warns += '<div class="reco-warn" style="font-size:.84rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>'+_e(w)+'</div>'; });
     } else if (v.qualified) {
-      warns = '<div style="font-size:.77rem;color:#16a34a;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>';
+      warns = '<div style="font-size:.84rem;color:#16a34a;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>';
     }
 
+    var why = v.explanation
+      ? '<div class="match-why"><i class="bi bi-lightbulb-fill"></i><span>'+_e(v.explanation)+'</span></div>' : '';
+
+    var noteEl    = document.getElementById('apply-note');
+    var noteHtml  = noteEl ? noteEl.innerHTML : '';
     var referEl   = document.getElementById('refer-btn-'+v.vacancy_id);
     var referHtml = referEl ? referEl.innerHTML : '';
 
@@ -327,10 +385,10 @@ function showVacancy(idx) {
       +'</div></div>'
       // right: score box
       +'<div class="feat-score-box" style="position:relative;z-index:1;">'
-      +'<div style="font-size:1.9rem;font-weight:800;color:'+scoreColor+';line-height:1;text-shadow:0 1px 4px rgba(0,0,0,.15);">'+pct+'%</div>'
-      +'<div style="font-size:.58rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.07em;margin-top:.15rem;">Match</div>'
-      +'<div style="height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin-top:.4rem;overflow:hidden;">'
-      +'<div class="progress-bar '+barCls+'" data-w="'+pct+'%" style="height:100%;width:0%;transition:width .7s ease;"></div>'
+      +'<div style="font-size:2rem;font-weight:800;color:'+scoreColor+';line-height:1;text-shadow:0 1px 6px rgba(0,0,0,.35);">'+pct+'%</div>'
+      +'<div style="font-size:.66rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.1em;margin-top:.25rem;">Match</div>'
+      +'<div style="height:7px;border-radius:4px;background:rgba(255,255,255,.3);margin-top:.5rem;overflow:hidden;">'
+      +'<div class="progress-bar" data-w="'+pct+'%" style="height:100%;width:0%;background:'+scoreColor+';border-radius:4px;box-shadow:0 0 6px '+scoreColor+';transition:width .7s ease;"></div>'
       +'</div></div>'
       +'</div></div>'
 
@@ -339,10 +397,11 @@ function showVacancy(idx) {
       // meta pills
       +(pills ? '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem;">'+pills+'</div>' : '')
       // match details section
-      +'<div style="font-size:.67rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">Match Details</div>'
-      +rows
-      // footer: warns + buttons
-      +(warns ? '<div style="margin-top:.8rem;padding-top:.75rem;border-top:1px solid #f1f5f9;margin-bottom:.1rem;">'+warns+'</div>' : '')
+      +'<div style="font-size:.72rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.55rem;">Match Details</div>'
+      +why
+      +(warns ? '<div style="margin-bottom:.7rem;">'+warns+'</div>' : '')
+      +'<div class="match-table">'+rows+'</div>'
+      +(noteHtml ? '<div class="apply-note-wrap" style="padding-top:1rem;">'+noteHtml+'</div>' : '')
       +'<div class="feat-footer">'
       +'<a href="'+_e(v.details_url)+'" class="feat-btn-details"><i class="bi bi-eye" style="font-size:.9rem;"></i>View Details</a>'
       +referHtml+'</div>'
@@ -386,6 +445,7 @@ function stepVacancy(dir) {
 
 document.addEventListener('DOMContentLoaded', function(){ if (VACANCIES.length) showVacancy(0); });
 </script>
+</div>
 
 {% else %}
 <div class="text-center py-5 text-muted">

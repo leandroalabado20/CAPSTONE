@@ -523,13 +523,10 @@
   <div class="card shadow-sm border-0 mb-3" style="border-radius:12px;">
     <div class="card-body p-3">
       <p class="fw-semibold sec-head mb-3">10 · Skills</p>
-      <label class="form-label fw-semibold small">Skills / Competencies <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5; used for recommendations)</span></label>
-      <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control mb-3 {% if not ap.skills %}border-danger{% endif %}"
+      <label class="form-label fw-semibold small">Skills / Competencies <span class="text-danger">*</span> <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 3; used for recommendations)</span></label>
+      <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control {% if not ap.skills %}border-danger{% endif %}"
                 data-ac-mode="token" autocomplete="off"
                 placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ (ap.skills or '').split(',') | map('trim') | reject('equalto','') | unique | join(', ') }}</textarea>
-
-      <label class="form-label fw-semibold small d-block">Other Skills Acquired Without Formal Training <span class="text-muted fw-normal" style="font-size:.7rem;">(up to 5)</span></label>
-      <input type="text" id="other-skills-input" name="other_skills_other" class="form-control form-control-sm" maxlength="120" data-ac-mode="token" autocomplete="off" placeholder="e.g. Driving, Cooking, Carpentry" />
     </div>
   </div>
 
@@ -694,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (el) el.value = d;
   }
   document.getElementById('loc-box').addEventListener('change', autoFillDistrict);
-  var SKILL_LIMIT = 5;
+  var SKILL_LIMIT = 3;
   function addChip(targetId, text) {
     var ta = document.getElementById(targetId);
     var parts = ta.value.trim() ? ta.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
@@ -738,13 +735,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   })();
 
-  // Other skills autocomplete
-  (function () {
-    var ta = document.getElementById('other-skills-input');
-    if (!ta || !window.PesoAC) return;
-    var OTHER = {{ other_skills_choices | tojson }};
-    window.PesoAC.attach(ta, function () { return OTHER; });
-  })();
   // Education rows: Course only for Vocational / College / Post-Graduate; Year is a dropdown.
   // edu_course[] stays in the DOM (just hidden) so the parallel edu_* arrays keep their alignment.
   var COURSE_LEVELS = /^(Vocational|College|Post-Graduate)/;
@@ -1026,7 +1016,6 @@ document.addEventListener('DOMContentLoaded', function () {
     empToggle();
     ofwToggle();
     initEligRows();
-    limitOtherSkills();
   });
 
   // ── Draft autosave: keeps unsaved edits across refresh / failed saves (sessionStorage, cleared on a successful save) ──
@@ -1111,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         if (!pending) break;
       }
-      ['empToggle', 'ofwToggle', 'workPrefToggle', 'limitOtherSkills', 'autoFillDistrict', 'initEligRows'].forEach(function (fn) {
+      ['empToggle', 'ofwToggle', 'workPrefToggle', 'autoFillDistrict', 'initEligRows'].forEach(function (fn) {
         try { window[fn](); } catch (e) {}
       });
       var box = document.querySelector('[data-location]'), d = draft.data;

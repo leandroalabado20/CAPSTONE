@@ -527,6 +527,7 @@
       <textarea name="skills" id="skills-input" rows="2" maxlength="255" class="form-control {% if not ap.skills %}border-danger{% endif %}"
                 data-ac-mode="token" autocomplete="off"
                 placeholder="e.g. Customer Service, Cashiering, Computer Literacy">{{ (ap.skills or '').split(',') | map('trim') | reject('equalto','') | unique | join(', ') }}</textarea>
+      <div class="form-text"><i class="bi bi-info-circle me-1"></i>Type a skill then add a <strong>comma (,)</strong> to add another. Maximum of 3 skills.</div>
     </div>
   </div>
 

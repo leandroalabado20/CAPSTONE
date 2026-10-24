@@ -69,7 +69,7 @@
 .mc-bar { flex:1; height:6px; border-radius:3px; background:#e2e8f0; overflow:hidden; }
 .mc-pct { width:40px; white-space:nowrap; text-align:right; font-size:.78rem; font-weight:700; flex-shrink:0; }
 .mc-ico { width:16px; text-align:center; flex-shrink:0; }
-.mc-val { min-width:0; font-size:.84rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mc-val { min-width:0; font-size:.84rem; white-space:normal; overflow-wrap:anywhere; word-break:break-word; }
 .mc-you { color:#1e293b; }
 .mc-req { color:#475569; padding-left:14px; border-left:1px solid #e2e8f0; }
 .match-col-hdr .mc-you, .match-col-hdr .mc-req { color:#94a3b8; }
@@ -213,8 +213,11 @@
 
 {% elif results %}
 
+{% set match_count = results | selectattr('is_position_match') | list | length %}
+{% set alt_count   = results | rejectattr('is_position_match') | list | length %}
+
 {% if cat_scores %}
-<div class="card mb-3" style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+<div id="cat-scores-card" class="card mb-3" style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;{% if match_count == 0 and alt_count %}display:none;{% endif %}">
   <div class="card-body p-3">
     <div class="d-flex align-items-center gap-2 mb-1">
       <i class="bi bi-graph-up-arrow" style="color:#2563eb;"></i>
@@ -261,35 +264,40 @@
 </div>
 
 <!-- No position-match alert -->
-{% set match_count = results | selectattr('is_position_match') | list | length %}
-{% set alt_count   = results | rejectattr('is_position_match') | list | length %}
-{% if match_count == 0 %}
+{% if match_count == 0 and alt_count %}
+<div id="alt-zero-banner" class="d-flex align-items-center justify-content-center" style="min-height:calc(100vh - 54px - 2.5rem);">
+  <div class="text-center px-3" style="max-width:420px;">
+    <div class="mx-auto mb-4 d-flex align-items-center justify-content-center"
+         style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#fff8e6,#fde4a0);">
+      <i class="bi bi-search-heart" style="font-size:2rem;color:#d97706;"></i>
+    </div>
+    <h6 class="fw-bold mb-2" style="color:#0f172a;font-size:1.05rem;">No vacancy available for "{{ ap.preferred_position or 'your preferred position' }}"</h6>
+    <p class="text-muted mb-4" style="font-size:.875rem;line-height:1.6;">There are <strong>{{ alt_count }} alternative job{{ 's' if alt_count != 1 }}</strong> that may still match your qualifications based on your skills, experience, and education.</p>
+    <button class="btn btn-warning fw-semibold px-4" onclick="showAltSection()" style="border-radius:8px;">
+      <i class="bi bi-layers me-1"></i>View Alternative Jobs ({{ alt_count }})
+    </button>
+  </div>
+</div>
+{% elif match_count == 0 %}
 <div class="alert d-flex gap-2 align-items-start mb-3" style="background:#fff8e6;border:1px solid #fde4a0;border-left:4px solid #f59e0b;border-radius:12px;color:#78490b;">
   <i class="bi bi-briefcase-x flex-shrink-0 mt-1" style="color:#d97706;"></i>
   <div>
-    <div class="fw-semibold">No available job vacancy for "{{ ap.preferred_position or 'your preferred position' }}"</div>
-    <div class="small mt-1">{% if alt_count %}There are alternative jobs that match your skills. Click below to view them.{% else %}There are currently no vacancies matching your profile.{% endif %}</div>
+    <div class="fw-semibold">No vacancy available for "{{ ap.preferred_position or 'your preferred position' }}"</div>
+    <div class="small mt-1">There are currently no vacancies matching your profile. Update your profile or check back when new vacancies are posted.</div>
   </div>
 </div>
-{% if alt_count %}
-<div class="text-center mb-3" id="btn-show-alt-zero-wrap">
-  <button id="btn-show-alt-zero" class="btn btn-sm btn-outline-secondary" onclick="showAltSection()">
-    <i class="bi bi-layers me-1"></i>Show Alternative Jobs ({{ alt_count }})
-  </button>
-</div>
-{% endif %}
 {% endif %}
 
 <!-- Strip label -->
-<div id="reco-main-section"{% if not match_count %} style="display:none"{% endif %}>
+<div id="reco-main-section"{% if match_count == 0 and alt_count %} style="display:none"{% endif %}>
 <div class="d-flex align-items-center justify-content-between mb-2">
   <div class="text-muted fw-semibold" style="font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;">
-    <i class="bi bi-list-ul me-1"></i>Job Matches (<span id="strip-count">{{ match_count if alt_count and match_count else results|length }}</span>)
+    <i class="bi bi-list-ul me-1"></i>
+    {% if match_count == 0 and alt_count %}Alternative Jobs{% else %}Job Matches{% endif %}
+    (<span id="strip-count">{{ results|length }}</span>)
   </div>
   <div class="small text-muted" style="font-size:.7rem;">
     <span class="me-2"><i class="bi bi-trophy-fill" style="color:#d97706;font-size:.65rem;"></i> Best Match</span>
-    <span class="me-2"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span> Position match</span>
-    {% if alt_count %}<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;"></span> Alternative</span>{% endif %}
   </div>
 </div>
 
@@ -299,8 +307,8 @@
     {% set ns = namespace(shown_divider=false) %}
     {% for vac in results %}
     {% set score_pct = (vac.suitability_score * 100)|round(0)|int %}
-    {% set is_best = loop.first %}
     {% set is_alt  = not vac.is_position_match %}
+    {% set is_best = loop.first and not is_alt %}
     <div class="strip-card {% if is_best %}strip-best{% elif is_alt %}strip-alt{% endif %}" data-idx="{{ loop.index0 }}" onclick="showVacancy({{ loop.index0 }})"{% if is_alt and match_count %} style="display:none"{% endif %}>
       <div class="d-flex align-items-center justify-content-between mb-1">
         <span class="fw-bold" style="font-size:.82rem;color:{% if score_pct >= 60 %}#16a34a{% elif score_pct >= 35 %}#d97706{% else %}#dc2626{% endif %};">{{ vac.suitability_pct }}</span>
@@ -370,7 +378,7 @@ function showVacancy(idx) {
     var barCls     = pct>=60 ? 'bg-success' : pct>=35 ? 'bg-warning' : 'bg-danger';
 
     // Rank + alt badges
-    var rankBadge = idx===0
+    var rankBadge = (idx===0 && !v.is_alternative)
       ? '<span class="badge" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:.72rem;padding:.38em .75em;"><i class="bi bi-trophy-fill me-1" style="color:#fde047;"></i>Best Match</span>'
       : '<span class="badge" style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.25);font-size:.72rem;padding:.38em .75em;">#'+(idx+1)+'</span>';
     var altTag = !v.is_position_match
@@ -391,6 +399,19 @@ function showVacancy(idx) {
         +'<div></div><div>Score</div><div class="mc-you">Your Profile</div><div class="mc-req">Vacancy Requires</div>'
         +'</div>';
       v.fields.forEach(function(f){
+        if (f.is_filter) {
+          // Pre-filter field (job title / preferred position) — show values only, no score pill
+          rows +=
+            '<div class="match-grid match-row" style="border-left-color:#94a3b8;">'
+            +'<div class="mc-label">'+_e(f.label)+'</div>'
+            +'<div></div>'
+            +'<div class="match-val-row">'
+            +'<div class="mc-val mc-you" title="'+_e(f.ap_val)+'"><span class="match-val-prefix">You</span>'+_e(f.ap_val)+'</div>'
+            +'<div class="mc-val mc-req" title="'+_e(f.vac_val)+'"><span class="match-val-prefix">Vacancy</span>'+_e(f.vac_val)+'</div>'
+            +'</div>'
+            +'</div>';
+          return;
+        }
         var p   = Math.round(f.score * 100);
         var cls = p>=80 ? 'hi' : p>=50 ? 'mid' : 'lo';
         var bc  = p>=80 ? 'bg-success' : p>=50 ? 'bg-warning' : 'bg-danger';
@@ -406,7 +427,6 @@ function showVacancy(idx) {
           +'<span class="mc-pct" style="color:'+sc+';">'+p+'%</span>'
           +'<span class="mc-ico">'+ic+'</span>'
           +'</div>'
-          // values (side-by-side on desktop, stacked on mobile); long text is cut with an ellipsis, full text in the tooltip
           +'<div class="match-val-row">'
           +'<div class="mc-val mc-you" title="'+_e(f.ap_val)+'"><span class="match-val-prefix">You</span>'+_e(f.ap_val)+'</div>'
           +'<div class="mc-val mc-req" title="'+_e(f.vac_val)+'"><span class="match-val-prefix">Required</span>'+_e(f.vac_val)+'</div>'
@@ -414,7 +434,7 @@ function showVacancy(idx) {
           +'</div>';
       });
     } else {
-      rows = '<div class="text-muted small fst-italic py-2">No specific requirements posted — scored by ML category and job title match.</div>';
+      rows = '<div class="text-muted small fst-italic py-2">No specific requirements posted for this vacancy.</div>';
     }
 
     // Qualification / warning footer
@@ -425,47 +445,57 @@ function showVacancy(idx) {
       warns = '<div style="font-size:.84rem;color:#16a34a;"><i class="bi bi-check-circle-fill me-1"></i>You meet the listed requirements</div>';
     }
 
-    var why = v.explanation
-      ? '<div class="match-why"><i class="bi bi-lightbulb-fill"></i><span>'+_e(v.explanation)+'</span></div>' : '';
-
     var noteEl    = document.getElementById('apply-note');
     var noteHtml  = noteEl ? noteEl.innerHTML : '';
     var referEl   = document.getElementById('refer-btn-'+v.vacancy_id);
     var referHtml = referEl ? referEl.innerHTML : '';
 
+    var band      = pct>=80 ? 'Strong' : pct>=50 ? 'Moderate' : 'Low';
+    var scoreBg   = pct>=80 ? '#f0fdf4' : pct>=50 ? '#fffbeb' : '#fff5f5';
+    var scoreBdr  = pct>=80 ? '#bbf7d0' : pct>=50 ? '#fde68a' : '#fecaca';
+
     inner.innerHTML =
-      // ── HEADER BAND: dark gradient with job identity + score ──
+      // ── HEADER BAND: dark gradient — identity only, no score box ──
       '<div class="feat-header-band">'
-      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;position:relative;z-index:1;">'
-      // left: icon + title/employer + badges
-      +'<div style="display:flex;gap:.85rem;align-items:center;min-width:0;">'
-      +'<div style="width:52px;height:52px;border-radius:13px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-      +'<i class="bi '+_e(v.icon)+'" style="font-size:1.45rem;color:#fff;"></i></div>'
-      +'<div style="min-width:0;">'
-      +'<div style="font-size:1.08rem;font-weight:700;color:#fff;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_e(v.title)+'</div>'
-      +'<div style="font-size:.83rem;color:rgba(255,255,255,.75);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+_e(v.employer)+'</div>'
-      +'<div style="font-size:.72rem;color:rgba(255,255,255,.55);">'+_e(v.category)+'</div>'
-      +'<div style="margin-top:.45rem;display:flex;gap:.3rem;flex-wrap:wrap;">'+rankBadge+altTag+'</div>'
+      +'<div style="display:flex;align-items:center;gap:.85rem;position:relative;z-index:1;">'
+      +'<div style="width:50px;height:50px;border-radius:12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+      +'<i class="bi '+_e(v.icon)+'" style="font-size:1.4rem;color:#fff;"></i></div>'
+      +'<div style="min-width:0;flex:1;">'
+      +'<div style="font-size:1.05rem;font-weight:700;color:#fff;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+_e(v.title)+'</div>'
+      +'<div style="font-size:.82rem;color:rgba(255,255,255,.78);margin-top:.1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+_e(v.employer)+'</div>'
+      +'<div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:.05rem;">'+_e(v.category)+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0;">'+rankBadge+altTag+'</div>'
       +'</div></div>'
-      // right: score box
-      +'<div class="feat-score-box" style="position:relative;z-index:1;">'
-      +'<div style="font-size:2rem;font-weight:800;color:'+scoreColor+';line-height:1;text-shadow:0 1px 6px rgba(0,0,0,.35);">'+pct+'%</div>'
-      +'<div style="font-size:.66rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.1em;margin-top:.25rem;">Match</div>'
-      +'<div style="height:7px;border-radius:4px;background:rgba(255,255,255,.3);margin-top:.5rem;overflow:hidden;">'
-      +'<div class="progress-bar" data-w="'+pct+'%" style="height:100%;width:0%;background:'+scoreColor+';border-radius:4px;box-shadow:0 0 6px '+scoreColor+';transition:width .7s ease;"></div>'
-      +'</div></div>'
+
+      // ── SCORE BANNER ──
+      +'<div style="background:'+scoreBg+';border-bottom:1px solid '+scoreBdr+';padding:.75rem 1.4rem;">'
+      +'<div style="display:flex;align-items:center;gap:.85rem;">'
+      +'<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;min-width:72px;">Suitability</div>'
+      +'<div style="font-size:1.55rem;font-weight:800;color:'+scoreColor+';line-height:1;min-width:52px;">'+pct+'%</div>'
+      +'<div style="flex:1;height:9px;background:#e2e8f0;border-radius:5px;overflow:hidden;">'
+      +'<div class="progress-bar" data-w="'+pct+'%" style="height:100%;width:0%;background:'+scoreColor+';border-radius:5px;transition:width .7s ease;"></div>'
+      +'</div>'
+      +'<div style="font-size:.82rem;font-weight:600;color:'+scoreColor+';min-width:88px;text-align:right;">'+band+' match</div>'
       +'</div></div>'
 
       // ── BODY ──
       +'<div class="feat-body-inner">'
+
       // meta pills
-      +(pills ? '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem;">'+pills+'</div>' : '')
-      // match details section
-      +'<div style="font-size:.72rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.55rem;">Match Details</div>'
-      +why
-      +(warns ? '<div style="margin-bottom:.7rem;">'+warns+'</div>' : '')
+      +(pills ? '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem;">'+pills+'</div>' : '')
+
+      // match breakdown section
+      +'<div style="font-size:.68rem;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">Match Breakdown</div>'
       +'<div class="match-table">'+rows+'</div>'
-      +(noteHtml ? '<div class="apply-note-wrap" style="padding-top:1rem;">'+noteHtml+'</div>' : '')
+
+      // requirements status + apply note
+      +'<div class="apply-note-wrap" style="padding-top:.85rem;">'
+      +(warns ? '<div style="margin-bottom:.6rem;">'+warns+'</div>' : '')
+      +(noteHtml ? noteHtml : '')
+      +'</div>'
+
+      // action buttons
       +'<div class="feat-footer">'
       +'<a href="'+_e(v.details_url)+'" class="feat-btn-details"><i class="bi bi-eye" style="font-size:.9rem;"></i>View Details</a>'
       +referHtml+'</div>'
@@ -541,10 +571,12 @@ function toggleAlternatives() {
 }
 
 function showAltSection() {
+  var banner = document.getElementById('alt-zero-banner');
+  if (banner) banner.parentNode.removeChild(banner);
+  var catCard = document.getElementById('cat-scores-card');
+  if (catCard) catCard.style.display = '';
   var section = document.getElementById('reco-main-section');
-  var zeroWrap = document.getElementById('btn-show-alt-zero-wrap');
-  if (section) section.style.display = '';
-  if (zeroWrap) zeroWrap.style.display = 'none';
+  if (section) { section.style.display = ''; section.style.removeProperty('display'); }
   if (VACANCIES.length) showVacancy(0);
 }
 
@@ -560,12 +592,26 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 
 {% else %}
-<div class="text-center py-5 text-muted">
-  <i class="bi bi-briefcase-x" style="font-size:2.5rem;opacity:.25;"></i>
-  <p class="mt-3 fw-semibold">No job matched your profile at this time.</p>
-  <p class="small">There are currently no vacancies that match your preferred position or skills.<br>
-  Update your profile or check back when new vacancies are posted.</p>
-  <a href="{{ url_for('jobseeker_profile') }}" class="btn btn-primary">Update Profile</a>
+<div class="d-flex align-items-center justify-content-center" style="min-height:calc(100vh - 54px - 2.5rem);">
+  <div class="text-center px-3" style="max-width:420px;">
+    <div class="mx-auto mb-4 d-flex align-items-center justify-content-center"
+         style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#f1f5f9,#e2e8f0);">
+      <i class="bi bi-person-slash" style="font-size:2rem;color:#64748b;"></i>
+    </div>
+    <h6 class="fw-bold mb-2" style="color:#0f172a;font-size:1.05rem;">No jobs matched your profile</h6>
+    <p class="text-muted mb-4" style="font-size:.875rem;line-height:1.6;">
+      There are currently no vacancies that match your preferred position or qualifications.
+      Keep your profile up to date or check back when new vacancies are posted.
+    </p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <a href="{{ url_for('jobseeker_profile') }}" class="btn btn-primary btn-sm fw-semibold px-4" style="border-radius:8px;">
+        <i class="bi bi-person-gear me-1"></i>Update Profile
+      </a>
+      <a href="{{ url_for('jobseeker_jobs') }}" class="btn btn-outline-secondary btn-sm fw-semibold px-4" style="border-radius:8px;">
+        <i class="bi bi-search me-1"></i>Browse All Jobs
+      </a>
+    </div>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

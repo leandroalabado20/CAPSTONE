@@ -55,9 +55,6 @@
             <div class="fw-semibold">{{ r.job_title }}</div>
             <div class="text-muted small">{{ r.employer_name }}</div>
           </td>
-          <td>
-            <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.74rem;">{{ r.occupational_category }}</span>
-          </td>
           <td class="text-muted small" style="white-space:nowrap;">{{ r.referred_at|friendly_dt }}</td>
           <td>
             {% if r.status == 'cancelled' %}

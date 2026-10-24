@@ -20,7 +20,6 @@
           <h3 class="fw-bold mb-1">{{ v.job_title }}</h3>
           <div class="text-muted">{{ v.e_company or v.employer_name }}</div>
           <div class="mt-2">
-            <span class="badge bg-primary-subtle text-primary-emphasis">{{ v.occupational_category }}</span>
             {% set li = loc_info(v) %}<span class="badge {{ li.css }}"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.label }}</span>
             {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis">Applications closed</span>{% endif %}
           </div>

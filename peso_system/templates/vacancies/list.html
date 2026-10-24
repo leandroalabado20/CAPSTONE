@@ -82,9 +82,6 @@
           <td><strong>{{ v.employer_name }}</strong></td>
           <td>{{ v.job_title }}</td>
           <td>
-            <span class="badge bg-primary-subtle text-primary-emphasis">{{ v.occupational_category }}</span>
-          </td>
-          <td>
             {% set li = loc_info(v) %}<span class="badge {{ li.css }}">{{ li.short }}</span>
           </td>
           <td>
@@ -138,8 +135,7 @@
         </div>
         {% set li = loc_info(v) %}
         <div class="mb-2">
-          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.72rem;">{{ v.occupational_category }}</span>
-          <span class="badge {{ li.css }} ms-1" style="font-size:.72rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
+          <span class="badge {{ li.css }}" style="font-size:.72rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
           {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis ms-1" style="font-size:.72rem;">Expired</span>{% endif %}
         </div>
         <div class="text-muted mb-2" style="font-size:.78rem;"><i class="bi bi-calendar3 me-1"></i>Posted {{ v.created_at|friendly_date }}</div>

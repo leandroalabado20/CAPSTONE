@@ -176,7 +176,7 @@
 {% if not ap %}
 <div class="alert alert-warning">Profile not found. Contact PESO admin.</div>
 {% elif identity_ok and profile_ok and not pipeline_loaded %}
-<div class="alert alert-danger">The ML recommendation engine is currently unavailable.</div>
+<div class="alert alert-danger">Recommendations are currently unavailable. Please try again later or contact PESO admin.</div>
 {% elif not (identity_ok and profile_ok) or not generated %}
 
 <div class="card reco-intro mb-4" style="border-radius:12px;">
@@ -221,10 +221,9 @@
   <div class="card-body p-3">
     <div class="d-flex align-items-center gap-2 mb-1">
       <i class="bi bi-graph-up-arrow" style="color:#2563eb;"></i>
-      <span class="fw-semibold" style="font-size:.9rem;color:#0f172a;">Historical Category Fit</span>
-      <span class="ms-auto badge" style="background:#f1f5f9;color:#64748b;font-size:.68rem;font-weight:500;border-radius:6px;">ML Insight</span>
+      <span class="fw-semibold" style="font-size:.9rem;color:#0f172a;">Category Fit</span>
     </div>
-    <div class="text-muted mb-3" style="font-size:.8rem;">Based on PESO CSJDM historical placement data, profiles similar to yours have been placed in:</div>
+    <div class="text-muted mb-3" style="font-size:.8rem;">Based on your profile, here is how your qualifications match each job category:</div>
     {% for cat in cat_scores %}
     {% set pct = (cat.score * 100) | round(1) %}
     <div class="d-flex align-items-center gap-2 mb-2">

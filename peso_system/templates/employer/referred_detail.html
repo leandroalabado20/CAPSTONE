@@ -9,7 +9,7 @@
   </div>
   <div class="d-flex align-items-center gap-2">
     {% if r.score is not none %}
-    <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.8rem;">ML match {{ '%.0f'|format(r.score * 100) }}%</span>
+    <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.8rem;">Match score {{ '%.0f'|format(r.score * 100) }}%</span>
     {% endif %}
     {% if r.ref_status == 'cancelled' %}
     <span class="badge bg-danger-subtle text-danger-emphasis">Withdrawn</span>

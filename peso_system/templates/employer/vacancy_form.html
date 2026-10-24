@@ -22,39 +22,12 @@
               {% for p in positions %}<option value="{{ p }}">{% endfor %}
             </datalist>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Occupational Category <span class="text-danger">*</span></label>
-            {% set cat_val = (vacancy.occupational_category if vacancy and vacancy.occupational_category else '') %}
-            {% set is_other = cat_val and (cat_val == 'Others' or cat_val not in categories) %}
-            <select name="occupational_category" id="occ-cat" class="form-select" required>
-              <option value="">-- Select Category --</option>
-              {% for cat in categories %}
-              <option value="{{ cat }}"
-                {% if cat_val == cat %}selected{% endif %}>
-                {{ cat }}
-              </option>
-              {% endfor %}
-              <option value="Others" {% if is_other %}selected{% endif %}>Others (specify)</option>
-            </select>
-            <input type="text" name="occupational_category_other" id="occ-cat-other" maxlength="60"
-                   class="form-control mt-2 {% if not is_other %}d-none{% endif %}" placeholder="Type the occupational category"
-                   value="{{ (vacancy.occupational_category_other if cat_val == 'Others' and vacancy.occupational_category_other is defined else (cat_val if is_other and cat_val != 'Others' else '')) }}"
-                   {% if not is_other %}disabled{% endif %} />
-            <script>
-              (function () {
-                var sel = document.getElementById('occ-cat'), other = document.getElementById('occ-cat-other');
-                function sync() { var on = sel.value === 'Others'; other.classList.toggle('d-none', !on); other.disabled = !on; other.required = on; if (on) other.focus(); }
-                sel.addEventListener('change', sync); other.classList.contains('d-none') || (other.required = true);
-              })();
-            </script>
-            <div class="form-text">This determines which jobseekers will be matched to this vacancy.</div>
-          </div>
           <div class="mb-4">
             <label class="form-label fw-semibold d-block" for="job-location">Job Location</label>
             <input type="text" name="job_location" id="job-location" class="form-control" maxlength="120"
                    value="{{ vacancy.job_location if vacancy and vacancy.job_location else '' }}"
                    placeholder="e.g. Brgy. Tungkong Mangga, City of San Jose del Monte, or Dubai, UAE" />
-            <div class="form-text">Where the job is based (city, province or country). We detect whether it is Local, Outside CSJDM or Overseas from this. Jobseekers whose preferred work location matches are surfaced higher within the matched category.</div>
+            <div class="form-text">Where the job is based (city, province or country). We detect whether it is Local, Outside CSJDM or Overseas from this. Jobseekers whose preferred work location matches are ranked higher.</div>
             <div id="loc-hint" class="form-text d-none"><i class="bi bi-geo-alt me-1"></i><span id="loc-hint-text"></span></div>
             <script>
               (function () {

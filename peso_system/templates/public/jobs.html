@@ -12,14 +12,8 @@
   <form method="GET" action="{{ url_for('public_jobs') }}" class="d-flex gap-2 flex-wrap mb-4">
     <input type="text" name="search" value="{{ search }}"
            class="form-control" style="max-width:260px;" placeholder="Search jobs…" />
-    <select name="category" class="form-select" style="max-width:240px;">
-      <option value="">All Categories</option>
-      {% for cat in categories %}
-      <option value="{{ cat }}" {% if cat == category %}selected{% endif %}>{{ cat }}</option>
-      {% endfor %}
-    </select>
     <button type="submit" class="btn btn-outline-primary">Filter</button>
-    {% if search or category %}
+    {% if search %}
     <a href="{{ url_for('public_jobs') }}" class="btn btn-outline-secondary">Clear</a>
     {% endif %}
   </form>
@@ -40,10 +34,7 @@
               <div class="text-muted small text-truncate">{{ v.employer_name }}</div>
             </div>
           </div>
-          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.7rem;">
-            {{ v.occupational_category }}
-          </span>
-          {% set li = loc_info(v) %}<span class="badge {{ li.css }} ms-1" style="font-size:.7rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
+          {% set li = loc_info(v) %}<span class="badge {{ li.css }}" style="font-size:.7rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
           <div class="mt-2">{% with compact=true %}{% include '_vacancy_details.html' %}{% endwith %}</div>
         </div>
         <div class="card-footer bg-transparent border-top-0 pt-0 pb-3 px-3">

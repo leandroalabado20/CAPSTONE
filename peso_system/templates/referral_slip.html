@@ -71,7 +71,6 @@
   <dl class="row">
     <dt class="col-4">Position</dt><dd class="col-8">{{ r.job_title }}</dd>
     <dt class="col-4">Employer</dt><dd class="col-8">{{ r.employer_name }}</dd>
-    <dt class="col-4">Category</dt><dd class="col-8">{{ r.occupational_category }}</dd>
     {% if r.suitability_score is not none %}
     <dt class="col-4">Match Score</dt><dd class="col-8">{{ '%.1f'|format(r.suitability_score * 100) }}%</dd>
     {% endif %}

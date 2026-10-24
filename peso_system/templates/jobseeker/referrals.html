@@ -56,7 +56,6 @@
       <tr>
         <th class="px-3 py-2">Position</th>
         <th class="py-2">Employer</th>
-        <th class="py-2">Category</th>
         <th class="py-2">Match Score</th>
         <th class="py-2">Applied</th>
         <th class="py-2">Status</th>
@@ -68,9 +67,6 @@
       <tr>
         <td class="px-3 py-2 fw-semibold small">{{ r.job_title }}</td>
         <td class="py-2 small text-muted">{{ r.employer_name }}</td>
-        <td class="py-2">
-          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.65rem;">{{ r.occupational_category }}</span>
-        </td>
         <td class="py-2">
           {% if r.suitability_score is not none %}
           <span class="badge bg-info-subtle text-info-emphasis" style="font-size:.65rem;">{{ '%.0f'|format(r.suitability_score * 100) }}%</span>

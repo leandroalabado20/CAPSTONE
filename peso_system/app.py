@@ -796,12 +796,17 @@ def resolve_location_type(f):
     return detect_location_type(loc) or 'ph'
 
 
-def resolve_category(f):
-    """Occupational category from the form; 'Others' uses the typed-in category name."""
-    cat = (f.get('occupational_category') or '').strip()
-    if cat == 'Others':
-        cat = (f.get('occupational_category_other') or '').strip()[:60]
-    return cat
+def auto_predict_category(job_title):
+    """Predict occupational category from job title using the ML pipeline."""
+    if pipeline is None:
+        return 'General Services and Security'
+    try:
+        vec   = pipeline['vec']
+        model = pipeline['model']
+        idx   = int(model.predict(vec.transform([job_title.lower()]))[0])
+        return CATEGORIES.get(idx, 'General Services and Security')
+    except Exception:
+        return 'General Services and Security'
 
 
 def merge_required_skills(f):
@@ -1499,15 +1504,11 @@ def about():
 def public_jobs():
     db = get_db()
     search   = request.args.get('search', '').strip()
-    category = request.args.get('category', '')
     conds, params = [OPEN_VACANCY_SQL], []
     if search:
         conds.append('(job_title LIKE ? OR employer_name LIKE ?)')
         like = f'%{search}%'
         params += [like, like]
-    if category:
-        conds.append('occupational_category=?')
-        params.append(category)
     vacancies = db.execute(
         f'SELECT * FROM job_vacancies WHERE {" AND ".join(conds)} ORDER BY created_at DESC',
         params
@@ -1519,9 +1520,7 @@ def public_jobs():
                 "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
                 (me['applicant_id'],)).fetchall()}
             vacancies = [v for v in vacancies if v['vacancy_id'] in mine or meets_hard_requirements(v, me)]
-    return render_template('public/jobs.html', vacancies=vacancies,
-                           search=search, category=category,
-                           categories=CATEGORY_LIST)
+    return render_template('public/jobs.html', vacancies=vacancies, search=search)
 
 @app.route('/jobs/<int:vid>')
 def public_job_detail(vid):
@@ -2345,15 +2344,11 @@ def jobseeker_jobs():
     db       = get_db()
     ap       = _get_my_applicant()
     search   = request.args.get('search', '').strip()
-    category = request.args.get('category', '')
     conds, params = [OPEN_VACANCY_SQL], []
     if search:
         conds.append('(job_title LIKE ? OR employer_name LIKE ?)')
         like = f'%{search}%'
         params += [like, like]
-    if category:
-        conds.append('occupational_category=?')
-        params.append(category)
     vacancies = db.execute(
         f'SELECT * FROM job_vacancies WHERE {" AND ".join(conds)} ORDER BY created_at DESC', params
     ).fetchall()
@@ -2363,12 +2358,10 @@ def jobseeker_jobs():
             "SELECT vacancy_id FROM referrals WHERE applicant_id=? AND status != 'cancelled'",
             (ap['applicant_id'],)
         ).fetchall()}
-    # hide jobs whose mandatory education/experience the applicant doesn't meet (keep ones already applied to)
     vacancies = [v for v in vacancies if v['vacancy_id'] in applied_ids or meets_hard_requirements(v, ap)]
     profile_ok = bool(ap and ap['educ_level'] and ap['preferred_position'] and ap['skills'])
     return render_template('jobseeker/jobs.html', ap=ap, vacancies=vacancies,
-                           applied_ids=applied_ids, profile_ok=profile_ok,
-                           search=search, category=category, categories=CATEGORY_LIST)
+                           applied_ids=applied_ids, profile_ok=profile_ok, search=search)
 
 @app.route('/jobseeker/apply/<int:vid>/confirm')
 @jobseeker_required
@@ -2793,27 +2786,27 @@ def employer_vacancy_add():
     if request.method == 'POST':
         f = request.form
         req, err = parse_vacancy_requirements(f)
-        category = resolve_category(f)
         ltype = resolve_location_type(f)
+        job_title = f.get('job_title', '').strip()
         if err:
             pass
-        elif not f.get('job_title') or not category:
-            err = ('Please specify the occupational category.' if (f.get('occupational_category') or '').strip() == 'Others'
-                   else 'Job title and occupational category are required.')
+        elif not job_title:
+            err = 'Job title is required.'
         elif not err and req['application_deadline'] and req['application_deadline'] < _today_ph():
             err = 'Application deadline cannot be in the past.'
         if err:
             flash(err, 'danger')
             return render_template('employer/vacancy_form.html', emp=emp,
-                                   vacancy=f, categories=CATEGORY_LIST, action='add',
+                                   vacancy=f, action='add',
                                    educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                                    salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
                                    all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
+        category = auto_predict_category(job_title)
         get_db().execute(
             'INSERT INTO job_vacancies (employer_name, job_title, occupational_category, '
             'is_local, location_type, employer_id, ' + ', '.join(REQ_COLS) + ') VALUES (?,?,?,?,?,?,' +
             ','.join('?' * len(REQ_COLS)) + ')',
-            (emp['company_name'], f.get('job_title', '').strip(),
+            (emp['company_name'], job_title,
              category,
              1 if ltype == 'local' else 0, ltype,
              session['user_id'], *[req[c] for c in REQ_COLS])
@@ -2822,7 +2815,7 @@ def employer_vacancy_add():
         flash('Job vacancy posted.', 'success')
         return redirect(url_for('employer_vacancies'))
     return render_template('employer/vacancy_form.html', emp=emp,
-                           vacancy=None, categories=CATEGORY_LIST, action='add',
+                           vacancy=None, action='add',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                            salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
                            all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
@@ -2844,31 +2837,32 @@ def employer_vacancy_edit(vid):
     if request.method == 'POST':
         f = request.form
         req, err = parse_vacancy_requirements(f)
-        category = resolve_category(f)
         ltype = resolve_location_type(f)
-        if not err and not category:
-            err = 'Please specify the occupational category.'
+        job_title = f.get('job_title', '').strip()
+        if not err and not job_title:
+            err = 'Job title is required.'
         if (not err and req['application_deadline'] and req['application_deadline'] < _today_ph()
                 and req['application_deadline'] != v['application_deadline']):
             err = 'Application deadline cannot be in the past.'
         if err:
             flash(err, 'danger')
             return render_template('employer/vacancy_form.html', emp=emp,
-                                   vacancy={**dict(v), **f.to_dict()}, categories=CATEGORY_LIST,
+                                   vacancy={**dict(v), **f.to_dict()},
                                    action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                                    salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
                                    all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
+        category = auto_predict_category(job_title)
         db.execute(
             'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, location_type=?, ' +
             ', '.join(f'{c}=?' for c in REQ_COLS) + ' WHERE vacancy_id=?',
-            (f.get('job_title', '').strip(), category,
+            (job_title, category,
              1 if ltype == 'local' else 0, ltype, *[req[c] for c in REQ_COLS], vid)
         )
         db.commit()
         flash('Vacancy updated.', 'success')
         return redirect(url_for('employer_vacancies'))
     return render_template('employer/vacancy_form.html', emp=emp,
-                           vacancy=dict(v), categories=CATEGORY_LIST, action='edit',
+                           vacancy=dict(v), action='edit',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                            salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
                            all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)

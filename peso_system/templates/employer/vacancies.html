@@ -70,8 +70,7 @@
         </div>
         {% set li = loc_info(v) %}
         <div class="mb-2">
-          <span class="badge bg-primary-subtle text-primary-emphasis" style="font-size:.72rem;">{{ v.occupational_category }}</span>
-          <span class="badge {{ li.css }} ms-1" style="font-size:.72rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
+          <span class="badge {{ li.css }}" style="font-size:.72rem;"><i class="bi bi-geo-alt-fill me-1"></i>{{ li.short }}</span>
           {% if v.expired %}<span class="badge bg-danger-subtle text-danger-emphasis ms-1" style="font-size:.72rem;">Expired</span>{% endif %}
         </div>
         <div>{% include '_vacancy_details.html' %}</div>

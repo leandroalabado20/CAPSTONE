@@ -1860,38 +1860,22 @@ def _active_referral_count(applicant_id):
 def jobseeker_dashboard():
     db  = get_db()
     ap  = _get_my_applicant()
-    top_rec = None
     referrals = []
     if ap:
         referrals = db.execute('''
-            SELECT r.*, jv.job_title, jv.employer_name, jv.occupational_category
+            SELECT r.*, jv.job_title, jv.employer_name
             FROM referrals r
             JOIN job_vacancies jv ON r.vacancy_id = jv.vacancy_id
             WHERE r.applicant_id = ?
             ORDER BY r.referred_at DESC LIMIT 5
         ''', (ap['applicant_id'],)).fetchall()
 
-        if pipeline and identity_complete(ap) and ap['educ_level'] and ap['preferred_position'] and ap['skills']:
-            vacancies = db.execute(
-                'SELECT vacancy_id, employer_name, job_title, occupational_category '
-                f'FROM job_vacancies WHERE {OPEN_VACANCY_SQL}'
-            ).fetchall()
-            recs, _ = get_recommendations(
-                ap['educ_level'], ap['preferred_position'],
-                ap['skills'], ap['work_experience'] or '',
-                [dict(v) for v in vacancies], applicant=ap
-            )
-            recs = [r for r in recs if r['hard_ok']]
-            top_rec = recs[0] if recs else None
-
-    active_vacancies = db.execute(
-        'SELECT COUNT(*) FROM job_vacancies WHERE is_active=1'
-    ).fetchone()[0]
+    exp_months = _total_exp_months(ap) if ap else 0
 
     return render_template('jobseeker/dashboard.html',
-                           ap=ap, top_rec=top_rec, identity_ok=identity_complete(ap),
+                           ap=ap, identity_ok=identity_complete(ap),
                            referrals=referrals,
-                           active_vacancies=active_vacancies)
+                           exp_months=exp_months)
 
 @app.route('/jobseeker/profile/photo', methods=['POST'])
 @jobseeker_required

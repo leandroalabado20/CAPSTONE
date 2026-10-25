@@ -183,25 +183,26 @@
   <div class="card-body p-4">
     <div class="fw-semibold mb-3">How it works</div>
     <ol class="small text-muted ps-3 mb-4">
-      <li class="mb-1"><strong>Generate:</strong> the system scores your profile against all five occupational categories.</li>
-      <li class="mb-1"><strong>Choose</strong> a job you're interested in from the ranked categories.</li>
-      <li><strong>Apply:</strong> click Apply and your referral slip is generated immediately.</li>
+      <li class="mb-1"><strong>Generate:</strong> the system checks your profile against all active job vacancies and shows only the jobs you qualify for based on the vacancy's requirements.</li>
+      <li class="mb-1"><strong>Review:</strong> jobs that match your preferred position are listed as <strong>Best Match</strong>; jobs you qualify for but outside your preference are listed as <strong>Alternative</strong>.</li>
+      <li><strong>Apply:</strong> click Apply on any vacancy and your referral slip is generated immediately.</li>
     </ol>
     <div class="small text-muted mb-4 reco-reqs">
-      <div class="fw-semibold text-body mb-1">Make sure these fields are filled in your <a href="{{ url_for('jobseeker_profile') }}" class="fw-semibold">Profile</a> to get recommendations:</div>
+      <div class="fw-semibold text-body mb-1">Make sure these fields are filled in your <a href="{{ url_for('jobseeker_profile') }}" class="fw-semibold">Profile</a> to get accurate results:</div>
       <ul class="ps-3 mb-0">
-        <li><strong>Basic Details</strong> (name, birthday, mobile number, address, and sex)</li>
-        <li><strong>Educational Background</strong> (your highest education level)</li>
-        <li><strong>Preferred Occupation</strong></li>
-        <li><strong>Skills</strong></li>
-        <li><strong>Work Experience</strong> (optional)</li>
+        <li><strong>Sex and Age</strong> — used to check gender and age requirements of each vacancy</li>
+        <li><strong>Educational Background</strong> — your highest education level</li>
+        <li><strong>Skills</strong> — matched against the skills required by each vacancy</li>
+        <li><strong>Preferred Position</strong> — determines whether a job appears as Best Match or Alternative</li>
+        <li><strong>Preferred Work Location</strong> — shown alongside each vacancy for your reference</li>
+        <li><strong>Work Experience</strong> — total months are checked against the vacancy's minimum requirement (optional if no experience)</li>
       </ul>
     </div>
     {% if identity_ok and profile_ok %}
     <form method="GET" action="{{ url_for('jobseeker_recommendations') }}">
       <input type="hidden" name="generate" value="1" />
       <button type="submit" class="btn btn-primary fw-semibold">
-        <i class="bi bi-stars me-1"></i>Generate Recommendations
+        <i class="bi bi-stars me-1"></i>Generate Job Recommendation
       </button>
     </form>
     {% else %}
@@ -232,7 +233,7 @@
       <div style="flex:1;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
         <div style="height:100%;width:{{ pct }}%;background:{% if loop.first %}linear-gradient(90deg,#2563eb,#60a5fa){% elif loop.index==2 %}linear-gradient(90deg,#818cf8,#c4b5fd){% elif loop.index==3 %}linear-gradient(90deg,#4ade80,#bbf7d0){% elif loop.index==4 %}linear-gradient(90deg,#fb923c,#fed7aa){% else %}linear-gradient(90deg,#94a3b8,#cbd5e1){% endif %};border-radius:4px;transition:width .6s ease;"></div>
       </div>
-      <span style="font-size:.78rem;font-weight:700;min-width:38px;text-align:right;color:{% if loop.first %}#2563eb{% else %}#94a3b8{% endif %};">{{ pct }}%</span>
+      <span style="font-size:.75rem;font-weight:600;width:46px;text-align:right;flex-shrink:0;white-space:nowrap;color:{% if loop.first %}#2563eb{% else %}#94a3b8{% endif %};">{{ pct }}%</span>
     </div>
     {% endfor %}
   </div>
@@ -305,13 +306,14 @@
   <div class="strip-track d-flex">
     {% set ns = namespace(shown_divider=false) %}
     {% for vac in results %}
-    {% set score_pct = (vac.suitability_score * 100)|round(0)|int %}
     {% set is_alt  = not vac.is_position_match %}
     {% set is_best = loop.first and not is_alt %}
     <div class="strip-card {% if is_best %}strip-best{% elif is_alt %}strip-alt{% endif %}" data-idx="{{ loop.index0 }}" onclick="showVacancy({{ loop.index0 }})"{% if is_alt and match_count %} style="display:none"{% endif %}>
       <div class="d-flex align-items-center justify-content-between mb-1">
-        <span class="fw-bold" style="font-size:.82rem;color:{% if score_pct >= 60 %}#16a34a{% elif score_pct >= 35 %}#d97706{% else %}#dc2626{% endif %};">{{ vac.suitability_pct }}</span>
-        {% if is_best %}<span style="font-size:.6rem;background:#fef3c7;color:#92400e;border-radius:4px;padding:.1em .35em;"><i class="bi bi-trophy-fill" style="color:#d97706;font-size:.55rem;"></i></span>
+        <span class="fw-bold" style="font-size:.75rem;color:{% if not is_alt %}#16a34a{% else %}#2563eb{% endif %};">
+          <i class="bi bi-check-circle-fill me-1" style="font-size:.7rem;"></i>{% if is_alt %}Alt.{% else %}Match{% endif %}
+        </span>
+        {% if is_best %}<span style="font-size:.6rem;background:#dcfce7;color:#15803d;border-radius:4px;padding:.1em .35em;"><i class="bi bi-check2-circle" style="font-size:.55rem;"></i></span>
         {% elif is_alt %}<span style="font-size:.58rem;background:#e2e8f0;color:#64748b;border-radius:4px;padding:.1em .4em;">Alt</span>{% endif %}
       </div>
       <div class="d-flex align-items-center justify-content-center mb-1" style="width:28px;height:28px;border-radius:7px;background:{% if is_best %}linear-gradient(135deg,#fef3c7,#fde68a){% elif is_alt %}#f1f5f9{% else %}linear-gradient(135deg,#e8f0ff,#d6e4ff){% endif %};">
@@ -372,15 +374,13 @@ function showVacancy(idx) {
 
   setTimeout(function(){
     var v   = VACANCIES[idx];
-    var pct = Math.round(v.suitability_score * 100);
-    var scoreColor = pct>=60 ? '#4ade80' : pct>=35 ? '#fbbf24' : '#f87171';
-    var barCls     = pct>=60 ? 'bg-success' : pct>=35 ? 'bg-warning' : 'bg-danger';
+    var isPreferred = v.is_position_match;
 
     // Rank + alt badges
-    var rankBadge = (idx===0 && !v.is_alternative)
-      ? '<span class="badge" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:.72rem;padding:.38em .75em;"><i class="bi bi-trophy-fill me-1" style="color:#fde047;"></i>Best Match</span>'
+    var rankBadge = (idx===0 && isPreferred)
+      ? '<span class="badge" style="background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:.72rem;padding:.38em .75em;"><i class="bi bi-check-circle-fill me-1" style="color:#4ade80;"></i>Best Fit</span>'
       : '<span class="badge" style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.25);font-size:.72rem;padding:.38em .75em;">#'+(idx+1)+'</span>';
-    var altTag = !v.is_position_match
+    var altTag = !isPreferred
       ? '<span class="badge ms-1" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:.65rem;padding:.3em .6em;">Alternative</span>'
       : '';
 
@@ -395,7 +395,7 @@ function showVacancy(idx) {
     if (v.fields && v.fields.length) {
       // Column header (hidden on mobile via CSS) - same grid as the rows so columns line up
       rows = '<div class="match-grid match-col-hdr">'
-        +'<div></div><div>Score</div><div class="mc-you">Your Profile</div><div class="mc-req">Vacancy Requires</div>'
+        +'<div></div><div></div><div class="mc-you">Your Profile</div><div class="mc-req">Vacancy Requires</div>'
         +'</div>';
       v.fields.forEach(function(f){
         if (f.is_filter) {
@@ -411,21 +411,13 @@ function showVacancy(idx) {
             +'</div>';
           return;
         }
-        var p   = Math.round(f.score * 100);
-        var cls = p>=80 ? 'hi' : p>=50 ? 'mid' : 'lo';
-        var bc  = p>=80 ? 'bg-success' : p>=50 ? 'bg-warning' : 'bg-danger';
-        var sc  = p>=80 ? '#16a34a'    : p>=50 ? '#d97706'    : '#dc2626';
-        var ic  = p>=80 ? '<i class="bi bi-check-circle-fill" style="color:#22c55e;font-size:.82rem;"></i>'
-                : p>=50 ? '<i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;font-size:.82rem;"></i>'
-                :         '<i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:.82rem;"></i>';
+        var met = f.score >= 1.0;
+        var ic  = met ? '<i class="bi bi-check-circle-fill" style="color:#22c55e;font-size:.82rem;"></i>'
+                      : '<i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:.82rem;"></i>';
         rows +=
-          '<div class="match-grid match-row '+cls+'">'
+          '<div class="match-grid match-row '+(met?'hi':'lo')+'">'
           +'<div class="mc-label">'+_e(f.label)+'</div>'
-          +'<div class="mc-score">'
-          +'<div class="mc-bar"><div class="progress-bar '+bc+'" data-w="'+p+'%" style="height:100%;width:0%;transition:width .55s ease;"></div></div>'
-          +'<span class="mc-pct" style="color:'+sc+';">'+p+'%</span>'
-          +'<span class="mc-ico">'+ic+'</span>'
-          +'</div>'
+          +'<div style="display:flex;align-items:center;justify-content:center;">'+ic+'</div>'
           +'<div class="match-val-row">'
           +'<div class="mc-val mc-you" title="'+_e(f.ap_val)+'"><span class="match-val-prefix">You</span>'+_e(f.ap_val)+'</div>'
           +'<div class="mc-val mc-req" title="'+_e(f.vac_val)+'"><span class="match-val-prefix">Required</span>'+_e(f.vac_val)+'</div>'
@@ -449,9 +441,10 @@ function showVacancy(idx) {
     var referEl   = document.getElementById('refer-btn-'+v.vacancy_id);
     var referHtml = referEl ? referEl.innerHTML : '';
 
-    var band      = pct>=80 ? 'Strong' : pct>=50 ? 'Moderate' : 'Low';
-    var scoreBg   = pct>=80 ? '#f0fdf4' : pct>=50 ? '#fffbeb' : '#fff5f5';
-    var scoreBdr  = pct>=80 ? '#bbf7d0' : pct>=50 ? '#fde68a' : '#fecaca';
+    var scoreBg  = isPreferred ? '#f0fdf4' : '#f0f7ff';
+    var scoreBdr = isPreferred ? '#bbf7d0' : '#bfdbfe';
+    var scoreColor = isPreferred ? '#16a34a' : '#2563eb';
+    var band     = isPreferred ? 'Position Match' : 'Alternative';
 
     inner.innerHTML =
       // ── HEADER BAND: dark gradient — identity only, no score box ──
@@ -466,15 +459,12 @@ function showVacancy(idx) {
       +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0;">'+rankBadge+altTag+'</div>'
       +'</div></div>'
 
-      // ── SCORE BANNER ──
-      +'<div style="background:'+scoreBg+';border-bottom:1px solid '+scoreBdr+';padding:.75rem 1.4rem;">'
-      +'<div style="display:flex;align-items:center;gap:.85rem;">'
-      +'<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;min-width:72px;">Suitability</div>'
-      +'<div style="font-size:1.55rem;font-weight:800;color:'+scoreColor+';line-height:1;min-width:52px;">'+pct+'%</div>'
-      +'<div style="flex:1;height:9px;background:#e2e8f0;border-radius:5px;overflow:hidden;">'
-      +'<div class="progress-bar" data-w="'+pct+'%" style="height:100%;width:0%;background:'+scoreColor+';border-radius:5px;transition:width .7s ease;"></div>'
-      +'</div>'
-      +'<div style="font-size:.82rem;font-weight:600;color:'+scoreColor+';min-width:88px;text-align:right;">'+band+' match</div>'
+      // ── QUALIFIED BANNER ──
+      +'<div style="background:'+scoreBg+';border-bottom:1px solid '+scoreBdr+';padding:.65rem 1.4rem;">'
+      +'<div style="display:flex;align-items:center;gap:.75rem;">'
+      +'<i class="bi bi-check-circle-fill" style="color:'+scoreColor+';font-size:1.15rem;flex-shrink:0;"></i>'
+      +'<div style="font-size:.95rem;font-weight:700;color:'+scoreColor+';">You qualify for this job</div>'
+      +'<div style="margin-left:auto;font-size:.78rem;font-weight:600;color:'+scoreColor+';background:'+scoreBg+';border:1px solid '+scoreBdr+';border-radius:999px;padding:.2rem .75rem;">'+band+'</div>'
       +'</div></div>'
 
       // ── BODY ──

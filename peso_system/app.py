@@ -205,41 +205,27 @@ SKILLS_LIST = [
     'Teamwork', 'Time Management', 'Basic Accounting',
 ]
 
-ALL_SKILLS_AC = sorted(set(SKILLS_LIST + [
-    # Office / Admin
-    'Microsoft Excel', 'Microsoft Word', 'Microsoft PowerPoint', 'Google Workspace',
-    'Data Entry', 'Typing', 'Encoding', 'Records Management', 'Payroll Processing',
-    'Scheduling', 'Email Correspondence', 'Office Administration',
-    # IT / Technical
-    'Programming', 'Web Development', 'HTML / CSS', 'JavaScript', 'Python',
-    'Java', 'PHP', 'SQL', 'Database Management', 'Networking',
-    'Graphic Design', 'Adobe Photoshop', 'Adobe Illustrator', 'Video Editing',
-    'AutoCAD', 'Technical Support', 'Hardware Troubleshooting',
-    'Software Installation', 'Cybersecurity', 'Social Media Management',
-    # Sales / Marketing
-    'Telemarketing', 'Account Management', 'Lead Generation',
-    'Digital Marketing', 'Content Writing', 'Copywriting',
-    'Product Demonstration', 'Negotiation',
-    # Finance
-    'Accounting', 'Auditing', 'Taxation', 'Financial Reporting',
-    'Accounts Payable', 'Accounts Receivable', 'Bank Reconciliation',
-    'Credit Analysis', 'Petty Cash Management',
-    # Healthcare / Caregiving
-    'Patient Care', 'Caregiving', 'First Aid', 'CPR',
-    'Medical Transcription', 'Phlebotomy', 'Vital Signs Monitoring',
-    # Trades / Manual
-    'Carpentry', 'Electrical Works', 'Plumbing', 'Masonry',
-    'Painting', 'HVAC', 'Tile Setting', 'Steel Fabrication',
-    'Sewing / Dressmaking', 'Auto Mechanics',
-    # Soft Skills
-    'Leadership', 'Problem Solving', 'Critical Thinking',
-    'Adaptability', 'Multitasking', 'Attention to Detail',
-    'Customer Relations', 'Conflict Resolution', 'Report Writing',
-    # From OTHER_SKILLS_CHOICES
-    'Auto Mechanic', 'Beautician', 'Carpentry Work', 'Computer Literate',
-    'Domestic Chores', 'Gardening', 'Electrician Work', 'Embroidery',
-    'Masonry Work', 'Photography', 'Tailoring', 'Stenography',
-]))
+def get_skills_vocab():
+    """Return sorted autocomplete vocabulary built from DB skills + seed list.
+
+    Pulls every distinct skill token already stored in applicants.skills and
+    job_vacancies.req_skills so the suggestion list grows automatically as the
+    system is used. SKILLS_LIST serves as the seed on a fresh install.
+    """
+    vocab = set(SKILLS_LIST)
+    try:
+        db = get_db()
+        for col, tbl in [('skills', 'applicants'), ('req_skills', 'job_vacancies')]:
+            for row in db.execute(
+                f"SELECT {col} FROM {tbl} WHERE {col} IS NOT NULL AND TRIM({col}) != ''"
+            ):
+                for token in row[0].split(','):
+                    token = token.strip()
+                    if token:
+                        vocab.add(token)
+    except Exception:
+        pass
+    return sorted(vocab, key=str.lower)
 
 WORK_EXPERIENCE_LIST = [
     'No work experience',
@@ -1114,29 +1100,33 @@ def _ap_skills_set(ap):
     return {s.strip().lower() for s in (_g(ap, 'skills') or '').split(',') if s.strip()}
 
 def vacancy_content_score(v, ap):
-    """Content-based match score using 3 literature-validated competency fields.
-    Weights: Skills 50%, Work Experience 30%, Education 20%.
-    Job title is a pre-filter (not scored). Location is a display indicator only.
-    Gender and Age are hard eligibility filters (not scored).
-    Returns (cb_score 0-1, filled_count, title_score, breakdown)."""
-    filled = 0
+    """Rule-based qualification check. All stated requirements are hard gates —
+    a vacancy is recommended only when every gate is passed.
+    Preferred position and preferred location are soft preferences used only
+    for grouping (preferred vs alternative), not for eligibility.
+    Returns (qualified 1.0/0.0, filled_count, title_score, breakdown)."""
     breakdown = {}
-    weighted = {}
+    disqualified = False
+    filled = 0
 
-    # Gender — hard eligibility filter (not scored, tracked for display/warnings)
+    # Gender — hard gate
     req_g = _g(v, 'req_gender')
     if req_g and req_g != 'Any':
         s = 1.0 if (_g(ap, 'sex') or '') == req_g else 0.0
         breakdown['gender'] = s
+        if not s:
+            disqualified = True
 
-    # Age — hard eligibility filter (not scored, tracked for display/warnings)
+    # Age — hard gate
     lo, hi = _g(v, 'req_age_min'), _g(v, 'req_age_max')
     if lo or hi:
         age = _g(ap, 'age')
         s = 0.0 if age is None else (1.0 if (not lo or age >= lo) and (not hi or age <= hi) else 0.0)
         breakdown['age'] = s
+        if not s:
+            disqualified = True
 
-    # Education — scored (weight: 20%)
+    # Education — hard gate
     req_edu = _g(v, 'req_education')
     if req_edu:
         filled += 1
@@ -1146,88 +1136,77 @@ def vacancy_content_score(v, ap):
         else:
             s = 1.0 if have == req_edu else 0.0
         breakdown['education'] = s
-        weighted['education'] = s
+        if not s:
+            disqualified = True
 
-    # Work experience — ratio scoring, partial credit (weight: 30%)
+    # Work experience — hard gate
     req_mo = _g(v, 'req_experience_months')
     if req_mo:
         filled += 1
         have_mo = _total_exp_months(ap)
-        s = 1.0 if have_mo >= req_mo else round(have_mo / req_mo, 4)
+        s = 1.0 if have_mo >= req_mo else 0.0
         breakdown['experience'] = s
-        weighted['experience'] = s
+        if not s:
+            disqualified = True
 
-    # Skills — Jaccard: |applicant ∩ required| / |required| (weight: 50%)
+    # Skills — hard gate: applicant must have at least one required skill
     req_s = _g(v, 'req_skills')
     if req_s:
         req_set = {sk.strip().lower() for sk in req_s.split(',') if sk.strip()}
         if req_set:
             filled += 1
             have_set = _ap_skills_set(ap)
-            s = round(len(req_set & have_set) / len(req_set), 4)
+            s = 1.0 if req_set & have_set else 0.0
             breakdown['skills'] = s
-            weighted['skills'] = s
+            if not s:
+                disqualified = True
 
-    # Job title vs preferred position — pre-filter only, not scored
+    # Preferred position — soft preference (grouping only, not a gate)
     title_tok = _token_set(_g(v, 'job_title'))
     pref_tok  = _token_set(_g(ap, 'preferred_position'))
     union = title_tok | pref_tok
     title_score = round(len(title_tok & pref_tok) / len(union), 4) if union else 0.0
     breakdown['title'] = title_score
 
-    # Location — display indicator only, not scored
+    # Preferred location — soft preference (grouping only, not a gate)
     pref_local = (_g(ap, 'pref_work_local') or '').strip()
     pref_ovs   = (_g(ap, 'pref_work_overseas') or '').strip()
     if pref_local or pref_ovs:
-        s = 1.0 if _location_matches(v, ap) else 0.0
-        breakdown['location'] = s
+        breakdown['location'] = 1.0 if _location_matches(v, ap) else 0.0
 
-    # Weighted average across the 3 competency fields only
-    total_w = sum(_CB_WEIGHTS[k] for k in weighted)
-    if total_w > 0:
-        cb_score = round(sum(weighted[k] * _CB_WEIGHTS[k] for k in weighted) / total_w, 4)
-    else:
-        # No requirements set by employer — vacancy is open to anyone who passes the title filter
-        cb_score = 1.0
-
-    return cb_score, filled, title_score, breakdown
+    qualified = 0.0 if disqualified else 1.0
+    return qualified, filled, title_score, breakdown
 
 
 def get_recommendations(educ_level, preferred_position, skills, work_experience, vacancies,
                         applicant=None):
-    """Hybrid recommender: ML category suitability (Layer 1) + content-based vacancy
-    scoring (Layer 2) across 3 competency fields (Skills 50%, Experience 30%, Education 20%).
-    Job title match is the primary filter — only vacancies matching preferred position are shown.
-    Returns a flat list of vacancy dicts sorted by suitability_score descending."""
+    """Rule-based job recommender: a vacancy is recommended only when the applicant
+    meets all stated requirements (education, experience, skills, gender, age).
+    Preferred position and location are soft preferences — matching ones go into the
+    preferred group; the rest go into alternatives.
+    Returns a flat list of vacancy dicts sorted by preferred first then date."""
     if pipeline is None:
-        return []
+        return [], {}
     vec   = pipeline['vectorizer']
     model = pipeline['model']
     text  = _clean_profile(educ_level, preferred_position, skills, work_experience)
     proba = model.predict_proba(vec.transform([text]))[0]
     cat_ml = {CATEGORIES[i]: round(float(proba[i]), 4) for i in range(len(CATEGORIES))}
 
-    preferred = []   # vacancies matching the applicant's preferred position
-    alternative = [] # vacancies that don't match the title but meet competency requirements
+    preferred   = []  # qualifies + matches preferred position or location
+    alternative = []  # qualifies but matches neither preferred position nor location
 
     for v in vacancies:
-        ml_score = cat_ml.get(v['occupational_category'], 0.0)
-        if applicant is not None:
-            cb_score, filled, title_score, breakdown = vacancy_content_score(v, applicant)
-        else:
-            cb_score, filled, title_score, breakdown = 0.0, 0, 0.0, {}
-        completeness = filled / 3
-        final = round(cb_score, 4)
+        if applicant is None:
+            continue
+        qualified, filled, title_score, breakdown = vacancy_content_score(v, applicant)
+        if not qualified:
+            continue
+
         is_position_match = title_score >= _CB_TITLE_MATCH_MIN
+        is_location_match = breakdown.get('location', 0.0) == 1.0
+        is_preferred      = is_position_match
 
-        # Hard disqualifier — gender or age mismatch: applicant cannot apply at all
-        if breakdown.get('gender') == 0.0 or breakdown.get('age') == 0.0:
-            continue
-        # Minimum score threshold (only when vacancy has set competency requirements)
-        if filled > 0 and final < _CB_MIN_SCORE:
-            continue
-
-        warns = req_warnings(v, applicant) if applicant is not None else []
         entry = {
             'vacancy_id':        v['vacancy_id'],
             'title':             v['job_title'],
@@ -1235,39 +1214,33 @@ def get_recommendations(educ_level, preferred_position, skills, work_experience,
             'category':          v['occupational_category'],
             'icon':              CAT_ICONS.get(v['occupational_category'], 'bi-briefcase'),
             'info':              v,
-            'suitability_score': final,
-            'suitability_pct':   f'{final * 100:.1f}%',
-            'ml_score':          ml_score,
-            'cb_score':          cb_score,
-            'completeness':      completeness,
+            'suitability_score': title_score,  # used for ordering within groups only
+            'suitability_pct':   'Qualified',
+            'ml_score':          cat_ml.get(v['occupational_category'], 0.0),
+            'cb_score':          qualified,
+            'completeness':      filled / 3 if filled else 0,
             'breakdown':         breakdown,
-            'warns_list':        warns,
-            'req_unmet':         len(warns),
-            'qualified':         len(warns) == 0,
-            'hard_ok':           meets_hard_requirements(v, applicant),
+            'warns_list':        [],
+            'req_unmet':         0,
+            'qualified':         True,
+            'hard_ok':           True,
             'location':          _vacancy_location(v),
-            'loc_match':         _location_matches(v, applicant),
+            'loc_match':         is_location_match,
             'title_score':       title_score,
-            'is_position_match': is_position_match,
-            'is_alternative':    not is_position_match,
+            'is_position_match': is_preferred,
+            'is_alternative':    not is_preferred,
         }
 
-        if is_position_match:
+        if is_preferred:
             preferred.append(entry)
         else:
-            # Only include as alternative when it has at least skills overlap
-            # — a vacancy that only matches on education alone is not meaningful
-            if breakdown.get('skills', 0.0) > 0.0:
-                alternative.append(entry)
+            alternative.append(entry)
 
-    # Show preferred matches first; fall back to alternatives only when no preferred exist
-    if preferred:
-        results = preferred
-    else:
-        results = alternative
+    # Sort each group by title similarity (closer title match first)
+    preferred.sort(key=lambda x: -x['title_score'])
+    alternative.sort(key=lambda x: -x['title_score'])
 
-    results.sort(key=lambda x: -x['suitability_score'])
-    return results, cat_ml
+    return preferred + alternative, cat_ml
 
 def explain_match(r, fields):
     """One-paragraph, human-readable reason for the score (rule-based, uses data already computed)."""
@@ -2094,7 +2067,7 @@ def jobseeker_profile():
                            barangays=sorted(BARANGAY_DISTRICT.keys(), key=str.title),
                            barangay_district_map=BARANGAY_DISTRICT,
                            positions=PREFERRED_POSITIONS, skills_list=SKILLS_LIST,
-                           all_skills_ac=ALL_SKILLS_AC,
+                           all_skills_ac=get_skills_vocab(),
                            suffixes=SUFFIX_CHOICES, civil_statuses=CIVIL_STATUS_CHOICES,
                            elig_types=ELIG_TYPES, religions=RELIGION_CHOICES, disability_types=DISABILITY_TYPES,
                            languages_list=LANGUAGE_CHOICES, employed_types=EMPLOYED_TYPES,
@@ -2167,8 +2140,7 @@ def jobseeker_recommendations():
             ap['skills'], ap['work_experience'] or '',
             [dict(v) for v in vacancies], applicant=ap
         )
-        hidden_count = sum(1 for r in results if not r['hard_ok'])
-        results = [r for r in results if r['hard_ok']]
+        hidden_count = 0  # all filtering is now done inside get_recommendations
         cat_scores = sorted(
             [{'name': name, 'score': score, 'icon': CAT_ICONS.get(name, 'bi-briefcase')}
              for name, score in cat_ml.items()],
@@ -2217,50 +2189,67 @@ def jobseeker_recommendations():
         bd   = r.get('breakdown', {})
         info = r['info']
         out  = []
-        if 'title' in bd:
-            out.append({'key':'title','label':'Position',
-                        'ap_val': ap['preferred_position'] or '—',
-                        'vac_val': info.get('job_title') or '—',
-                        'score': bd['title'],
-                        'is_filter': True})
-        if 'skills' in bd:
-            vac_sk = [s.strip() for s in (info.get('req_skills') or '').split(',') if s.strip()]
-            vac_str = ', '.join(vac_sk[:3]) + (f' +{len(vac_sk)-3} more' if len(vac_sk) > 3 else '')
-            out.append({'key':'skills','label':'Skills',
-                        'ap_val': _ap_skills_str(), 'vac_val': vac_str or '—',
-                        'score': bd['skills']})
-        if 'education' in bd:
-            out.append({'key':'education','label':'Education',
-                        'ap_val': ap['educ_level'] or '—',
-                        'vac_val': info.get('req_education') or '—',
-                        'score': bd['education']})
-        if 'experience' in bd:
-            have_mo = _total_exp_months(ap)
-            req_mo  = info.get('req_experience_months') or 0
-            out.append({'key':'experience','label':'Experience',
-                        'ap_val':  f'{have_mo} mo.' if have_mo else 'No exp.',
-                        'vac_val': f'{req_mo} mo. min.',
-                        'score': bd['experience']})
-        if 'location' in bd:
-            ap_loc  = ((ap['pref_work_local'] or '') or (ap['pref_work_overseas'] or '') or '—').strip()
-            out.append({'key':'location','label':'Location',
-                        'ap_val': ap_loc, 'vac_val': _vacancy_location(info) or '—',
-                        'score': bd['location']})
-        if 'gender' in bd:
-            out.append({'key':'gender','label':'Gender',
-                        'ap_val': ap['sex'] or '—',
-                        'vac_val': info.get('req_gender') or '—',
-                        'score': bd['gender']})
-        if 'age' in bd:
-            lo_a, hi_a = info.get('req_age_min'), info.get('req_age_max')
-            if lo_a and hi_a: vac_age = f'{lo_a}–{hi_a} yrs'
-            elif lo_a:        vac_age = f'{lo_a}+ yrs'
-            elif hi_a:        vac_age = f'Up to {hi_a} yrs'
-            else:             vac_age = '—'
-            out.append({'key':'age','label':'Age',
-                        'ap_val': f'{ap["age"]} yrs' if ap['age'] else '—',
-                        'vac_val': vac_age,
-                        'score': bd['age']})
+
+        # 1. Preferred Position — always shown
+        out.append({'key':'title','label':'Position',
+                    'ap_val': ap['preferred_position'] or '—',
+                    'vac_val': info.get('job_title') or '—',
+                    'score': bd.get('title', 0.0),
+                    'is_filter': True})
+
+        # 2. Skills — always shown
+        vac_sk = [s.strip() for s in (info.get('req_skills') or '').split(',') if s.strip()]
+        vac_sk_str = ', '.join(vac_sk[:3]) + (f' +{len(vac_sk)-3} more' if len(vac_sk) > 3 else '')
+        out.append({'key':'skills','label':'Skills',
+                    'ap_val': _ap_skills_str(),
+                    'vac_val': vac_sk_str or 'Not required',
+                    'score': bd.get('skills', 1.0),
+                    'is_filter': True})
+
+        # 3. Education — always shown
+        out.append({'key':'education','label':'Education',
+                    'ap_val': ap['educ_level'] or '—',
+                    'vac_val': info.get('req_education') or 'Not required',
+                    'score': bd.get('education', 1.0),
+                    'is_filter': True})
+
+        # 4. Experience — always shown
+        have_mo = _total_exp_months(ap)
+        req_mo  = info.get('req_experience_months') or 0
+        out.append({'key':'experience','label':'Experience',
+                    'ap_val': f'{have_mo} mo.' if have_mo else 'No exp.',
+                    'vac_val': f'{req_mo} mo. min.' if req_mo else 'Not required',
+                    'score': bd.get('experience', 1.0),
+                    'is_filter': True})
+
+        # 5. Location — always shown
+        ap_loc = ((ap['pref_work_local'] or '') or (ap['pref_work_overseas'] or '') or '—').strip()
+        out.append({'key':'location','label':'Location',
+                    'ap_val': ap_loc,
+                    'vac_val': _vacancy_location(info) or '—',
+                    'score': bd.get('location', 1.0),
+                    'is_filter': True})
+
+        # 6. Gender — always shown
+        req_g = info.get('req_gender') or 'Any'
+        out.append({'key':'gender','label':'Gender',
+                    'ap_val': ap['sex'] or '—',
+                    'vac_val': req_g,
+                    'score': bd.get('gender', 1.0),
+                    'is_filter': True})
+
+        # 7. Age — always shown
+        lo_a, hi_a = info.get('req_age_min'), info.get('req_age_max')
+        if lo_a and hi_a:   vac_age = f'{lo_a}–{hi_a} yrs'
+        elif lo_a:           vac_age = f'{lo_a}+ yrs'
+        elif hi_a:           vac_age = f'Up to {hi_a} yrs'
+        else:                vac_age = 'Any'
+        out.append({'key':'age','label':'Age',
+                    'ap_val': f'{ap["age"]} yrs' if ap['age'] else '—',
+                    'vac_val': vac_age,
+                    'score': bd.get('age', 1.0),
+                    'is_filter': True})
+
         return out
 
     fields_by_id = {r['vacancy_id']: (_build_fields(r) if ap else []) for r in results}
@@ -2784,7 +2773,7 @@ def employer_vacancy_add():
                                    vacancy=f, action='add',
                                    educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                                    salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
-                                   all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
+                                   all_skills_ac=get_skills_vocab(), positions=PREFERRED_POSITIONS)
         category = auto_predict_category(job_title)
         get_db().execute(
             'INSERT INTO job_vacancies (employer_name, job_title, occupational_category, '
@@ -2802,7 +2791,7 @@ def employer_vacancy_add():
                            vacancy=None, action='add',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                            salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
-                           all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
+                           all_skills_ac=get_skills_vocab(), positions=PREFERRED_POSITIONS)
 
 @app.route('/employer/vacancies/<int:vid>/edit', methods=['GET', 'POST'])
 @employer_required
@@ -2834,7 +2823,7 @@ def employer_vacancy_edit(vid):
                                    vacancy={**dict(v), **f.to_dict()},
                                    action='edit', educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                                    salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
-                                   all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
+                                   all_skills_ac=get_skills_vocab(), positions=PREFERRED_POSITIONS)
         category = auto_predict_category(job_title)
         db.execute(
             'UPDATE job_vacancies SET job_title=?, occupational_category=?, is_local=?, location_type=?, ' +
@@ -2849,7 +2838,7 @@ def employer_vacancy_edit(vid):
                            vacancy=dict(v), action='edit',
                            educ_choices=REQ_EDUC_CHOICES, today=_today_ph(),
                            salary_periods=SALARY_PERIODS, skills_list=SKILLS_LIST,
-                           all_skills_ac=ALL_SKILLS_AC, positions=PREFERRED_POSITIONS)
+                           all_skills_ac=get_skills_vocab(), positions=PREFERRED_POSITIONS)
 
 @app.route('/employer/vacancies/<int:vid>/toggle', methods=['POST'])
 @employer_required

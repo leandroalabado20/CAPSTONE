@@ -60,21 +60,32 @@
         {% if not e.is_approved %}
         {% if e.profile_completed %}
         <form method="POST" action="{{ url_for('admin_employer_approve', eid=e.employer_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-sm btn-success px-3"><i class="bi bi-check2 me-1"></i>Approve</button>
         </form>
         {% else %}
         <button type="button" class="btn btn-sm btn-success px-3" disabled title="Employer must complete their company profile first"><i class="bi bi-check2 me-1"></i>Approve</button>
         {% endif %}
         <form method="POST" action="{{ url_for('admin_employer_reject', eid=e.employer_id) }}" onsubmit="return confirm('Reject this employer registration?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-sm btn-outline-warning px-3"><i class="bi bi-x-lg me-1"></i>Reject</button>
         </form>
         {% else %}
+        {% if e.is_active %}
         <form method="POST" action="{{ url_for('admin_employer_reject', eid=e.employer_id) }}" onsubmit="return confirm('Deactivate this employer?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-sm btn-outline-warning px-3"><i class="bi bi-pause-circle me-1"></i>Deactivate</button>
         </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('admin_employer_reactivate', eid=e.employer_id) }}" onsubmit="return confirm('Reactivate this employer?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-success px-3"><i class="bi bi-arrow-counterclockwise me-1"></i>Reactivate</button>
+        </form>
+        {% endif %}
         {% endif %}
         <form method="POST" action="{{ url_for('admin_employer_delete', eid=e.employer_id) }}" class="ms-auto"
               onsubmit="return confirm('Permanently delete {{ e.company_name }}? This removes their account and ALL their job postings. This cannot be undone.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-sm btn-outline-danger px-3" title="Delete account permanently"><i class="bi bi-trash3-fill me-1"></i>Delete</button>
         </form>
       </div>

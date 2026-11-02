@@ -20,8 +20,15 @@ from flask import (
     make_response, Flask, render_template, request, redirect, url_for,
     session, flash, jsonify, g, send_from_directory, abort
 )
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+
+# ── PASSWORD HELPER ───────────────────────────────────────────────────────────
+def _password_strong(pw):
+    """Minimum 8 chars, at least one letter and one digit."""
+    return len(pw) >= 8 and bool(re.search(r'[A-Za-z]', pw)) and bool(re.search(r'[0-9]', pw))
+
 
 # ── APP CONFIG ────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -50,11 +57,14 @@ def _load_secret_key():
 
 app.secret_key = _load_secret_key()
 app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024      # reject oversized uploads early
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600
 
 # Set PESO_HTTPS=1 on an HTTPS host (e.g. PythonAnywhere); leave unset for local HTTP.
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('PESO_HTTPS', '0') == '1'
+
+csrf = CSRFProtect(app)
 
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 DATABASE       = os.path.join(BASE_DIR, 'peso.db')
@@ -428,6 +438,27 @@ def init_db():
             ip_address TEXT,
             outcome    TEXT
         );
+    ''')
+
+    # ── Immutability triggers (audit integrity) ────────────────────────────────
+    db.executescript('''
+        CREATE TRIGGER IF NOT EXISTS trg_login_logs_no_update
+        BEFORE UPDATE ON login_logs
+        BEGIN
+            SELECT RAISE(ABORT, 'login_logs rows are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_login_logs_no_delete
+        BEFORE DELETE ON login_logs
+        BEGIN
+            SELECT RAISE(ABORT, 'login_logs rows are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_recommendations_no_update
+        BEFORE UPDATE ON recommendations
+        BEGIN
+            SELECT RAISE(ABORT, 'recommendations rows are immutable');
+        END;
     ''')
 
     # ── Migrate older applicants table ─────────────────────────────────────────
@@ -1658,8 +1689,8 @@ def register():
             errs.append('Please enter a valid email address.')
         if email.lower() != confirm.lower():
             errs.append('Email addresses do not match.')
-        if len(pw) < 8:
-            errs.append('Password must be at least 8 characters.')
+        if not _password_strong(pw):
+            errs.append('Password must be at least 8 characters and include both letters and numbers.')
         field_errs = _registration_conflicts(email, first, last)
         if errs or field_errs:
             for e in errs:
@@ -1716,8 +1747,8 @@ def change_password():
             flash('Current password is incorrect.', 'danger')
         elif new != conf:
             flash('New passwords do not match.', 'danger')
-        elif len(new) < 8:
-            flash('Password must be at least 8 characters.', 'danger')
+        elif not _password_strong(new):
+            flash('Password must be at least 8 characters and include both letters and numbers.', 'danger')
         else:
             get_db().execute('UPDATE users SET password_hash = ? WHERE user_id = ?',
                              (generate_password_hash(new), user['user_id']))
@@ -2108,9 +2139,7 @@ def jobseeker_account_delete():
     ap  = _get_my_applicant()
     if ap:
         db.execute('DELETE FROM referrals WHERE applicant_id=?', (ap['applicant_id'],))
-        db.execute('DELETE FROM recommendations WHERE applicant_id=?', (ap['applicant_id'],))
         db.execute('DELETE FROM applicants WHERE applicant_id=?', (ap['applicant_id'],))
-    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
     db.execute("DELETE FROM users WHERE user_id=? AND role='jobseeker'", (uid,))
     db.commit()
     session.clear()
@@ -2610,11 +2639,9 @@ def employer_account_delete():
     vac_ids = [r['vacancy_id'] for r in db.execute(
         'SELECT vacancy_id FROM job_vacancies WHERE employer_id=?', (uid,)).fetchall()]
     for vid in vac_ids:
-        db.execute('DELETE FROM recommendations WHERE vacancy_id=?', (vid,))
         db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
     db.execute('DELETE FROM job_vacancies WHERE employer_id=?', (uid,))
     db.execute('DELETE FROM employers WHERE user_id=?', (uid,))
-    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
     db.execute("DELETE FROM users WHERE user_id=? AND role='employer'", (uid,))
     db.commit()
     session.clear()
@@ -3279,7 +3306,9 @@ def applicants_list():
     page   = min(page, pages)
     offset = (page - 1) * per_page
     applicants = db.execute(
-        f'SELECT * FROM applicants WHERE {where_sql} ORDER BY last_name, first_name LIMIT ? OFFSET ?',
+        f'SELECT a.*, u.is_active AS user_is_active '
+        f'FROM applicants a LEFT JOIN users u ON a.user_id = u.user_id '
+        f'WHERE {where_sql} ORDER BY a.last_name, a.first_name LIMIT ? OFFSET ?',
         params + [per_page, offset]
     ).fetchall()
 
@@ -3332,15 +3361,31 @@ def applicant_delete(aid):
     if not ap:
         flash('Applicant not found.', 'danger')
         return redirect(url_for('applicants_list'))
-    db.execute('DELETE FROM recommendations WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM referrals WHERE applicant_id=?', (aid,))
     db.execute('DELETE FROM applicants WHERE applicant_id=?', (aid,))
     # Remove the linked jobseeker login account, if any, so no orphan user remains
     if ap['user_id']:
-        db.execute('DELETE FROM login_logs WHERE user_id=?', (ap['user_id'],))
         db.execute("DELETE FROM users WHERE user_id=? AND role='jobseeker'", (ap['user_id'],))
     db.commit()
     flash(f'Applicant {ap["first_name"]} {ap["last_name"]} has been permanently deleted.', 'success')
+    return redirect(url_for('applicants_list'))
+
+@app.route('/admin/jobseekers/<int:uid>/deactivate', methods=['POST'])
+@admin_required
+def admin_jobseeker_deactivate(uid):
+    db = get_db()
+    db.execute("UPDATE users SET is_active=0 WHERE user_id=? AND role='jobseeker'", (uid,))
+    db.commit()
+    flash('Jobseeker account deactivated.', 'warning')
+    return redirect(url_for('applicants_list'))
+
+@app.route('/admin/jobseekers/<int:uid>/reactivate', methods=['POST'])
+@admin_required
+def admin_jobseeker_reactivate(uid):
+    db = get_db()
+    db.execute("UPDATE users SET is_active=1 WHERE user_id=? AND role='jobseeker'", (uid,))
+    db.commit()
+    flash('Jobseeker account reactivated.', 'success')
     return redirect(url_for('applicants_list'))
 
 # ── REFERRALS (admin) ─────────────────────────────────────────────────────────
@@ -3502,8 +3547,8 @@ def user_add():
             errs.append('Please enter a valid email address.')
         if pw != conf:
             errs.append('Passwords do not match.')
-        if len(pw) < 8:
-            errs.append('Password must be at least 8 characters.')
+        if not _password_strong(pw):
+            errs.append('Password must be at least 8 characters and include both letters and numbers.')
         if errs:
             for e in errs:
                 flash(e, 'danger')
@@ -3548,8 +3593,8 @@ def user_edit(uid):
                 return render_template('users/form.html', user=dict(u), action='edit')
         try:
             if pw:
-                if len(pw) < 8:
-                    flash('Password must be at least 8 characters.', 'danger')
+                if not _password_strong(pw):
+                    flash('Password must be at least 8 characters and include both letters and numbers.', 'danger')
                     return render_template('users/form.html', user=dict(u), action='edit')
                 db.execute('UPDATE users SET full_name=?,email=?,password_hash=?,role=? WHERE user_id=?',
                            (name, mail, generate_password_hash(pw), new_role, uid))
@@ -3574,10 +3619,30 @@ def user_delete(uid):
     if not u:
         flash('User not found.', 'danger')
         return redirect(url_for('users_list'))
-    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
     db.execute('DELETE FROM users WHERE user_id=?', (uid,))
     db.commit()
     flash(f'Account for {u["full_name"]} ({u["email"]}) has been permanently deleted.', 'success')
+    return redirect(url_for('users_list'))
+
+@app.route('/users/<int:uid>/deactivate', methods=['POST'])
+@admin_required
+def user_deactivate(uid):
+    if uid == session['user_id']:
+        flash('You cannot deactivate your own account.', 'danger')
+        return redirect(url_for('users_list'))
+    db = get_db()
+    db.execute("UPDATE users SET is_active=0 WHERE user_id=? AND role='admin'", (uid,))
+    db.commit()
+    flash('Staff account deactivated.', 'warning')
+    return redirect(url_for('users_list'))
+
+@app.route('/users/<int:uid>/reactivate', methods=['POST'])
+@admin_required
+def user_reactivate(uid):
+    db = get_db()
+    db.execute("UPDATE users SET is_active=1 WHERE user_id=? AND role='admin'", (uid,))
+    db.commit()
+    flash('Staff account reactivated.', 'success')
     return redirect(url_for('users_list'))
 
 
@@ -3689,6 +3754,20 @@ def admin_employer_reject(eid):
     db.commit()
     return redirect(url_for('admin_employers'))
 
+@app.route('/admin/employers/<int:eid>/reactivate', methods=['POST'])
+@admin_required
+def admin_employer_reactivate(eid):
+    db  = get_db()
+    emp = db.execute('SELECT * FROM employers WHERE employer_id=?', (eid,)).fetchone()
+    if not emp:
+        flash('Employer not found.', 'danger')
+        return redirect(url_for('admin_employers'))
+    db.execute('UPDATE employers SET is_approved=1, approval_requested=1 WHERE employer_id=?', (eid,))
+    db.execute('UPDATE users SET is_active=1 WHERE user_id=?', (emp['user_id'],))
+    db.commit()
+    flash(f'Employer "{emp["company_name"]}" reactivated.', 'success')
+    return redirect(url_for('admin_employers'))
+
 @app.route('/admin/employers/<int:eid>/delete', methods=['POST'])
 @admin_required
 def admin_employer_delete(eid):
@@ -3707,7 +3786,6 @@ def admin_employer_delete(eid):
         db.execute('DELETE FROM referrals WHERE vacancy_id=?', (vid,))
     db.execute('DELETE FROM job_vacancies WHERE employer_id=?', (uid,))
     db.execute('DELETE FROM employers WHERE employer_id=?', (eid,))
-    db.execute('DELETE FROM login_logs WHERE user_id=?', (uid,))
     db.execute("DELETE FROM users WHERE user_id=? AND role='employer'", (uid,))
     db.commit()
     flash(f'Employer "{emp["company_name"]}" and all their postings have been permanently deleted.', 'success')
@@ -3717,6 +3795,7 @@ def admin_employer_delete(eid):
 # Disabled unless DEPLOY_WEBHOOK_SECRET is set (only done on the hosted server).
 # Optional: PESO_WSGI_FILE = path of the PythonAnywhere WSGI file to touch (reload).
 @app.route('/_deploy', methods=['POST'])
+@csrf.exempt
 def deploy_webhook():
     import hmac, hashlib, subprocess
 

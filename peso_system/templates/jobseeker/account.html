@@ -39,6 +39,7 @@
     <div class="card-body p-4">
       <p class="fw-semibold text-muted mb-3" style="font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;">Account details</p>
       <form method="POST" action="{{ url_for('jobseeker_account') }}" id="accountForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label fw-semibold">Display name</label>
@@ -103,6 +104,7 @@
       <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
         <button type="button" class="btn btn-outline-secondary px-4" data-coreui-dismiss="modal">Cancel</button>
         <form method="POST" action="{{ url_for('jobseeker_account_delete') }}" class="d-flex gap-2 align-items-center">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="text" id="deleteConfirm" class="form-control form-control-sm" style="width:130px;" placeholder="Type DELETE" autocomplete="off" />
           <button type="submit" id="deleteBtn" class="btn btn-danger px-4 fw-semibold" disabled><i class="bi bi-trash3 me-1"></i>Delete permanently</button>
         </form>

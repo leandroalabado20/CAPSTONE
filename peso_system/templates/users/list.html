@@ -67,6 +67,17 @@
                 <i class="bi bi-pencil"></i>
               </a>
               {% if u.user_id != session.user_id %}
+              {% if u.is_active != 0 %}
+              <form method="POST" action="{{ url_for('user_deactivate', uid=u.user_id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate"><i class="bi bi-pause-circle"></i></button>
+              </form>
+              {% else %}
+              <form method="POST" action="{{ url_for('user_reactivate', uid=u.user_id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivate"><i class="bi bi-play-circle"></i></button>
+              </form>
+              {% endif %}
               <button class="btn btn-sm btn-danger" title="Delete permanently"
                 data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
                 data-uid="{{ u.user_id }}"
@@ -108,11 +119,24 @@
       <div class="card-footer d-flex justify-content-between align-items-center gap-2 vac-actions">
         <a href="{{ url_for('user_edit', uid=u.user_id) }}" class="btn btn-sm btn-view-details" title="Edit"><i class="bi bi-pencil me-1"></i>Edit</a>
         {% if u.user_id != session.user_id %}
-        <button class="btn btn-sm btn-outline-danger px-3" title="Delete permanently"
-          data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
-          data-uid="{{ u.user_id }}" data-name="{{ u.full_name }}" data-email="{{ u.email }}">
-          <i class="bi bi-trash3-fill me-1"></i>Delete
-        </button>
+        <div class="d-flex gap-1">
+          {% if u.is_active != 0 %}
+          <form method="POST" action="{{ url_for('user_deactivate', uid=u.user_id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-warning px-2" title="Deactivate"><i class="bi bi-pause-circle"></i></button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('user_reactivate', uid=u.user_id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-success px-2" title="Reactivate"><i class="bi bi-play-circle"></i></button>
+          </form>
+          {% endif %}
+          <button class="btn btn-sm btn-outline-danger px-3" title="Delete permanently"
+            data-coreui-toggle="modal" data-coreui-target="#deleteUserModal"
+            data-uid="{{ u.user_id }}" data-name="{{ u.full_name }}" data-email="{{ u.email }}">
+            <i class="bi bi-trash3-fill me-1"></i>Delete
+          </button>
+        </div>
         {% endif %}
       </div>
     </div>
@@ -136,12 +160,13 @@
         <p class="text-center text-muted small mb-3" id="deleteUserUsername"></p>
         <div class="alert alert-danger mb-0 py-2 small">
           <i class="bi bi-exclamation-circle-fill me-1"></i>
-          This action cannot be undone. Login history will also be deleted.
+          This action cannot be undone. Login history is retained for audit purposes.
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
         <form id="deleteUserForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger">
             <i class="bi bi-trash3-fill me-1"></i>Delete Permanently
           </button>

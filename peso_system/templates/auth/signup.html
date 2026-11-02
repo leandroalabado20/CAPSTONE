@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5/dist/css/coreui.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="login-body d-flex align-items-center justify-content-center">
 
@@ -39,6 +40,7 @@
 
   {% set errs = errors if errors is defined and errors else {} %}
   <form method="POST" action="{{ url_for('register') }}" id="signup-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row g-2 mb-3">
       <div class="col-12 col-sm-6">
         <label class="form-label fw-semibold">First name</label>
@@ -80,11 +82,12 @@
       <div class="input-group">
         <span class="input-group-text"><i class="bi bi-lock"></i></span>
         <input type="password" name="password" id="pw" class="form-control"
-               placeholder="At least 8 characters" required minlength="8" maxlength="64" autocomplete="new-password" />
+               placeholder="At least 8 characters with letters and numbers" required minlength="8" maxlength="64" autocomplete="new-password" />
         <button type="button" class="btn btn-outline-secondary" onclick="togglePw()">
           <i class="bi bi-eye" id="pw-eye"></i>
         </button>
       </div>
+      <small class="form-text text-muted">At least 8 characters with letters and numbers.</small>
     </div>
 
     <label class="form-label fw-semibold">I am a</label>

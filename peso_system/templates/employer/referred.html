@@ -33,6 +33,7 @@
 
 {% if referrals %}
 <form method="POST" action="{{ url_for('employer_referred_reject') }}" id="bulk-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 <input type="hidden" name="fit" value="{{ fit }}">
 <div class="card apps-card" style="overflow:hidden;">
   <div class="table-responsive">

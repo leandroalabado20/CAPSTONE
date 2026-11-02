@@ -137,6 +137,7 @@
 {% endif %}
 
 <form method="POST" action="{{ url_for('jobseeker_profile') }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <!-- Photo crop modal -->
   <div class="crop-modal" id="crop-modal" role="dialog" aria-modal="true" aria-label="Crop profile photo">
@@ -990,7 +991,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var err = document.getElementById('photo-error'), hint = document.getElementById('photo-hint');
       err.textContent = '';
       saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
-      fetch("{{ url_for('jobseeker_profile_photo') }}", { method: 'POST', body: fd, credentials: 'same-origin' })
+      fetch("{{ url_for('jobseeker_profile_photo') }}", { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content } })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (!d.ok) { err.textContent = d.error || 'Could not save the photo.'; return; }

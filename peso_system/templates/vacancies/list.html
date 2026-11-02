@@ -97,6 +97,7 @@
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
               <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.vacancy_id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn btn-sm {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
                         title="{% if v.is_active %}Deactivate — hide from job seekers{% else %}Reactivate{% endif %}"
                         onclick="return confirm('{% if v.is_active %}Deactivate this vacancy? It will be hidden from job seekers.{% else %}Reactivate this vacancy?{% endif %}')">
@@ -143,6 +144,7 @@
       </div>
       <div class="card-footer bg-transparent d-flex justify-content-between align-items-center gap-2 pt-2 vac-actions">
         <form method="POST" action="{{ url_for('vacancy_toggle', vid=v.vacancy_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="btn btn-sm px-3 {% if v.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
                   title="{% if v.is_active %}Deactivate — hide from job seekers{% else %}Reactivate{% endif %}"
                   onclick="return confirm('{% if v.is_active %}Deactivate this vacancy? It will be hidden from job seekers.{% else %}Reactivate this vacancy?{% endif %}')">
@@ -198,6 +200,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
         <form id="deleteVacancyForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill me-1"></i>Delete Permanently</button>
         </form>
       </div>

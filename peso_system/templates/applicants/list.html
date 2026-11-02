@@ -105,6 +105,19 @@
           <td class="text-center">
             <div class="d-flex gap-1 justify-content-center">
               <a href="{{ url_for('applicant_view', aid=ap.applicant_id) }}" class="btn btn-sm btn-outline-primary" title="View details"><i class="bi bi-eye"></i></a>
+              {% if ap.user_id %}
+              {% if ap.user_is_active != 0 %}
+              <form method="POST" action="{{ url_for('admin_jobseeker_deactivate', uid=ap.user_id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate account"><i class="bi bi-pause-circle"></i></button>
+              </form>
+              {% else %}
+              <form method="POST" action="{{ url_for('admin_jobseeker_reactivate', uid=ap.user_id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivate account"><i class="bi bi-play-circle"></i></button>
+              </form>
+              {% endif %}
+              {% endif %}
               <button class="btn btn-sm btn-danger" title="Delete permanently"
                 data-coreui-toggle="modal" data-coreui-target="#deleteModal"
                 data-aid="{{ ap.applicant_id }}"
@@ -148,6 +161,19 @@
         <a href="{{ url_for('applicant_view', aid=ap.applicant_id) }}" class="btn btn-sm btn-view-details flex-fill" title="View details">
           <i class="bi bi-eye me-1"></i>View
         </a>
+        {% if ap.user_id %}
+        {% if ap.user_is_active != 0 %}
+        <form method="POST" action="{{ url_for('admin_jobseeker_deactivate', uid=ap.user_id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate account"><i class="bi bi-pause-circle"></i></button>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('admin_jobseeker_reactivate', uid=ap.user_id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivate account"><i class="bi bi-play-circle"></i></button>
+        </form>
+        {% endif %}
+        {% endif %}
         <button class="btn btn-sm btn-outline-danger" title="Delete permanently"
           data-coreui-toggle="modal" data-coreui-target="#deleteModal"
           data-aid="{{ ap.applicant_id }}"
@@ -212,6 +238,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
         <form id="deleteForm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill me-1"></i>Delete Permanently</button>
         </form>
       </div>

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}User Accounts{% endblock %}
+{% block page_title %}<i class="bi bi-people me-2"></i>User Accounts{% endblock %}
+
+{% block content %}
+<div class="card mb-4 ap-toolbar">
+  <div class="card-body px-4 py-3">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <div>
+        <div class="fw-bold">User Accounts</div>
+        <div class="text-muted small"><i class="bi bi-shield-lock me-1"></i>All registered accounts &middot; {{ '{:,}'.format(total) }} user{{ 's' if total != 1 else '' }}</div>
+      </div>
+      <form method="GET" class="d-flex gap-2 ms-auto flex-wrap align-items-center">
+        <input type="hidden" name="role" value="{{ role }}" />
+        <div class="input-group" style="width:280px;max-width:100%;">
+          <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" name="search" value="{{ search }}" class="form-control border-start-0" placeholder="Search name or email…" />
+        </div>
+        <button class="btn btn-primary px-4">Search</button>
+        {% if search %}<a href="{{ url_for('all_users_list', role=role) }}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+      </form>
+    </div>
+    <hr class="my-3" style="border-color:#eef2f7;opacity:1;" />
+    <div class="d-flex flex-wrap align-items-center gap-2 emp-filter">
+      <span class="ap-flbl">Role</span>
+      {% set all_count = (counts.get('admin',0) + counts.get('jobseeker',0) + counts.get('employer',0)) %}
+      {% for key, label, cnt in [
+          ('all',      'All',       all_count),
+          ('admin',    'Admin',     counts.get('admin',0)),
+          ('jobseeker','Jobseeker', counts.get('jobseeker',0)),
+          ('employer', 'Employer',  counts.get('employer',0))
+      ] %}
+      <a href="{{ url_for('all_users_list', role=key, search=search or none) }}"
+         class="btn btn-sm {% if role == key %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        {{ label }}
+        <span class="badge {% if role == key %}bg-white text-primary{% else %}bg-secondary-subtle text-secondary-emphasis{% endif %} ms-1">{{ cnt }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card apps-card" style="overflow:hidden;">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 apps-table">
+      <thead>
+        <tr>
+          <th class="px-4">Name</th>
+          <th>Email</th>
+          <th class="text-center">Role</th>
+          <th class="text-center">Status</th>
+          <th class="text-end px-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="px-4">
+            <div class="d-flex align-items-center gap-3">
+              <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                    style="width:36px;height:36px;border-radius:50%;background:#e0ebff;color:#1d4ed8;font-weight:700;font-size:.78rem;">
+                {% set nm = (u.full_name or '?').split() %}{{ nm[0][0]|upper }}{{ nm[-1][0]|upper if nm|length > 1 else '' }}
+              </span>
+              <span class="fw-semibold">{{ u.full_name or '—' }}</span>
+            </div>
+          </td>
+          <td class="text-muted small">{{ u.email }}</td>
+          <td class="text-center">
+            {% if u.role == 'admin' %}
+              <span class="badge bg-primary-subtle text-primary-emphasis"><i class="bi bi-shield-fill me-1"></i>Admin</span>
+            {% elif u.role == 'jobseeker' %}
+              <span class="badge bg-info-subtle text-info-emphasis"><i class="bi bi-person-fill me-1"></i>Jobseeker</span>
+            {% elif u.role == 'employer' %}
+              <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-building me-1"></i>Employer</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ u.role }}</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if u.is_active %}
+              <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle-fill me-1"></i>Active</span>
+            {% else %}
+              <span class="badge bg-danger-subtle text-danger-emphasis"><i class="bi bi-x-circle-fill me-1"></i>Inactive</span>
+            {% endif %}
+          </td>
+          <td class="text-end px-4">
+            <button type="button" class="btn btn-sm btn-outline-warning"
+                    data-coreui-toggle="modal" data-coreui-target="#rpModal{{ u.user_id }}">
+              <i class="bi bi-key me-1"></i>Reset Password
+            </button>
+          </td>
+        </tr>
+
+        <!-- Reset Password Modal -->
+        <div class="modal fade" id="rpModal{{ u.user_id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+            <div class="modal-content border-0" style="border-radius:20px;">
+              <div class="modal-body px-4 pt-4 pb-2">
+                <h5 class="fw-bold mb-1"><i class="bi bi-key me-2 text-warning"></i>Reset Password</h5>
+                <p class="text-muted small mb-3">Set a new password for <strong>{{ u.full_name }}</strong> ({{ u.email }}). Minimum 8 characters with letters and numbers.</p>
+                <form method="POST" action="{{ url_for('user_reset_password', uid=u.user_id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">New Password</label>
+                    <input type="password" name="new_password" class="form-control" required minlength="8" placeholder="Enter new password" />
+                  </div>
+                  <div class="d-flex gap-2 pb-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-coreui-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning flex-fill fw-semibold">Reset Password</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-5">
+            <i class="bi bi-inbox" style="font-size:2rem;"></i>
+            <p class="mt-2 mb-0">No accounts found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer text-muted small px-4 py-3">
+    {% if pages > 1 %}Page {{ page }} of {{ pages }} &middot; {% endif %}Showing {{ users|length }} of {{ '{:,}'.format(total) }} user{{ 's' if total != 1 else '' }}
+  </div>
+</div>
+
+{% if pages > 1 %}
+{% set win_start = [1, page - 2]|max %}{% set win_end = [pages, page + 2]|min %}
+<nav class="mt-3 d-flex justify-content-center"><ul class="pagination mb-0">
+  <li class="page-item {% if page <= 1 %}disabled{% endif %}"><a class="page-link" href="{{ url_for('all_users_list', page=page-1, role=role, search=search or none) }}">&lsaquo;</a></li>
+  {% for p in range(win_start, win_end + 1) %}
+  <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="{{ url_for('all_users_list', page=p, role=role, search=search or none) }}">{{ p }}</a></li>
+  {% endfor %}
+  <li class="page-item {% if page >= pages %}disabled{% endif %}"><a class="page-link" href="{{ url_for('all_users_list', page=page+1, role=role, search=search or none) }}">&rsaquo;</a></li>
+</ul></nav>
+{% endif %}
+{% endblock %}

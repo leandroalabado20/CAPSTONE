@@ -3526,6 +3526,37 @@ def vacancy_delete(vid):
     return redirect(url_for('vacancies_list'))
 
 # ── USERS ─────────────────────────────────────────────────────────────────────
+@app.route('/users/all')
+@admin_required
+def all_users_list():
+    db     = get_db()
+    role   = request.args.get('role', 'all')
+    search = request.args.get('search', '').strip()
+    page   = max(1, int(request.args.get('page', 1)))
+    per    = 20
+
+    conds, params = [], []
+    if role != 'all':
+        conds.append('u.role = ?')
+        params.append(role)
+    if search:
+        conds.append('(lower(u.full_name) LIKE ? OR lower(u.email) LIKE ?)')
+        params += [f'%{search.lower()}%', f'%{search.lower()}%']
+
+    where = ('WHERE ' + ' AND '.join(conds)) if conds else ''
+    total = db.execute(f'SELECT COUNT(*) FROM users u {where}', params).fetchone()[0]
+    pages = max(1, (total + per - 1) // per)
+    rows  = db.execute(
+        f'SELECT u.* FROM users u {where} ORDER BY u.full_name LIMIT ? OFFSET ?',
+        params + [per, (page - 1) * per]
+    ).fetchall()
+    counts = {r['role']: r['cnt'] for r in db.execute(
+        "SELECT role, COUNT(*) AS cnt FROM users GROUP BY role"
+    ).fetchall()}
+    return render_template('users/all_users.html', users=rows, role=role,
+                           search=search, page=page, pages=pages, total=total,
+                           counts=counts)
+
 @app.route('/users')
 @admin_required
 def users_list():

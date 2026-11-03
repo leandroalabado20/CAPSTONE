@@ -1599,13 +1599,14 @@ def login():
                        (uid, log_name, ip, 'denied_throttled'))
             db.commit()
             flash('Too many failed sign-in attempts. Please wait 2 minutes and try again.', 'danger')
-            return render_template('login.html', throttled=True), 429
+            return redirect(url_for('login', throttled=1))
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
                            (user['user_id'], log_name, ip, 'denied_inactive'))
                 db.commit()
                 flash('Your account is deactivated. Contact an administrator.', 'danger')
+                return redirect(url_for('login'))
             else:
                 session.clear()
                 session['user_id']   = user['user_id']
@@ -1627,7 +1628,9 @@ def login():
                        (uid, log_name, ip, 'failed'))
             db.commit()
             flash('Invalid email or password.', 'danger')
-    return render_template('login.html')
+            return redirect(url_for('login'))
+    throttled = request.args.get('throttled') == '1'
+    return render_template('login.html', throttled=throttled)
 
 # ── CACHE / BACK-BUTTON PROTECTION ────────────────────────────────────────────
 @app.after_request

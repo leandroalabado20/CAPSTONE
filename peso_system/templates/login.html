@@ -110,7 +110,7 @@
       cd.textContent = m + ':' + (s < 10 ? '0' : '') + s;
       if (secs <= 0) {
         clearInterval(timer);
-        location.reload();
+        window.location.replace("{{ url_for('login') }}");
       }
     }, 1000);
   })();

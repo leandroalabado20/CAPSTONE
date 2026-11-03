@@ -1582,14 +1582,18 @@ def login():
         db       = get_db()
         user     = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
         log_name = email
-        # Throttle brute-force guessing: too many recent failures for this email or from this address
+        # Throttle brute-force guessing: too many recent failures for this email or from this address,
+        # or this IP already triggered a lockout within the last 2 minutes (blocks switching emails)
         recent_email = db.execute(
             "SELECT COUNT(*) FROM login_logs WHERE username=? AND outcome='failed' AND timestamp >= datetime('now','-2 minutes')",
             (email,)).fetchone()[0]
         recent_ip = db.execute(
             "SELECT COUNT(*) FROM login_logs WHERE ip_address=? AND outcome='failed' AND timestamp >= datetime('now','-2 minutes')",
             (ip,)).fetchone()[0]
-        if recent_email >= 5 or recent_ip >= 20:
+        ip_already_locked = db.execute(
+            "SELECT COUNT(*) FROM login_logs WHERE ip_address=? AND outcome='denied_throttled' AND timestamp >= datetime('now','-2 minutes')",
+            (ip,)).fetchone()[0]
+        if recent_email >= 5 or recent_ip >= 20 or ip_already_locked > 0:
             uid = user['user_id'] if user else None
             db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
                        (uid, log_name, ip, 'denied_throttled'))

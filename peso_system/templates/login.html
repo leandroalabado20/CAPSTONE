@@ -38,14 +38,22 @@
     {% endfor %}
   {% endwith %}
 
-  <form method="POST" action="{{ url_for('login') }}">
+  {% if throttled %}
+  <div class="alert alert-warning text-center mb-3 py-3" id="throttle-banner">
+    <i class="bi bi-shield-lock-fill me-1"></i>
+    Account locked. Try again in <strong id="countdown">2:00</strong>
+  </div>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('login') }}" id="login-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
       <label class="form-label fw-semibold">Email address</label>
       <div class="input-group">
         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
         <input type="email" name="email" class="form-control" placeholder="Enter email address"
-               required autofocus autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="254" />
+               required autofocus autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="254"
+               {% if throttled %}disabled{% endif %} />
       </div>
     </div>
     <div class="mb-4">
@@ -53,13 +61,15 @@
       <div class="input-group">
         <span class="input-group-text"><i class="bi bi-lock"></i></span>
         <input type="password" name="password" id="pw" class="form-control"
-               placeholder="Enter password" required autocomplete="current-password" />
+               placeholder="Enter password" required autocomplete="current-password"
+               {% if throttled %}disabled{% endif %} />
         <button type="button" class="btn btn-outline-secondary" onclick="togglePw()">
           <i class="bi bi-eye" id="pw-eye"></i>
         </button>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary w-100 fw-semibold login-signin">
+    <button type="submit" class="btn btn-primary w-100 fw-semibold login-signin"
+            {% if throttled %}disabled{% endif %}>
       <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
     </button>
   </form>
@@ -88,6 +98,23 @@
       eye.className = 'bi bi-eye';
     }
   }
+
+  {% if throttled %}
+  (function () {
+    var secs = 120;
+    var cd   = document.getElementById('countdown');
+    var timer = setInterval(function () {
+      secs--;
+      var m = Math.floor(secs / 60);
+      var s = secs % 60;
+      cd.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      if (secs <= 0) {
+        clearInterval(timer);
+        location.reload();
+      }
+    }, 1000);
+  })();
+  {% endif %}
 </script>
 </body>
 </html>

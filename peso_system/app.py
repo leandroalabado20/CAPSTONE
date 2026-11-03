@@ -1599,7 +1599,7 @@ def login():
                        (uid, log_name, ip, 'denied_throttled'))
             db.commit()
             flash('Too many failed sign-in attempts. Please wait 2 minutes and try again.', 'danger')
-            return render_template('login.html'), 429
+            return render_template('login.html', throttled=True), 429
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',

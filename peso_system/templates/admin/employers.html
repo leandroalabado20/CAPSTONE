@@ -83,11 +83,38 @@
         </form>
         {% endif %}
         {% endif %}
+        <button type="button" class="btn btn-sm btn-outline-warning px-3"
+                data-coreui-toggle="modal" data-coreui-target="#resetPwModal{{ e.employer_id }}"
+                title="Reset account password">
+          <i class="bi bi-key me-1"></i>Reset Password
+        </button>
         <form method="POST" action="{{ url_for('admin_employer_delete', eid=e.employer_id) }}" class="ms-auto"
               onsubmit="return confirm('Permanently delete {{ e.company_name }}? This removes their account and ALL their job postings. This cannot be undone.')">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-sm btn-outline-danger px-3" title="Delete account permanently"><i class="bi bi-trash3-fill me-1"></i>Delete</button>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="resetPwModal{{ e.employer_id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+      <div class="modal-content border-0" style="border-radius:20px;">
+        <div class="modal-body px-4 pt-4 pb-2">
+          <h5 class="fw-bold mb-1"><i class="bi bi-key me-2 text-warning"></i>Reset Password</h5>
+          <p class="text-muted small mb-3">Set a new password for <strong>{{ e.company_name or e.email }}</strong>. Minimum 8 characters with letters and numbers.</p>
+          <form method="POST" action="{{ url_for('user_reset_password', uid=e.user_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">New Password</label>
+              <input type="password" name="new_password" class="form-control" required minlength="8" placeholder="Enter new password" />
+            </div>
+            <div class="d-flex gap-2 pb-2">
+              <button type="button" class="btn btn-outline-secondary flex-fill" data-coreui-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-warning flex-fill fw-semibold">Reset Password</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

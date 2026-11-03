@@ -3612,6 +3612,24 @@ def user_edit(uid):
             flash('That email is already registered.', 'danger')
     return render_template('users/form.html', user=dict(u), action='edit')
 
+@app.route('/users/<int:uid>/reset-password', methods=['POST'])
+@admin_required
+def user_reset_password(uid):
+    db   = get_db()
+    user = db.execute('SELECT * FROM users WHERE user_id=?', (uid,)).fetchone()
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(request.referrer or url_for('home'))
+    pw = request.form.get('new_password', '')
+    if not _password_strong(pw):
+        flash('Password must be at least 8 characters and include both letters and numbers.', 'danger')
+        return redirect(request.referrer or url_for('home'))
+    db.execute('UPDATE users SET password_hash=? WHERE user_id=?',
+               (generate_password_hash(pw), uid))
+    db.commit()
+    flash(f'Password for {user["full_name"]} has been reset successfully.', 'success')
+    return redirect(request.referrer or url_for('home'))
+
 @app.route('/users/<int:uid>/delete', methods=['POST'])
 @admin_required
 def user_delete(uid):

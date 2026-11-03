@@ -101,7 +101,7 @@
 
   {% if throttled %}
   (function () {
-    var secs = 120;
+    var secs = {{ remaining }};
     var cd   = document.getElementById('countdown');
     var timer = setInterval(function () {
       secs--;

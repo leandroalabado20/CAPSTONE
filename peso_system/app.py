@@ -1599,8 +1599,7 @@ def login():
                        (uid, log_name, ip, 'denied_throttled'))
             db.commit()
             flash('Too many failed sign-in attempts. Please wait 2 minutes and try again.', 'danger')
-            import time as _time
-            return redirect(url_for('login', throttled=1, ts=int(_time.time())))
+            return redirect(url_for('login', throttled=1))
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
                 db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
@@ -1631,12 +1630,7 @@ def login():
             flash('Invalid email or password.', 'danger')
             return redirect(url_for('login'))
     throttled = request.args.get('throttled') == '1'
-    remaining = 120
-    if throttled:
-        import time as _time
-        ts = request.args.get('ts', type=int, default=0)
-        remaining = max(0, 120 - int(_time.time() - ts)) if ts else 120
-    return render_template('login.html', throttled=throttled, remaining=remaining)
+    return render_template('login.html', throttled=throttled)
 
 # ── CACHE / BACK-BUTTON PROTECTION ────────────────────────────────────────────
 @app.after_request

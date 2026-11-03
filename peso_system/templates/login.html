@@ -101,15 +101,37 @@
 
   {% if throttled %}
   (function () {
-    var secs = {{ remaining }};
-    var cd   = document.getElementById('countdown');
+    var LOCK = 120;
+    var KEY  = 'peso_lockout_start';
+    var now  = Math.floor(Date.now() / 1000);
+    var start = parseInt(sessionStorage.getItem(KEY) || '0', 10);
+
+    if (!start || (now - start) >= LOCK) {
+      start = now;
+      sessionStorage.setItem(KEY, start);
+    }
+
+    var secs = Math.max(0, LOCK - (now - start));
+
+    if (secs <= 0) {
+      sessionStorage.removeItem(KEY);
+      window.location.replace("{{ url_for('login') }}");
+      return;
+    }
+
+    var cd = document.getElementById('countdown');
+    function fmt(s) {
+      var m = Math.floor(s / 60);
+      return m + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+    }
+    cd.textContent = fmt(secs);
+
     var timer = setInterval(function () {
       secs--;
-      var m = Math.floor(secs / 60);
-      var s = secs % 60;
-      cd.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      cd.textContent = fmt(secs);
       if (secs <= 0) {
         clearInterval(timer);
+        sessionStorage.removeItem(KEY);
         window.location.replace("{{ url_for('login') }}");
       }
     }, 1000);

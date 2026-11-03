@@ -1593,7 +1593,7 @@ def login():
         ip_already_locked = db.execute(
             "SELECT COUNT(*) FROM login_logs WHERE ip_address=? AND outcome='denied_throttled' AND timestamp >= datetime('now','-2 minutes')",
             (ip,)).fetchone()[0]
-        if recent_email >= 5 or recent_ip >= 20 or ip_already_locked > 0:
+        if recent_email >= 4 or recent_ip >= 20 or ip_already_locked > 0:
             uid = user['user_id'] if user else None
             db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
                        (uid, log_name, ip, 'denied_throttled'))

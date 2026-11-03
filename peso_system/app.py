@@ -1584,13 +1584,17 @@ def login():
         log_name = email
         # Throttle brute-force guessing: too many recent failures for this email or from this address
         recent_email = db.execute(
-            "SELECT COUNT(*) FROM login_logs WHERE username=? AND outcome='failed' AND timestamp >= datetime('now','-15 minutes')",
+            "SELECT COUNT(*) FROM login_logs WHERE username=? AND outcome='failed' AND timestamp >= datetime('now','-2 minutes')",
             (email,)).fetchone()[0]
         recent_ip = db.execute(
-            "SELECT COUNT(*) FROM login_logs WHERE ip_address=? AND outcome='failed' AND timestamp >= datetime('now','-15 minutes')",
+            "SELECT COUNT(*) FROM login_logs WHERE ip_address=? AND outcome='failed' AND timestamp >= datetime('now','-2 minutes')",
             (ip,)).fetchone()[0]
         if recent_email >= 5 or recent_ip >= 20:
-            flash('Too many failed sign-in attempts. Please wait 15 minutes and try again.', 'danger')
+            uid = user['user_id'] if user else None
+            db.execute('INSERT INTO login_logs (user_id,username,ip_address,outcome) VALUES (?,?,?,?)',
+                       (uid, log_name, ip, 'denied_throttled'))
+            db.commit()
+            flash('Too many failed sign-in attempts. Please wait 2 minutes and try again.', 'danger')
             return render_template('login.html'), 429
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
@@ -3664,7 +3668,7 @@ def login_history():
     elif outcome == 'failed':
         conds.append("ll.outcome='failed'")
     elif outcome == 'denied':
-        conds.append("ll.outcome='denied_inactive'")
+        conds.append("ll.outcome IN ('denied_inactive','denied_throttled')")
     if date_from:
         conds.append("date(ll.timestamp, '+8 hours') >= ?")
         params.append(date_from)
@@ -3685,6 +3689,49 @@ def login_history():
     return render_template('users/login_history.html', logs=logs, search=search, outcome=outcome,
                            date_from=date_from, date_to=date_to, total=total, ok_count=ok_count,
                            bad_count=total - ok_count, page=page, pages=pages)
+
+
+@app.route('/users/recommendation-log')
+@admin_required
+def recommendation_log():
+    db = get_db()
+    search = request.args.get('search', '').strip()
+    date_from = request.args.get('date_from', '').strip()
+    date_to = request.args.get('date_to', '').strip()
+    conds, params = [], []
+    if search:
+        like = f'%{search}%'
+        conds.append('(a.first_name LIKE ? OR a.last_name LIKE ? OR jv.job_title LIKE ? OR jv.employer_name LIKE ?)')
+        params += [like, like, like, like]
+    if date_from:
+        conds.append("date(r.recommended_at, '+8 hours') >= ?")
+        params.append(date_from)
+    if date_to:
+        conds.append("date(r.recommended_at, '+8 hours') <= ?")
+        params.append(date_to)
+    where = ('WHERE ' + ' AND '.join(conds)) if conds else ''
+    base = (
+        'FROM recommendations r '
+        'JOIN applicants a     ON r.applicant_id = a.applicant_id '
+        'JOIN job_vacancies jv ON r.vacancy_id   = jv.vacancy_id '
+        'LEFT JOIN users u     ON r.generated_by = u.user_id '
+        f'{where}'
+    )
+    total = db.execute(f'SELECT COUNT(*) {base}', params).fetchone()[0]
+    page  = max(1, request.args.get('page', 1, type=int))
+    pages = max(1, (total + LIST_PER_PAGE - 1) // LIST_PER_PAGE)
+    page  = min(page, pages)
+    recs  = db.execute(
+        f'SELECT r.recommendation_id, r.suitability_score, r.rank, r.recommended_at, '
+        f'       a.first_name, a.last_name, '
+        f'       jv.job_title, jv.employer_name, '
+        f'       u.full_name AS generated_by_name '
+        f'{base} ORDER BY r.recommended_at DESC LIMIT ? OFFSET ?',
+        params + [LIST_PER_PAGE, (page - 1) * LIST_PER_PAGE]
+    ).fetchall()
+    return render_template('users/recommendation_log.html', recs=recs, search=search,
+                           date_from=date_from, date_to=date_to,
+                           total=total, page=page, pages=pages)
 
 # ── ADMIN — EMPLOYER APPROVALS ────────────────────────────────────────────────
 @app.route('/admin/employers')

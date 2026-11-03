@@ -72,6 +72,8 @@
               <span class="badge bg-danger-subtle text-danger-emphasis"><i class="bi bi-x-circle-fill me-1"></i>Failed</span>
             {% elif log.outcome == 'denied_inactive' %}
               <span class="badge bg-warning-subtle text-warning-emphasis"><i class="bi bi-slash-circle-fill me-1"></i>Denied (inactive)</span>
+            {% elif log.outcome == 'denied_throttled' %}
+              <span class="badge bg-danger-subtle text-danger-emphasis"><i class="bi bi-shield-exclamation me-1"></i>Denied (throttled)</span>
             {% else %}
               <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ log.outcome }}</span>
             {% endif %}

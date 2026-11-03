@@ -98,17 +98,10 @@
 
     {% if session_role == 'admin' %}
     <li class="nav-item">
-      <a class="nav-link {% if request.endpoint == 'all_users_list' %}active{% endif %}"
+      <a class="nav-link {% if request.endpoint in ['all_users_list','users_list','user_add','user_edit'] %}active{% endif %}"
          href="{{ url_for('all_users_list') }}">
         <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
         User Accounts
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.endpoint in ['users_list','user_add','user_edit'] %}active{% endif %}"
-         href="{{ url_for('users_list') }}">
-        <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
-        Admin Accounts
       </a>
     </li>
     {% endif %}
